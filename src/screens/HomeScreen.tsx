@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { getFeeds, getGrowthStage, getLatestFeed, getDiapers } from '../api/babyLogApi'
+import { getBabies, getDiapers, getGrowthStage, getLatestFeed } from '../api/babyLogApi'
 import { getStoredBabyId, getStoredFamilyId } from '../api/client'
+import { scheduleFeedNotification } from '../hooks/useFeedNotification'
 import type { FeedRecord, GrowthStage, DiaperRecord } from '../types'
 
 function timeSince(isoString: string): string {
@@ -45,13 +46,21 @@ export default function HomeScreen({ navigation }: any) {
       setFamilyId(fid)
       if (!bid || !fid) { setLoading(false); return }
 
-      const [feed, diaper, stage] = await Promise.allSettled([
+      const [feed, diaper, stage, babies] = await Promise.allSettled([
         getLatestFeed(bid),
         getDiapers(bid, 1),
         getGrowthStage(bid, fid),
+        getBabies(fid),
       ])
 
-      if (feed.status === 'fulfilled') setLatestFeed(feed.value)
+      if (feed.status === 'fulfilled' && feed.value) {
+        setLatestFeed(feed.value)
+        // 앱 재시작 시에도 알림 재동기화
+        const babyName = babies.status === 'fulfilled'
+          ? babies.value.find(b => b.id === bid)?.name
+          : undefined
+        await scheduleFeedNotification(feed.value.nextFeedAt, babyName)
+      }
       if (diaper.status === 'fulfilled' && diaper.value.length > 0)
         setLatestDiaper(diaper.value[0])
       if (stage.status === 'fulfilled') setGrowthStage(stage.value)

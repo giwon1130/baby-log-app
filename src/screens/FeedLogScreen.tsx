@@ -8,8 +8,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { getFeeds, recordFeed } from '../api/babyLogApi'
-import { getStoredBabyId } from '../api/client'
+import { getBabies, getFeeds, recordFeed } from '../api/babyLogApi'
+import { getStoredBabyId, getStoredFamilyId } from '../api/client'
+import { scheduleFeedNotification } from '../hooks/useFeedNotification'
 import type { FeedRecord } from '../types'
 
 const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
@@ -28,6 +29,7 @@ function formatTime(iso: string): string {
 
 export default function FeedLogScreen() {
   const [babyId, setBabyId] = useState<string | null>(null)
+  const [babyName, setBabyName] = useState<string | undefined>(undefined)
   const [feeds, setFeeds] = useState<FeedRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -39,10 +41,15 @@ export default function FeedLogScreen() {
   useEffect(() => {
     const init = async () => {
       const bid = await getStoredBabyId()
+      const fid = await getStoredFamilyId()
       setBabyId(bid)
-      if (bid) {
-        const data = await getFeeds(bid)
+      if (bid && fid) {
+        const [data, babies] = await Promise.all([
+          getFeeds(bid),
+          getBabies(fid),
+        ])
         setFeeds(data)
+        setBabyName(babies.find(b => b.id === bid)?.name)
       }
       setLoading(false)
     }
@@ -61,6 +68,8 @@ export default function FeedLogScreen() {
       setFeeds(prev => [record, ...prev])
       setAmount('')
       setNote('')
+      // 다음 수유 알림 스케줄
+      await scheduleFeedNotification(record.nextFeedAt, babyName)
     } finally {
       setSubmitting(false)
     }

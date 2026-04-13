@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react'
-import { NavigationContainer } from '@react-navigation/native'
+import React, { useEffect, useRef, useState } from 'react'
+import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { Ionicons } from '@expo/vector-icons'
+import * as Notifications from 'expo-notifications'
 
 import HomeScreen from './src/screens/HomeScreen'
 import FeedLogScreen from './src/screens/FeedLogScreen'
@@ -10,6 +11,7 @@ import DiaperLogScreen from './src/screens/DiaperLogScreen'
 import BabyProfileScreen from './src/screens/BabyProfileScreen'
 import FamilySetupScreen from './src/screens/FamilySetupScreen'
 import { getStoredFamilyId } from './src/api/client'
+import { requestNotificationPermission } from './src/hooks/useFeedNotification'
 
 const Tab = createBottomTabNavigator()
 const Stack = createNativeStackNavigator()
@@ -44,19 +46,39 @@ function MainTabs() {
 
 export default function App() {
   const [initialRoute, setInitialRoute] = useState<string | null>(null)
+  const navigationRef = useRef<NavigationContainerRef<any>>(null)
+  const notificationListenerRef = useRef<Notifications.EventSubscription | null>(null)
+  const responseListenerRef = useRef<Notifications.EventSubscription | null>(null)
 
   useEffect(() => {
-    const checkSetup = async () => {
+    const init = async () => {
       const familyId = await getStoredFamilyId()
       setInitialRoute(familyId ? 'Main' : 'FamilySetup')
+      await requestNotificationPermission()
     }
-    checkSetup()
+    init()
+
+    // 포그라운드에서 알림 수신 시 (앱이 열려있는 상태)
+    notificationListenerRef.current = Notifications.addNotificationReceivedListener(() => {
+      // 홈 탭으로 이동해 데이터 새로고침 유도
+      navigationRef.current?.navigate('Main', { screen: 'Home' })
+    })
+
+    // 알림 탭해서 앱 열 때
+    responseListenerRef.current = Notifications.addNotificationResponseReceivedListener(() => {
+      navigationRef.current?.navigate('Main', { screen: 'Home' })
+    })
+
+    return () => {
+      notificationListenerRef.current?.remove()
+      responseListenerRef.current?.remove()
+    }
   }, [])
 
   if (!initialRoute) return null
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
         <Stack.Screen name="FamilySetup" component={FamilySetupScreen} />
         <Stack.Screen name="Main" component={MainTabs} />

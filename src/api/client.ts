@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import Constants from 'expo-constants'
 
-const BASE_URL = 'http://localhost:8092'
+const BASE_URL: string = Constants.expoConfig?.extra?.apiBaseUrl ?? 'http://localhost:8092'
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${BASE_URL}${path}`, {
