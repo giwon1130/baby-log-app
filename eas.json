@@ -17,13 +17,13 @@
         "simulator": false
       },
       "env": {
-        "BABY_LOG_API_URL": "https://api.babylog.app"
+        "BABY_LOG_API_URL": "https://baby-log-api-production.up.railway.app"
       }
     },
     "production": {
       "autoIncrement": true,
       "env": {
-        "BABY_LOG_API_URL": "https://api.babylog.app"
+        "BABY_LOG_API_URL": "https://baby-log-api-production.up.railway.app"
       }
     }
   },
