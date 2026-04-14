@@ -10,6 +10,7 @@ import FeedLogScreen from './src/screens/FeedLogScreen'
 import DiaperLogScreen from './src/screens/DiaperLogScreen'
 import SleepScreen from './src/screens/SleepScreen'
 import GrowthRecordScreen from './src/screens/GrowthRecordScreen'
+import StatsScreen from './src/screens/StatsScreen'
 import BabyProfileScreen from './src/screens/BabyProfileScreen'
 import FamilySetupScreen from './src/screens/FamilySetupScreen'
 import { getStoredFamilyId } from './src/api/client'
@@ -33,7 +34,8 @@ function MainTabs() {
             FeedLog: 'water',
             DiaperLog: 'shirt',
             Sleep: 'moon',
-            Growth: 'bar-chart',
+            Growth: 'trending-up',
+            Stats: 'bar-chart',
             BabyProfile: 'person',
           }
           return <Ionicons name={icons[route.name]} size={size} color={color} />
@@ -45,6 +47,7 @@ function MainTabs() {
       <Tab.Screen name="DiaperLog" component={DiaperLogScreen} options={{ title: '기저귀' }} />
       <Tab.Screen name="Sleep" component={SleepScreen} options={{ title: '수면' }} />
       <Tab.Screen name="Growth" component={GrowthRecordScreen} options={{ title: '성장' }} />
+      <Tab.Screen name="Stats" component={StatsScreen} options={{ title: '통계' }} />
       <Tab.Screen name="BabyProfile" component={BabyProfileScreen} options={{ title: '아기' }} />
     </Tab.Navigator>
   )

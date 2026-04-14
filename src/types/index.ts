@@ -72,3 +72,10 @@ export type TodayStats = {
   sleepCount: number
   totalSleepMinutes: number
 }
+
+export type DailyFeedStat = { date: string; feedCount: number; totalMl: number }
+export type DailySleepStat = { date: string; sleepCount: number; totalMinutes: number }
+export type WeeklyStats = {
+  feedStats: DailyFeedStat[]
+  sleepStats: DailySleepStat[]
+}

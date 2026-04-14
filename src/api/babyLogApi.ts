@@ -1,5 +1,5 @@
 import { api } from './client'
-import type { Baby, DiaperRecord, FeedRecord, Family, GrowthRecord, GrowthStage, SleepRecord, TodayStats } from '../types'
+import type { Baby, DiaperRecord, FeedRecord, Family, GrowthRecord, GrowthStage, SleepRecord, TodayStats, WeeklyStats } from '../types'
 
 // Family
 export const createFamily = () => api.post<Family>('/api/v1/families', {})
@@ -31,6 +31,13 @@ export const getFeeds = (babyId: string, limit = 50, date?: string) =>
 
 export const getLatestFeed = (babyId: string) =>
   api.get<FeedRecord | null>(`/api/v1/babies/${babyId}/feeds/latest`)
+
+export const updateFeed = (babyId: string, feedId: string, data: {
+  fedAt?: string
+  amountMl?: number
+  feedType?: string
+  note?: string
+}) => api.put<FeedRecord>(`/api/v1/babies/${babyId}/feeds/${feedId}`, data)
 
 export const deleteFeed = (babyId: string, feedId: string) =>
   api.delete<void>(`/api/v1/babies/${babyId}/feeds/${feedId}`)
@@ -86,3 +93,6 @@ export const getGrowthStage = (babyId: string, familyId: string) =>
 // Stats
 export const getTodayStats = (babyId: string) =>
   api.get<TodayStats>(`/api/v1/babies/${babyId}/stats/today`)
+
+export const getWeeklyStats = (babyId: string) =>
+  api.get<WeeklyStats>(`/api/v1/babies/${babyId}/stats/weekly`)

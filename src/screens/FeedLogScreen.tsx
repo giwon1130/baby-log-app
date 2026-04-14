@@ -8,11 +8,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { deleteFeed, getBabies, getFeeds, recordFeed } from '../api/babyLogApi'
+import { deleteFeed, getBabies, getFeeds, recordFeed, updateFeed } from '../api/babyLogApi'
 import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import { scheduleFeedNotification } from '../hooks/useFeedNotification'
 import DateFilter, { DateFilterValue, toDateParam } from '../components/DateFilter'
 import SwipeToDelete from '../components/SwipeToDelete'
+import EditFeedModal from '../components/EditFeedModal'
 import type { FeedRecord } from '../types'
 
 const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
@@ -35,6 +36,7 @@ export default function FeedLogScreen() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [dateFilter, setDateFilter] = useState<DateFilterValue>('today')
+  const [editingRecord, setEditingRecord] = useState<FeedRecord | null>(null)
 
   const [amount, setAmount] = useState('')
   const [feedType, setFeedType] = useState<string>('FORMULA')
@@ -92,10 +94,21 @@ export default function FeedLogScreen() {
     setFeeds(prev => prev.filter(f => f.id !== feedId))
   }
 
+  const handleUpdate = async (feedId: string, amountMl: number, feedType: string, note: string) => {
+    if (!babyId) return
+    const updated = await updateFeed(babyId, feedId, { amountMl, feedType, note })
+    setFeeds(prev => prev.map(f => f.id === feedId ? updated : f))
+  }
+
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
 
   return (
     <View style={styles.container}>
+      <EditFeedModal
+        record={editingRecord}
+        onClose={() => setEditingRecord(null)}
+        onSave={handleUpdate}
+      />
       <View style={styles.form}>
         <Text style={styles.formTitle}>수유 기록</Text>
         <Text style={styles.label}>수유량 (ml)</Text>
@@ -151,7 +164,11 @@ export default function FeedLogScreen() {
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 수유 기록을 삭제할까요?">
-            <View style={styles.recordItem}>
+            <TouchableOpacity
+              style={styles.recordItem}
+              onLongPress={() => setEditingRecord(item)}
+              delayLongPress={400}
+            >
               <View style={styles.recordLeft}>
                 <Text style={styles.recordAmount}>{item.amountMl}ml</Text>
                 <Text style={styles.recordType}>{FEED_TYPE_LABEL[item.feedType]}</Text>
@@ -159,8 +176,9 @@ export default function FeedLogScreen() {
               <View style={styles.recordRight}>
                 <Text style={styles.recordTime}>{formatTime(item.fedAt)}</Text>
                 <Text style={styles.recordNext}>다음 {formatTime(item.nextFeedAt)}</Text>
+                <Text style={styles.editHint}>꾹 눌러서 수정</Text>
               </View>
-            </View>
+            </TouchableOpacity>
           </SwipeToDelete>
         )}
         ListEmptyComponent={<Text style={styles.empty}>수유 기록이 없어요</Text>}
@@ -210,5 +228,6 @@ const styles = StyleSheet.create({
   recordType: { fontSize: 12, color: '#999' },
   recordTime: { fontSize: 13, color: '#444' },
   recordNext: { fontSize: 12, color: '#FF6B9D' },
+  editHint: { fontSize: 10, color: '#ccc', marginTop: 2 },
   empty: { textAlign: 'center', color: '#bbb', marginTop: 40 },
 })
