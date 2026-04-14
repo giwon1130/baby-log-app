@@ -33,6 +33,25 @@ export type DiaperRecord = {
   note: string
 }
 
+export type GrowthRecord = {
+  id: string
+  babyId: string
+  measuredAt: string
+  weightG: number | null
+  heightCm: number | null
+  headCm: number | null
+  note: string
+}
+
+export type SleepRecord = {
+  id: string
+  babyId: string
+  sleptAt: string
+  wokeAt: string | null
+  durationMinutes: number | null
+  note: string
+}
+
 export type GrowthStage = {
   daysOld: number
   stage: string
@@ -41,4 +60,15 @@ export type GrowthStage = {
   tips: string[]
   feedingGuideMl: { start: number; end: number }
   feedingIntervalHours: { start: number; end: number }
+}
+
+export type TodayStats = {
+  date: string
+  feedCount: number
+  totalFeedMl: number
+  diaperCount: number
+  wetCount: number
+  dirtyCount: number
+  sleepCount: number
+  totalSleepMinutes: number
 }

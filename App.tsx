@@ -8,6 +8,8 @@ import * as Notifications from 'expo-notifications'
 import HomeScreen from './src/screens/HomeScreen'
 import FeedLogScreen from './src/screens/FeedLogScreen'
 import DiaperLogScreen from './src/screens/DiaperLogScreen'
+import SleepScreen from './src/screens/SleepScreen'
+import GrowthRecordScreen from './src/screens/GrowthRecordScreen'
 import BabyProfileScreen from './src/screens/BabyProfileScreen'
 import FamilySetupScreen from './src/screens/FamilySetupScreen'
 import { getStoredFamilyId } from './src/api/client'
@@ -30,6 +32,8 @@ function MainTabs() {
             Home: 'home',
             FeedLog: 'water',
             DiaperLog: 'shirt',
+            Sleep: 'moon',
+            Growth: 'bar-chart',
             BabyProfile: 'person',
           }
           return <Ionicons name={icons[route.name]} size={size} color={color} />
@@ -39,6 +43,8 @@ function MainTabs() {
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: '홈' }} />
       <Tab.Screen name="FeedLog" component={FeedLogScreen} options={{ title: '수유' }} />
       <Tab.Screen name="DiaperLog" component={DiaperLogScreen} options={{ title: '기저귀' }} />
+      <Tab.Screen name="Sleep" component={SleepScreen} options={{ title: '수면' }} />
+      <Tab.Screen name="Growth" component={GrowthRecordScreen} options={{ title: '성장' }} />
       <Tab.Screen name="BabyProfile" component={BabyProfileScreen} options={{ title: '아기' }} />
     </Tab.Navigator>
   )
@@ -58,13 +64,10 @@ export default function App() {
     }
     init()
 
-    // 포그라운드에서 알림 수신 시 (앱이 열려있는 상태)
     notificationListenerRef.current = Notifications.addNotificationReceivedListener(() => {
-      // 홈 탭으로 이동해 데이터 새로고침 유도
       navigationRef.current?.navigate('Main', { screen: 'Home' })
     })
 
-    // 알림 탭해서 앱 열 때
     responseListenerRef.current = Notifications.addNotificationResponseReceivedListener(() => {
       navigationRef.current?.navigate('Main', { screen: 'Home' })
     })

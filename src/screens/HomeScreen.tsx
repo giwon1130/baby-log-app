@@ -7,10 +7,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { getBabies, getDiapers, getGrowthStage, getLatestFeed } from '../api/babyLogApi'
+import { getBabies, getDiapers, getGrowthStage, getLatestFeed, getTodayStats } from '../api/babyLogApi'
 import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import { scheduleFeedNotification } from '../hooks/useFeedNotification'
-import type { FeedRecord, GrowthStage, DiaperRecord } from '../types'
+import type { DiaperRecord, FeedRecord, GrowthStage, TodayStats } from '../types'
 
 function timeSince(isoString: string): string {
   const diff = Date.now() - new Date(isoString).getTime()
@@ -30,11 +30,19 @@ function timeUntil(isoString: string): string {
   return `${hours}시간 ${mins % 60}분 후`
 }
 
+function formatSleep(minutes: number): string {
+  const h = Math.floor(minutes / 60)
+  const m = minutes % 60
+  if (h === 0) return `${m}분`
+  return `${h}시간 ${m}분`
+}
+
 export default function HomeScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true)
   const [latestFeed, setLatestFeed] = useState<FeedRecord | null>(null)
   const [latestDiaper, setLatestDiaper] = useState<DiaperRecord | null>(null)
   const [growthStage, setGrowthStage] = useState<GrowthStage | null>(null)
+  const [todayStats, setTodayStats] = useState<TodayStats | null>(null)
   const [babyId, setBabyId] = useState<string | null>(null)
   const [familyId, setFamilyId] = useState<string | null>(null)
 
@@ -46,16 +54,16 @@ export default function HomeScreen({ navigation }: any) {
       setFamilyId(fid)
       if (!bid || !fid) { setLoading(false); return }
 
-      const [feed, diaper, stage, babies] = await Promise.allSettled([
+      const [feed, diaper, stage, babies, stats] = await Promise.allSettled([
         getLatestFeed(bid),
         getDiapers(bid, 1),
         getGrowthStage(bid, fid),
         getBabies(fid),
+        getTodayStats(bid),
       ])
 
       if (feed.status === 'fulfilled' && feed.value) {
         setLatestFeed(feed.value)
-        // 앱 재시작 시에도 알림 재동기화
         const babyName = babies.status === 'fulfilled'
           ? babies.value.find(b => b.id === bid)?.name
           : undefined
@@ -64,6 +72,7 @@ export default function HomeScreen({ navigation }: any) {
       if (diaper.status === 'fulfilled' && diaper.value.length > 0)
         setLatestDiaper(diaper.value[0])
       if (stage.status === 'fulfilled') setGrowthStage(stage.value)
+      if (stats.status === 'fulfilled') setTodayStats(stats.value)
       setLoading(false)
     }
     load()
@@ -99,6 +108,30 @@ export default function HomeScreen({ navigation }: any) {
           <Text style={styles.cardLabel}>성장 단계</Text>
           <Text style={styles.cardTitle}>{growthStage.title}</Text>
           <Text style={styles.cardDesc}>{growthStage.description}</Text>
+        </View>
+      )}
+
+      {/* 오늘 요약 카드 */}
+      {todayStats && (
+        <View style={styles.card}>
+          <Text style={styles.cardLabel}>오늘 요약</Text>
+          <View style={styles.statsGrid}>
+            <View style={styles.statItem}>
+              <Text style={styles.statEmoji}>🍼</Text>
+              <Text style={styles.statValue}>{todayStats.feedCount}회</Text>
+              <Text style={styles.statSub}>{todayStats.totalFeedMl}ml</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statEmoji}>🧷</Text>
+              <Text style={styles.statValue}>{todayStats.diaperCount}회</Text>
+              <Text style={styles.statSub}>소{todayStats.wetCount} 대{todayStats.dirtyCount}</Text>
+            </View>
+            <View style={styles.statItem}>
+              <Text style={styles.statEmoji}>😴</Text>
+              <Text style={styles.statValue}>{todayStats.sleepCount}회</Text>
+              <Text style={styles.statSub}>{formatSleep(todayStats.totalSleepMinutes)}</Text>
+            </View>
+          </View>
         </View>
       )}
 
@@ -176,6 +209,11 @@ const styles = StyleSheet.create({
   cardDesc: { fontSize: 14, color: '#666' },
   nextFeed: { color: '#FF6B9D', fontWeight: '600' },
   tipItem: { fontSize: 13, color: '#555', lineHeight: 20 },
+  statsGrid: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 4 },
+  statItem: { alignItems: 'center', gap: 4 },
+  statEmoji: { fontSize: 24 },
+  statValue: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
+  statSub: { fontSize: 12, color: '#aaa' },
   actionButton: {
     marginTop: 8,
     backgroundColor: '#FF6B9D',
