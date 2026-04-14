@@ -30,16 +30,33 @@ const DIAPER_TYPE_LABEL: Record<string, string> = {
 }
 
 function formatTime(iso: string): string {
-  const d = new Date(iso)
+  const timestamp = parseApiTimestamp(iso)
+  if (timestamp == null) return '-'
+
+  const d = new Date(timestamp)
   return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
 function timeSince(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const mins = Math.floor(diff / 60000)
+  const timestamp = parseApiTimestamp(iso)
+  if (timestamp == null) return '시간 확인 필요'
+
+  const diff = Date.now() - timestamp
+  const mins = Math.max(0, Math.floor(diff / 60000))
+  if (mins < 1) return '방금 전'
   if (mins < 60) return `${mins}분 전`
   const hours = Math.floor(mins / 60)
-  return `${hours}시간 ${mins % 60}분 전`
+  const remainingMins = mins % 60
+  return remainingMins > 0 ? `${hours}시간 ${remainingMins}분 전` : `${hours}시간 전`
+}
+
+function parseApiTimestamp(iso: string): number | null {
+  const trimmed = iso.trim()
+  const normalized = trimmed
+    .replace(' ', 'T')
+    .replace(/T(\d{2}:\d{2})(Z|[+-]\d{2}:?\d{2})$/, 'T$1:00$2')
+  const timestamp = new Date(normalized).getTime()
+  return Number.isNaN(timestamp) ? null : timestamp
 }
 
 export default function DiaperLogScreen() {
