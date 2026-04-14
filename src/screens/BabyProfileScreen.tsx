@@ -1,15 +1,19 @@
 import React, { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
+  Alert,
+  Clipboard,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native'
-import { getBabies, getGrowthStage } from '../api/babyLogApi'
+import { getBabies, getFamily, getGrowthStage, updateBaby } from '../api/babyLogApi'
 import { getStoredBabyId, getStoredFamilyId, storeFamilyAndBaby } from '../api/client'
-import type { Baby, GrowthStage } from '../types'
+import ErrorBanner from '../components/ErrorBanner'
+import type { Baby, Family, GrowthStage } from '../types'
 
 const GENDER_LABEL: Record<string, string> = { MALE: '남아', FEMALE: '여아' }
 
@@ -19,28 +23,85 @@ export default function BabyProfileScreen({ navigation }: any) {
   const [selectedBaby, setSelectedBaby] = useState<Baby | null>(null)
   const [growthStage, setGrowthStage] = useState<GrowthStage | null>(null)
   const [familyId, setFamilyId] = useState<string | null>(null)
-  const [inviteCode, setInviteCode] = useState<string | null>(null)
+  const [family, setFamily] = useState<Family | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  // 편집 상태
+  const [editing, setEditing] = useState(false)
+  const [editName, setEditName] = useState('')
+  const [editWeightG, setEditWeightG] = useState('')
+  const [editHeightCm, setEditHeightCm] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  const loadAll = async (fid: string, bid: string | null) => {
+    const [babyList, fam] = await Promise.all([
+      getBabies(fid).catch(() => [] as Baby[]),
+      getFamily(fid).catch(() => null),
+    ])
+    setBabies(babyList)
+    setFamily(fam)
+
+    const current = babyList.find(b => b.id === bid) ?? babyList[0]
+    if (current) {
+      setSelectedBaby(current)
+      const stage = await getGrowthStage(current.id, fid).catch(() => null)
+      setGrowthStage(stage)
+    }
+  }
 
   useEffect(() => {
-    const load = async () => {
+    const init = async () => {
       const fid = await getStoredFamilyId()
       const bid = await getStoredBabyId()
       setFamilyId(fid)
-      if (!fid) { setLoading(false); return }
-
-      const babyList = await getBabies(fid).catch(() => [])
-      setBabies(babyList)
-
-      const current = babyList.find(b => b.id === bid) ?? babyList[0]
-      if (current) {
-        setSelectedBaby(current)
-        const stage = await getGrowthStage(current.id, fid).catch(() => null)
-        setGrowthStage(stage)
-      }
+      if (fid) await loadAll(fid, bid)
       setLoading(false)
     }
-    load()
+    init()
   }, [])
+
+  const handleSelectBaby = async (baby: Baby) => {
+    setSelectedBaby(baby)
+    setEditing(false)
+    if (familyId) {
+      await storeFamilyAndBaby(familyId, baby.id)
+      const stage = await getGrowthStage(baby.id, familyId).catch(() => null)
+      setGrowthStage(stage)
+    }
+  }
+
+  const startEdit = () => {
+    if (!selectedBaby) return
+    setEditName(selectedBaby.name)
+    setEditWeightG(selectedBaby.birthWeightG ? String(selectedBaby.birthWeightG) : '')
+    setEditHeightCm(selectedBaby.birthHeightCm ? String(selectedBaby.birthHeightCm) : '')
+    setEditing(true)
+  }
+
+  const handleSave = async () => {
+    if (!familyId || !selectedBaby) return
+    setSaving(true)
+    try {
+      const updated = await updateBaby(familyId, selectedBaby.id, {
+        name: editName || undefined,
+        birthWeightG: editWeightG ? parseInt(editWeightG) : undefined,
+        birthHeightCm: editHeightCm ? parseFloat(editHeightCm) : undefined,
+      })
+      setSelectedBaby(updated)
+      setBabies(prev => prev.map(b => b.id === updated.id ? updated : b))
+      setEditing(false)
+    } catch {
+      setError('저장에 실패했어요')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const copyInviteCode = () => {
+    if (!family) return
+    Clipboard.setString(family.inviteCode)
+    Alert.alert('복사됨', `초대 코드 ${family.inviteCode}가 클립보드에 복사됐어요.`)
+  }
 
   if (loading) {
     return (
@@ -66,6 +127,8 @@ export default function BabyProfileScreen({ navigation }: any) {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      <ErrorBanner message={error} onDismiss={() => setError(null)} />
+
       {/* 아기 선택 탭 */}
       {babies.length > 1 && (
         <View style={styles.babyTabs}>
@@ -73,13 +136,7 @@ export default function BabyProfileScreen({ navigation }: any) {
             <TouchableOpacity
               key={baby.id}
               style={[styles.babyTab, selectedBaby?.id === baby.id && styles.babyTabActive]}
-              onPress={async () => {
-                setSelectedBaby(baby)
-                if (familyId) {
-                  const stage = await getGrowthStage(baby.id, familyId).catch(() => null)
-                  setGrowthStage(stage)
-                }
-              }}
+              onPress={() => handleSelectBaby(baby)}
             >
               <Text style={[styles.babyTabText, selectedBaby?.id === baby.id && styles.babyTabTextActive]}>
                 {baby.name}
@@ -98,32 +155,80 @@ export default function BabyProfileScreen({ navigation }: any) {
                   {selectedBaby.gender === 'MALE' ? '👦' : '👧'}
                 </Text>
               </View>
-              <View>
+              <View style={styles.babyHeaderInfo}>
                 <Text style={styles.babyName}>{selectedBaby.name}</Text>
                 <Text style={styles.babyMeta}>
                   {GENDER_LABEL[selectedBaby.gender]} · D+{selectedBaby.daysOld}일
                 </Text>
               </View>
+              {!editing && (
+                <TouchableOpacity style={styles.editBtn} onPress={startEdit}>
+                  <Text style={styles.editBtnText}>수정</Text>
+                </TouchableOpacity>
+              )}
             </View>
 
-            <View style={styles.statRow}>
-              <View style={styles.stat}>
-                <Text style={styles.statLabel}>생년월일</Text>
-                <Text style={styles.statValue}>{selectedBaby.birthDate}</Text>
+            {editing ? (
+              <View style={styles.editForm}>
+                <Text style={styles.editLabel}>이름</Text>
+                <TextInput
+                  style={styles.editInput}
+                  value={editName}
+                  onChangeText={setEditName}
+                  placeholder="아기 이름"
+                />
+                <Text style={styles.editLabel}>출생 체중 (g)</Text>
+                <TextInput
+                  style={styles.editInput}
+                  value={editWeightG}
+                  onChangeText={setEditWeightG}
+                  keyboardType="number-pad"
+                  placeholder="예: 3500"
+                />
+                <Text style={styles.editLabel}>출생 신장 (cm)</Text>
+                <TextInput
+                  style={styles.editInput}
+                  value={editHeightCm}
+                  onChangeText={setEditHeightCm}
+                  keyboardType="decimal-pad"
+                  placeholder="예: 50.5"
+                />
+                <View style={styles.editActions}>
+                  <TouchableOpacity
+                    style={styles.cancelBtn}
+                    onPress={() => setEditing(false)}
+                  >
+                    <Text style={styles.cancelBtnText}>취소</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
+                    onPress={handleSave}
+                    disabled={saving}
+                  >
+                    <Text style={styles.saveBtnText}>{saving ? '저장 중...' : '저장'}</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-              {selectedBaby.birthWeightG && (
+            ) : (
+              <View style={styles.statRow}>
                 <View style={styles.stat}>
-                  <Text style={styles.statLabel}>출생 체중</Text>
-                  <Text style={styles.statValue}>{(selectedBaby.birthWeightG / 1000).toFixed(2)}kg</Text>
+                  <Text style={styles.statLabel}>생년월일</Text>
+                  <Text style={styles.statValue}>{selectedBaby.birthDate}</Text>
                 </View>
-              )}
-              {selectedBaby.birthHeightCm && (
-                <View style={styles.stat}>
-                  <Text style={styles.statLabel}>출생 신장</Text>
-                  <Text style={styles.statValue}>{selectedBaby.birthHeightCm}cm</Text>
-                </View>
-              )}
-            </View>
+                {selectedBaby.birthWeightG && (
+                  <View style={styles.stat}>
+                    <Text style={styles.statLabel}>출생 체중</Text>
+                    <Text style={styles.statValue}>{(selectedBaby.birthWeightG / 1000).toFixed(2)}kg</Text>
+                  </View>
+                )}
+                {selectedBaby.birthHeightCm && (
+                  <View style={styles.stat}>
+                    <Text style={styles.statLabel}>출생 신장</Text>
+                    <Text style={styles.statValue}>{selectedBaby.birthHeightCm}cm</Text>
+                  </View>
+                )}
+              </View>
+            )}
           </View>
 
           {growthStage && (
@@ -141,11 +246,12 @@ export default function BabyProfileScreen({ navigation }: any) {
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>가족 초대</Text>
             <Text style={styles.inviteDesc}>
-              아래 코드를 공유하면 파트너가 같은 아기를 함께 관리할 수 있어요.
+              이 코드를 공유하면 파트너가 같은 아기를 함께 관리할 수 있어요.
             </Text>
-            <View style={styles.inviteCodeBox}>
-              <Text style={styles.inviteCode}>{selectedBaby.familyId.slice(-8).toUpperCase()}</Text>
-            </View>
+            <TouchableOpacity style={styles.inviteCodeBox} onPress={copyInviteCode} activeOpacity={0.7}>
+              <Text style={styles.inviteCode}>{family?.inviteCode ?? '...'}</Text>
+              <Text style={styles.inviteCopyHint}>탭해서 복사</Text>
+            </TouchableOpacity>
           </View>
         </>
       ) : (
@@ -189,6 +295,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   babyHeader: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  babyHeaderInfo: { flex: 1 },
   avatar: {
     width: 56,
     height: 56,
@@ -200,6 +307,42 @@ const styles = StyleSheet.create({
   avatarText: { fontSize: 28 },
   babyName: { fontSize: 20, fontWeight: '700', color: '#1a1a1a' },
   babyMeta: { fontSize: 13, color: '#888', marginTop: 2 },
+  editBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#FF6B9D',
+  },
+  editBtnText: { fontSize: 12, color: '#FF6B9D', fontWeight: '600' },
+  editForm: { gap: 8 },
+  editLabel: { fontSize: 11, color: '#888', fontWeight: '600' },
+  editInput: {
+    borderWidth: 1,
+    borderColor: '#e8e8e8',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 14,
+  },
+  editActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
+  cancelBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#f5f5f5',
+    alignItems: 'center',
+  },
+  cancelBtnText: { fontSize: 14, color: '#555', fontWeight: '600' },
+  saveBtn: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: '#FF6B9D',
+    alignItems: 'center',
+  },
+  saveBtnDisabled: { backgroundColor: '#ffb3cc' },
+  saveBtnText: { fontSize: 14, color: '#fff', fontWeight: '700' },
   statRow: { flexDirection: 'row', gap: 16 },
   stat: { flex: 1 },
   statLabel: { fontSize: 11, color: '#999', fontWeight: '600', textTransform: 'uppercase' },
@@ -212,8 +355,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
+    gap: 4,
   },
   inviteCode: { fontSize: 24, fontWeight: '800', color: '#FF6B9D', letterSpacing: 4 },
+  inviteCopyHint: { fontSize: 11, color: '#FFAAC8' },
   emptyTitle: { fontSize: 16, fontWeight: '600', color: '#666' },
   primaryButton: {
     backgroundColor: '#FF6B9D',
@@ -223,5 +368,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  inviteCode2: {},
 })

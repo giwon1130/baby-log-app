@@ -3,6 +3,8 @@ import type { Baby, DiaperRecord, FeedRecord, Family, GrowthRecord, GrowthStage,
 
 // Family
 export const createFamily = () => api.post<Family>('/api/v1/families', {})
+export const getFamily = (familyId: string) =>
+  api.get<Family>(`/api/v1/families/${familyId}`)
 export const joinFamily = (inviteCode: string) =>
   api.get<Family>(`/api/v1/families/join/${inviteCode}`)
 
@@ -17,6 +19,12 @@ export const createBaby = (familyId: string, data: {
 
 export const getBabies = (familyId: string) =>
   api.get<Baby[]>(`/api/v1/families/${familyId}/babies`)
+
+export const updateBaby = (familyId: string, babyId: string, data: {
+  name?: string
+  birthWeightG?: number
+  birthHeightCm?: number
+}) => api.put<Baby>(`/api/v1/families/${familyId}/babies/${babyId}`, data)
 
 // Feed
 export const recordFeed = (babyId: string, data: {
