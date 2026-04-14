@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   FlatList,
@@ -26,12 +26,14 @@ function formatDuration(minutes: number): string {
   return `${h}시간 ${m}분`
 }
 
-function timeSince(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime()
-  const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${mins}분 째`
-  const h = Math.floor(mins / 60)
-  return `${h}시간 ${mins % 60}분 째`
+function calcElapsed(iso: string, now: number): string {
+  const totalSecs = Math.floor((now - new Date(iso).getTime()) / 1000)
+  const h = Math.floor(totalSecs / 3600)
+  const m = Math.floor((totalSecs % 3600) / 60)
+  const s = totalSecs % 60
+  if (h > 0) return `${h}시간 ${m}분 ${s}초 째`
+  if (m > 0) return `${m}분 ${s}초 째`
+  return `${s}초 째`
 }
 
 export default function SleepScreen() {
@@ -42,6 +44,8 @@ export default function SleepScreen() {
   const [submitting, setSubmitting] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [now, setNow] = useState(Date.now())
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const reload = useCallback(async (bid: string) => {
     const [recs, active] = await Promise.all([
@@ -68,6 +72,16 @@ export default function SleepScreen() {
     }
     init()
   }, [])
+
+  useEffect(() => {
+    if (timerRef.current) clearInterval(timerRef.current)
+    if (activeSleep && !activeSleep.wokeAt) {
+      timerRef.current = setInterval(() => setNow(Date.now()), 1000)
+    }
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+    }
+  }, [activeSleep])
 
   const handleStart = async () => {
     if (!babyId) return
@@ -119,7 +133,7 @@ export default function SleepScreen() {
               <Text style={styles.sleepingEmoji}>😴</Text>
               <View>
                 <Text style={styles.sleepingTitle}>수면 중</Text>
-                <Text style={styles.sleepingTime}>{timeSince(activeSleep.sleptAt)}</Text>
+                <Text style={styles.sleepingTime}>{calcElapsed(activeSleep.sleptAt, now)}</Text>
               </View>
             </View>
             <TouchableOpacity
