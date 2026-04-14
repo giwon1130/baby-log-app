@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
+import { useFocusEffect } from '@react-navigation/native'
 import {
   ActivityIndicator,
   Alert,
   Clipboard,
   ScrollView,
+  Switch,
   StyleSheet,
   Text,
   TextInput,
@@ -12,6 +14,7 @@ import {
 } from 'react-native'
 import { getBabies, getFamily, getGrowthStage, updateBaby } from '../api/babyLogApi'
 import { getStoredBabyId, getStoredFamilyId, storeFamilyAndBaby } from '../api/client'
+import { getNotificationEnabled, setNotificationEnabled } from '../hooks/useFeedNotification'
 import ErrorBanner from '../components/ErrorBanner'
 import type { Baby, Family, GrowthStage } from '../types'
 
@@ -25,6 +28,7 @@ export default function BabyProfileScreen({ navigation }: any) {
   const [familyId, setFamilyId] = useState<string | null>(null)
   const [family, setFamily] = useState<Family | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [notifEnabled, setNotifEnabled] = useState(true)
 
   // 편집 상태
   const [editing, setEditing] = useState(false)
@@ -55,10 +59,16 @@ export default function BabyProfileScreen({ navigation }: any) {
       const bid = await getStoredBabyId()
       setFamilyId(fid)
       if (fid) await loadAll(fid, bid)
+      setNotifEnabled(await getNotificationEnabled())
       setLoading(false)
     }
     init()
   }, [])
+
+  useFocusEffect(useCallback(() => {
+    if (!familyId) return
+    getStoredBabyId().then(bid => loadAll(familyId, bid))
+  }, [familyId]))
 
   const handleSelectBaby = async (baby: Baby) => {
     setSelectedBaby(baby)
@@ -129,22 +139,30 @@ export default function BabyProfileScreen({ navigation }: any) {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
-      {/* 아기 선택 탭 */}
-      {babies.length > 1 && (
-        <View style={styles.babyTabs}>
-          {babies.map(baby => (
-            <TouchableOpacity
-              key={baby.id}
-              style={[styles.babyTab, selectedBaby?.id === baby.id && styles.babyTabActive]}
-              onPress={() => handleSelectBaby(baby)}
-            >
-              <Text style={[styles.babyTabText, selectedBaby?.id === baby.id && styles.babyTabTextActive]}>
-                {baby.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
+      {/* 아기 선택 탭 + 추가 버튼 */}
+      <View style={styles.babyTabRow}>
+        {babies.length > 0 && (
+          <View style={styles.babyTabs}>
+            {babies.map(baby => (
+              <TouchableOpacity
+                key={baby.id}
+                style={[styles.babyTab, selectedBaby?.id === baby.id && styles.babyTabActive]}
+                onPress={() => handleSelectBaby(baby)}
+              >
+                <Text style={[styles.babyTabText, selectedBaby?.id === baby.id && styles.babyTabTextActive]}>
+                  {baby.name}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+        <TouchableOpacity
+          style={styles.addBabyBtn}
+          onPress={() => navigation.navigate('FamilySetup', { mode: 'addBaby', familyId })}
+        >
+          <Text style={styles.addBabyBtnText}>+ 아기 추가</Text>
+        </TouchableOpacity>
+      </View>
 
       {selectedBaby ? (
         <>
@@ -244,6 +262,24 @@ export default function BabyProfileScreen({ navigation }: any) {
           )}
 
           <View style={styles.card}>
+            <View style={styles.notifRow}>
+              <View>
+                <Text style={styles.sectionTitle}>수유 알림</Text>
+                <Text style={styles.notifDesc}>다음 수유 시간에 알림을 보내요</Text>
+              </View>
+              <Switch
+                value={notifEnabled}
+                onValueChange={async (v) => {
+                  setNotifEnabled(v)
+                  await setNotificationEnabled(v)
+                }}
+                trackColor={{ false: '#e0e0e0', true: '#FF6B9D' }}
+                thumbColor="#fff"
+              />
+            </View>
+          </View>
+
+          <View style={styles.card}>
             <Text style={styles.sectionTitle}>가족 초대</Text>
             <Text style={styles.inviteDesc}>
               이 코드를 공유하면 파트너가 같은 아기를 함께 관리할 수 있어요.
@@ -273,7 +309,17 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF9FB' },
   content: { padding: 16, gap: 12 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
-  babyTabs: { flexDirection: 'row', gap: 8, marginBottom: 4 },
+  babyTabRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
+  babyTabs: { flex: 1, flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  addBabyBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    borderColor: '#FF6B9D',
+    borderStyle: 'dashed',
+  },
+  addBabyBtnText: { fontSize: 12, color: '#FF6B9D', fontWeight: '600' },
   babyTab: {
     paddingHorizontal: 16,
     paddingVertical: 8,
@@ -350,6 +396,8 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
   guideText: { fontSize: 14, color: '#555' },
   inviteDesc: { fontSize: 13, color: '#777' },
+  notifRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  notifDesc: { fontSize: 12, color: '#aaa', marginTop: 2 },
   inviteCodeBox: {
     backgroundColor: '#FFF0F5',
     borderRadius: 10,

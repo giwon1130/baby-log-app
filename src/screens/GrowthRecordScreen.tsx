@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
+  Dimensions,
   FlatList,
   RefreshControl,
   StyleSheet,
@@ -9,11 +10,31 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import { LineChart } from 'react-native-chart-kit'
 import { deleteGrowthRecord, getGrowthRecords, recordGrowth } from '../api/babyLogApi'
 import { getStoredBabyId } from '../api/client'
 import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'
 import type { GrowthRecord } from '../types'
+
+const SCREEN_WIDTH = Dimensions.get('window').width
+const CHART_WIDTH = SCREEN_WIDTH - 64
+
+const WEIGHT_CHART_CONFIG = {
+  backgroundGradientFrom: '#fff',
+  backgroundGradientTo: '#fff',
+  color: (opacity = 1) => `rgba(255, 107, 157, ${opacity})`,
+  labelColor: () => '#aaa',
+  strokeWidth: 2,
+  decimalPlaces: 1,
+  propsForDots: { r: '4', strokeWidth: '2', stroke: '#FF6B9D' },
+}
+
+const HEIGHT_CHART_CONFIG = {
+  ...WEIGHT_CHART_CONFIG,
+  color: (opacity = 1) => `rgba(92, 107, 192, ${opacity})`,
+  propsForDots: { r: '4', strokeWidth: '2', stroke: '#5C6BC0' },
+}
 
 function formatTime(iso: string): string {
   const d = new Date(iso)
@@ -142,6 +163,57 @@ export default function GrowthRecordScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* 성장 차트 — 2개 이상 기록 있을 때만 표시 */}
+      {records.length >= 2 && (() => {
+        const chartRecords = [...records].reverse() // 오래된 순
+        const labels = chartRecords.map(r => {
+          const d = new Date(r.measuredAt)
+          return `${d.getMonth() + 1}/${d.getDate()}`
+        })
+        const weightData = chartRecords.map(r => r.weightG != null ? r.weightG / 1000 : null)
+        const heightData = chartRecords.map(r => r.heightCm)
+        const hasWeight = weightData.some(v => v !== null)
+        const hasHeight = heightData.some(v => v !== null)
+        return (
+          <View style={styles.chartSection}>
+            {hasWeight && (
+              <View style={styles.chartCard}>
+                <Text style={styles.chartLabel}>체중 추이 (kg)</Text>
+                <LineChart
+                  data={{
+                    labels,
+                    datasets: [{ data: weightData.map(v => v ?? 0) }],
+                  }}
+                  width={CHART_WIDTH}
+                  height={140}
+                  chartConfig={WEIGHT_CHART_CONFIG}
+                  style={styles.chart}
+                  bezier
+                  fromZero={false}
+                />
+              </View>
+            )}
+            {hasHeight && (
+              <View style={styles.chartCard}>
+                <Text style={styles.chartLabel}>키 추이 (cm)</Text>
+                <LineChart
+                  data={{
+                    labels,
+                    datasets: [{ data: heightData.map(v => v ?? 0) }],
+                  }}
+                  width={CHART_WIDTH}
+                  height={140}
+                  chartConfig={HEIGHT_CHART_CONFIG}
+                  style={styles.chart}
+                  bezier
+                  fromZero={false}
+                />
+              </View>
+            )}
+          </View>
+        )
+      })()}
+
       <FlatList
         data={records}
         keyExtractor={item => item.id}
@@ -226,4 +298,18 @@ const styles = StyleSheet.create({
   metricValue: { fontSize: 15, fontWeight: '700', color: '#1a1a1a', marginTop: 2 },
   recordTime: { fontSize: 12, color: '#aaa' },
   empty: { textAlign: 'center', color: '#bbb', marginTop: 40 },
+  chartSection: { paddingHorizontal: 16, paddingTop: 12, gap: 12 },
+  chartCard: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+    gap: 6,
+  },
+  chartLabel: { fontSize: 12, color: '#999', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  chart: { borderRadius: 8 },
 })

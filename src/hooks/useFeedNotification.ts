@@ -2,6 +2,19 @@ import { useEffect, useRef } from 'react'
 import * as Notifications from 'expo-notifications'
 import * as Device from 'expo-device'
 import { Platform } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+
+const NOTIFICATION_ENABLED_KEY = 'feedNotificationEnabled'
+
+export async function getNotificationEnabled(): Promise<boolean> {
+  const val = await AsyncStorage.getItem(NOTIFICATION_ENABLED_KEY)
+  return val !== 'false' // 기본값 true
+}
+
+export async function setNotificationEnabled(enabled: boolean): Promise<void> {
+  await AsyncStorage.setItem(NOTIFICATION_ENABLED_KEY, String(enabled))
+  if (!enabled) await cancelFeedNotification()
+}
 
 // 알림이 포그라운드에서도 뜨도록 설정
 Notifications.setNotificationHandler({
@@ -39,6 +52,9 @@ export async function requestNotificationPermission(): Promise<boolean> {
  * 기존 예약된 수유 알림은 먼저 취소한 뒤 새로 등록.
  */
 export async function scheduleFeedNotification(nextFeedAt: string, babyName?: string): Promise<void> {
+  const enabled = await getNotificationEnabled()
+  if (!enabled) return
+
   const triggerDate = new Date(nextFeedAt)
   if (triggerDate.getTime() <= Date.now()) return
 

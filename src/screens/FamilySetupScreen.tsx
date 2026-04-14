@@ -24,10 +24,11 @@ function autoFormatDate(raw: string): string {
   return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`
 }
 
-export default function FamilySetupScreen({ navigation }: any) {
-  const [step, setStep] = useState<Step>('choice')
+export default function FamilySetupScreen({ navigation, route }: any) {
+  const params = route?.params as { mode?: 'addBaby'; familyId?: string } | undefined
+  const [step, setStep] = useState<Step>(params?.mode === 'addBaby' ? 'baby' : 'choice')
   const [inviteCode, setInviteCode] = useState('')
-  const [familyId, setFamilyId] = useState('')
+  const [familyId, setFamilyId] = useState(params?.familyId ?? '')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -98,7 +99,11 @@ export default function FamilySetupScreen({ navigation }: any) {
         birthHeightCm: birthHeightCm ? parseFloat(birthHeightCm) : undefined,
       })
       await storeFamilyAndBaby(familyId, baby.id)
-      navigation.replace('Main')
+      if (params?.mode === 'addBaby') {
+        navigation.goBack()
+      } else {
+        navigation.replace('Main')
+      }
     } catch {
       setError('아기 등록에 실패했어요. 다시 시도해주세요.')
     } finally {

@@ -8,11 +8,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { getBabies, getDiapers, getGrowthStage, getLatestFeed, getTodayStats } from '../api/babyLogApi'
+import { getActiveSleep, getBabies, getDiapers, getGrowthStage, getLatestFeed, getSleepRecords, getTodayStats } from '../api/babyLogApi'
 import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import { scheduleFeedNotification } from '../hooks/useFeedNotification'
 import QuickActions from '../components/QuickActions'
-import type { DiaperRecord, FeedRecord, GrowthStage, TodayStats } from '../types'
+import type { DiaperRecord, FeedRecord, GrowthStage, SleepRecord, TodayStats } from '../types'
 
 function timeSince(isoString: string): string {
   const diff = Date.now() - new Date(isoString).getTime()
@@ -49,14 +49,18 @@ export default function HomeScreen({ navigation }: any) {
   const [babyId, setBabyId] = useState<string | null>(null)
   const [babyName, setBabyName] = useState<string | undefined>(undefined)
   const [familyId, setFamilyId] = useState<string | null>(null)
+  const [activeSleep, setActiveSleep] = useState<SleepRecord | null>(null)
+  const [lastSleep, setLastSleep] = useState<SleepRecord | null>(null)
 
   const loadData = useCallback(async (bid: string, fid: string) => {
-    const [feed, diaper, stage, babies, stats] = await Promise.allSettled([
+    const [feed, diaper, stage, babies, stats, active, sleeps] = await Promise.allSettled([
       getLatestFeed(bid),
       getDiapers(bid, 1),
       getGrowthStage(bid, fid),
       getBabies(fid),
       getTodayStats(bid),
+      getActiveSleep(bid),
+      getSleepRecords(bid, 3),
     ])
 
     if (feed.status === 'fulfilled' && feed.value) {
@@ -71,6 +75,11 @@ export default function HomeScreen({ navigation }: any) {
       setLatestDiaper(diaper.value[0])
     if (stage.status === 'fulfilled') setGrowthStage(stage.value)
     if (stats.status === 'fulfilled') setTodayStats(stats.value)
+    if (active.status === 'fulfilled') setActiveSleep(active.value)
+    if (sleeps.status === 'fulfilled') {
+      const completed = sleeps.value.find(s => s.wokeAt !== null)
+      setLastSleep(completed ?? null)
+    }
   }, [])
 
   useEffect(() => {
@@ -191,6 +200,26 @@ export default function HomeScreen({ navigation }: any) {
         )}
       </View>
 
+      {/* 수면 상태 */}
+      <View style={styles.card}>
+        <Text style={styles.cardLabel}>수면</Text>
+        {activeSleep ? (
+          <>
+            <Text style={[styles.cardTitle, styles.sleeping]}>😴 수면 중</Text>
+            <Text style={styles.cardDesc}>{timeSince(activeSleep.sleptAt)} 부터</Text>
+          </>
+        ) : lastSleep ? (
+          <>
+            <Text style={styles.cardTitle}>
+              {lastSleep.durationMinutes != null ? formatSleep(lastSleep.durationMinutes) : '-'}
+            </Text>
+            <Text style={styles.cardDesc}>{timeSince(lastSleep.sleptAt)} 잠들었음</Text>
+          </>
+        ) : (
+          <Text style={styles.cardDesc}>기록 없음</Text>
+        )}
+      </View>
+
       {/* 성장 팁 */}
       {growthStage && growthStage.tips.length > 0 && (
         <View style={styles.card}>
@@ -223,6 +252,7 @@ const styles = StyleSheet.create({
   cardTitle: { fontSize: 22, fontWeight: '700', color: '#1a1a1a' },
   cardDesc: { fontSize: 14, color: '#666' },
   nextFeed: { color: '#FF6B9D', fontWeight: '600' },
+  sleeping: { color: '#5C6BC0' },
   tipItem: { fontSize: 13, color: '#555', lineHeight: 20 },
   statsGrid: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 4 },
   statItem: { alignItems: 'center', gap: 4 },
