@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   FlatList,
+  RefreshControl,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -9,6 +10,7 @@ import {
 } from 'react-native'
 import { deleteSleep, endSleep, getActiveSleep, getSleepRecords, startSleep } from '../api/babyLogApi'
 import SwipeToDelete from '../components/SwipeToDelete'
+import ErrorBanner from '../components/ErrorBanner'
 import { getStoredBabyId } from '../api/client'
 import type { SleepRecord } from '../types'
 
@@ -38,15 +40,24 @@ export default function SleepScreen() {
   const [activeSleep, setActiveSleep] = useState<SleepRecord | null>(null)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  const reload = async (bid: string) => {
+  const reload = useCallback(async (bid: string) => {
     const [recs, active] = await Promise.all([
       getSleepRecords(bid),
       getActiveSleep(bid),
     ])
     setRecords(recs)
     setActiveSleep(active)
-  }
+  }, [])
+
+  const onRefresh = useCallback(async () => {
+    if (!babyId) return
+    setRefreshing(true)
+    await reload(babyId)
+    setRefreshing(false)
+  }, [babyId, reload])
 
   useEffect(() => {
     const init = async () => {
@@ -64,6 +75,8 @@ export default function SleepScreen() {
     try {
       await startSleep(babyId, {})
       await reload(babyId)
+    } catch {
+      setError('수면 시작 기록에 실패했어요')
     } finally {
       setSubmitting(false)
     }
@@ -75,6 +88,8 @@ export default function SleepScreen() {
     try {
       await endSleep(babyId, activeSleep.id, {})
       await reload(babyId)
+    } catch {
+      setError('수면 종료 기록에 실패했어요')
     } finally {
       setSubmitting(false)
     }
@@ -82,15 +97,20 @@ export default function SleepScreen() {
 
   const handleDelete = async (sleepId: string) => {
     if (!babyId) return
-    await deleteSleep(babyId, sleepId)
-    setRecords(prev => prev.filter(r => r.id !== sleepId))
-    if (activeSleep?.id === sleepId) setActiveSleep(null)
+    try {
+      await deleteSleep(babyId, sleepId)
+      setRecords(prev => prev.filter(r => r.id !== sleepId))
+      if (activeSleep?.id === sleepId) setActiveSleep(null)
+    } catch {
+      setError('삭제에 실패했어요')
+    }
   }
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
 
   return (
     <View style={styles.container}>
+      <ErrorBanner message={error} onDismiss={() => setError(null)} />
       {/* 수면 상태 카드 */}
       <View style={styles.statusCard}>
         {activeSleep ? (
@@ -130,6 +150,7 @@ export default function SleepScreen() {
         data={records}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />}
         renderItem={({ item }) => (
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 수면 기록을 삭제할까요?">
             <View style={styles.recordItem}>

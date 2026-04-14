@@ -6,9 +6,7 @@ import { Ionicons } from '@expo/vector-icons'
 import * as Notifications from 'expo-notifications'
 
 import HomeScreen from './src/screens/HomeScreen'
-import FeedLogScreen from './src/screens/FeedLogScreen'
-import DiaperLogScreen from './src/screens/DiaperLogScreen'
-import SleepScreen from './src/screens/SleepScreen'
+import LogScreen from './src/screens/LogScreen'
 import GrowthRecordScreen from './src/screens/GrowthRecordScreen'
 import StatsScreen from './src/screens/StatsScreen'
 import BabyProfileScreen from './src/screens/BabyProfileScreen'
@@ -31,9 +29,7 @@ function MainTabs() {
         tabBarIcon: ({ color, size }) => {
           const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
             Home: 'home',
-            FeedLog: 'water',
-            DiaperLog: 'shirt',
-            Sleep: 'moon',
+            Log: 'journal',
             Growth: 'trending-up',
             Stats: 'bar-chart',
             BabyProfile: 'person',
@@ -43,9 +39,7 @@ function MainTabs() {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: '홈' }} />
-      <Tab.Screen name="FeedLog" component={FeedLogScreen} options={{ title: '수유' }} />
-      <Tab.Screen name="DiaperLog" component={DiaperLogScreen} options={{ title: '기저귀' }} />
-      <Tab.Screen name="Sleep" component={SleepScreen} options={{ title: '수면' }} />
+      <Tab.Screen name="Log" component={LogScreen} options={{ title: '기록' }} />
       <Tab.Screen name="Growth" component={GrowthRecordScreen} options={{ title: '성장' }} />
       <Tab.Screen name="Stats" component={StatsScreen} options={{ title: '통계' }} />
       <Tab.Screen name="BabyProfile" component={BabyProfileScreen} options={{ title: '아기' }} />

@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   FlatList,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
@@ -14,6 +15,7 @@ import { scheduleFeedNotification } from '../hooks/useFeedNotification'
 import DateFilter, { DateFilterValue, toDateParam } from '../components/DateFilter'
 import SwipeToDelete from '../components/SwipeToDelete'
 import EditFeedModal from '../components/EditFeedModal'
+import ErrorBanner from '../components/ErrorBanner'
 import type { FeedRecord } from '../types'
 
 const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
@@ -37,15 +39,17 @@ export default function FeedLogScreen() {
   const [submitting, setSubmitting] = useState(false)
   const [dateFilter, setDateFilter] = useState<DateFilterValue>('today')
   const [editingRecord, setEditingRecord] = useState<FeedRecord | null>(null)
+  const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const [amount, setAmount] = useState('')
   const [feedType, setFeedType] = useState<string>('FORMULA')
   const [note, setNote] = useState('')
 
-  const loadFeeds = async (bid: string, filter: DateFilterValue) => {
+  const loadFeeds = useCallback(async (bid: string, filter: DateFilterValue) => {
     const data = await getFeeds(bid, 50, toDateParam(filter))
     setFeeds(data)
-  }
+  }, [])
 
   useEffect(() => {
     const init = async () => {
@@ -64,6 +68,13 @@ export default function FeedLogScreen() {
     init()
   }, [])
 
+  const onRefresh = useCallback(async () => {
+    if (!babyId) return
+    setRefreshing(true)
+    await loadFeeds(babyId, dateFilter)
+    setRefreshing(false)
+  }, [babyId, dateFilter, loadFeeds])
+
   const handleFilterChange = async (filter: DateFilterValue) => {
     setDateFilter(filter)
     if (babyId) await loadFeeds(babyId, filter)
@@ -74,15 +85,12 @@ export default function FeedLogScreen() {
     setSubmitting(true)
     try {
       const record = await recordFeed(babyId, { amountMl: parseInt(amount), feedType, note })
-      setFeeds(prev => [record, ...prev.filter(f =>
-        dateFilter === 'all' || toDateParam(dateFilter) === record.fedAt.slice(0, 10)
-          ? true : prev.includes(f)
-      )])
-      // 오늘 필터일 때만 새 항목 리스트에 바로 반영
       await loadFeeds(babyId, dateFilter)
       setAmount('')
       setNote('')
       await scheduleFeedNotification(record.nextFeedAt, babyName)
+    } catch {
+      setError('수유 기록 저장에 실패했어요')
     } finally {
       setSubmitting(false)
     }
@@ -90,20 +98,29 @@ export default function FeedLogScreen() {
 
   const handleDelete = async (feedId: string) => {
     if (!babyId) return
-    await deleteFeed(babyId, feedId)
-    setFeeds(prev => prev.filter(f => f.id !== feedId))
+    try {
+      await deleteFeed(babyId, feedId)
+      setFeeds(prev => prev.filter(f => f.id !== feedId))
+    } catch {
+      setError('삭제에 실패했어요')
+    }
   }
 
   const handleUpdate = async (feedId: string, amountMl: number, feedType: string, note: string) => {
     if (!babyId) return
-    const updated = await updateFeed(babyId, feedId, { amountMl, feedType, note })
-    setFeeds(prev => prev.map(f => f.id === feedId ? updated : f))
+    try {
+      const updated = await updateFeed(babyId, feedId, { amountMl, feedType, note })
+      setFeeds(prev => prev.map(f => f.id === feedId ? updated : f))
+    } catch {
+      setError('수정에 실패했어요')
+    }
   }
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
 
   return (
     <View style={styles.container}>
+      <ErrorBanner message={error} onDismiss={() => setError(null)} />
       <EditFeedModal
         record={editingRecord}
         onClose={() => setEditingRecord(null)}
@@ -162,6 +179,7 @@ export default function FeedLogScreen() {
         data={feeds}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />}
         renderItem={({ item }) => (
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 수유 기록을 삭제할까요?">
             <TouchableOpacity

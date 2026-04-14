@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -10,6 +11,7 @@ import {
 import { getBabies, getDiapers, getGrowthStage, getLatestFeed, getTodayStats } from '../api/babyLogApi'
 import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import { scheduleFeedNotification } from '../hooks/useFeedNotification'
+import QuickActions from '../components/QuickActions'
 import type { DiaperRecord, FeedRecord, GrowthStage, TodayStats } from '../types'
 
 function timeSince(isoString: string): string {
@@ -39,44 +41,56 @@ function formatSleep(minutes: number): string {
 
 export default function HomeScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [latestFeed, setLatestFeed] = useState<FeedRecord | null>(null)
   const [latestDiaper, setLatestDiaper] = useState<DiaperRecord | null>(null)
   const [growthStage, setGrowthStage] = useState<GrowthStage | null>(null)
   const [todayStats, setTodayStats] = useState<TodayStats | null>(null)
   const [babyId, setBabyId] = useState<string | null>(null)
+  const [babyName, setBabyName] = useState<string | undefined>(undefined)
   const [familyId, setFamilyId] = useState<string | null>(null)
 
+  const loadData = useCallback(async (bid: string, fid: string) => {
+    const [feed, diaper, stage, babies, stats] = await Promise.allSettled([
+      getLatestFeed(bid),
+      getDiapers(bid, 1),
+      getGrowthStage(bid, fid),
+      getBabies(fid),
+      getTodayStats(bid),
+    ])
+
+    if (feed.status === 'fulfilled' && feed.value) {
+      setLatestFeed(feed.value)
+      const name = babies.status === 'fulfilled'
+        ? babies.value.find(b => b.id === bid)?.name
+        : undefined
+      setBabyName(name)
+      await scheduleFeedNotification(feed.value.nextFeedAt, name)
+    }
+    if (diaper.status === 'fulfilled' && diaper.value.length > 0)
+      setLatestDiaper(diaper.value[0])
+    if (stage.status === 'fulfilled') setGrowthStage(stage.value)
+    if (stats.status === 'fulfilled') setTodayStats(stats.value)
+  }, [])
+
   useEffect(() => {
-    const load = async () => {
+    const init = async () => {
       const bid = await getStoredBabyId()
       const fid = await getStoredFamilyId()
       setBabyId(bid)
       setFamilyId(fid)
-      if (!bid || !fid) { setLoading(false); return }
-
-      const [feed, diaper, stage, babies, stats] = await Promise.allSettled([
-        getLatestFeed(bid),
-        getDiapers(bid, 1),
-        getGrowthStage(bid, fid),
-        getBabies(fid),
-        getTodayStats(bid),
-      ])
-
-      if (feed.status === 'fulfilled' && feed.value) {
-        setLatestFeed(feed.value)
-        const babyName = babies.status === 'fulfilled'
-          ? babies.value.find(b => b.id === bid)?.name
-          : undefined
-        await scheduleFeedNotification(feed.value.nextFeedAt, babyName)
-      }
-      if (diaper.status === 'fulfilled' && diaper.value.length > 0)
-        setLatestDiaper(diaper.value[0])
-      if (stage.status === 'fulfilled') setGrowthStage(stage.value)
-      if (stats.status === 'fulfilled') setTodayStats(stats.value)
+      if (bid && fid) await loadData(bid, fid)
       setLoading(false)
     }
-    load()
+    init()
   }, [])
+
+  const onRefresh = useCallback(async () => {
+    if (!babyId || !familyId) return
+    setRefreshing(true)
+    await loadData(babyId, familyId)
+    setRefreshing(false)
+  }, [babyId, familyId, loadData])
 
   if (loading) {
     return (
@@ -101,8 +115,14 @@ export default function HomeScreen({ navigation }: any) {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* 성장 단계 카드 */}
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />
+      }
+    >
+      {/* 성장 단계 */}
       {growthStage && (
         <View style={styles.card}>
           <Text style={styles.cardLabel}>성장 단계</Text>
@@ -111,7 +131,14 @@ export default function HomeScreen({ navigation }: any) {
         </View>
       )}
 
-      {/* 오늘 요약 카드 */}
+      {/* 빠른 기록 */}
+      <QuickActions
+        babyId={babyId}
+        babyName={babyName}
+        onRecorded={() => babyId && familyId && loadData(babyId, familyId)}
+      />
+
+      {/* 오늘 요약 */}
       {todayStats && (
         <View style={styles.card}>
           <Text style={styles.cardLabel}>오늘 요약</Text>
@@ -149,12 +176,6 @@ export default function HomeScreen({ navigation }: any) {
         ) : (
           <Text style={styles.cardDesc}>기록 없음</Text>
         )}
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => navigation.navigate('FeedLog')}
-        >
-          <Text style={styles.actionButtonText}>수유 기록</Text>
-        </TouchableOpacity>
       </View>
 
       {/* 마지막 기저귀 */}
@@ -168,12 +189,6 @@ export default function HomeScreen({ navigation }: any) {
         ) : (
           <Text style={styles.cardDesc}>기록 없음</Text>
         )}
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={() => navigation.navigate('DiaperLog')}
-        >
-          <Text style={styles.actionButtonText}>기저귀 기록</Text>
-        </TouchableOpacity>
       </View>
 
       {/* 성장 팁 */}
@@ -191,7 +206,7 @@ export default function HomeScreen({ navigation }: any) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF9FB' },
-  content: { padding: 16, gap: 12 },
+  content: { padding: 16, gap: 12, paddingBottom: 32 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
   card: {
     backgroundColor: '#fff',
@@ -214,14 +229,6 @@ const styles = StyleSheet.create({
   statEmoji: { fontSize: 24 },
   statValue: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
   statSub: { fontSize: 12, color: '#aaa' },
-  actionButton: {
-    marginTop: 8,
-    backgroundColor: '#FF6B9D',
-    borderRadius: 10,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  actionButtonText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: '#444' },
   primaryButton: {
     backgroundColor: '#FF6B9D',

@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   FlatList,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
@@ -12,6 +13,7 @@ import { deleteDiaper, getDiapers, recordDiaper } from '../api/babyLogApi'
 import { getStoredBabyId } from '../api/client'
 import DateFilter, { DateFilterValue, toDateParam } from '../components/DateFilter'
 import SwipeToDelete from '../components/SwipeToDelete'
+import ErrorBanner from '../components/ErrorBanner'
 import type { DiaperRecord } from '../types'
 
 const DIAPER_TYPES = ['WET', 'DIRTY', 'MIXED', 'DRY'] as const
@@ -41,14 +43,16 @@ export default function DiaperLogScreen() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [dateFilter, setDateFilter] = useState<DateFilterValue>('today')
+  const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const [diaperType, setDiaperType] = useState<string>('WET')
   const [note, setNote] = useState('')
 
-  const loadDiapers = async (bid: string, filter: DateFilterValue) => {
+  const loadDiapers = useCallback(async (bid: string, filter: DateFilterValue) => {
     const data = await getDiapers(bid, 50, toDateParam(filter))
     setDiapers(data)
-  }
+  }, [])
 
   useEffect(() => {
     const init = async () => {
@@ -59,6 +63,13 @@ export default function DiaperLogScreen() {
     }
     init()
   }, [])
+
+  const onRefresh = useCallback(async () => {
+    if (!babyId) return
+    setRefreshing(true)
+    await loadDiapers(babyId, dateFilter)
+    setRefreshing(false)
+  }, [babyId, dateFilter, loadDiapers])
 
   const handleFilterChange = async (filter: DateFilterValue) => {
     setDateFilter(filter)
@@ -72,6 +83,8 @@ export default function DiaperLogScreen() {
       await recordDiaper(babyId, { diaperType, note })
       await loadDiapers(babyId, dateFilter)
       setNote('')
+    } catch {
+      setError('기저귀 기록 저장에 실패했어요')
     } finally {
       setSubmitting(false)
     }
@@ -79,14 +92,19 @@ export default function DiaperLogScreen() {
 
   const handleDelete = async (diaperId: string) => {
     if (!babyId) return
-    await deleteDiaper(babyId, diaperId)
-    setDiapers(prev => prev.filter(d => d.id !== diaperId))
+    try {
+      await deleteDiaper(babyId, diaperId)
+      setDiapers(prev => prev.filter(d => d.id !== diaperId))
+    } catch {
+      setError('삭제에 실패했어요')
+    }
   }
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
 
   return (
     <View style={styles.container}>
+      <ErrorBanner message={error} onDismiss={() => setError(null)} />
       <View style={styles.form}>
         <Text style={styles.formTitle}>기저귀 교환 기록</Text>
         <Text style={styles.label}>종류</Text>
@@ -119,6 +137,7 @@ export default function DiaperLogScreen() {
         data={diapers}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />}
         renderItem={({ item }) => (
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 기저귀 기록을 삭제할까요?">
             <View style={styles.recordItem}>

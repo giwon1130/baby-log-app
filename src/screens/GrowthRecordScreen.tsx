@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   FlatList,
+  RefreshControl,
   StyleSheet,
   Text,
   TextInput,
@@ -11,6 +12,7 @@ import {
 import { deleteGrowthRecord, getGrowthRecords, recordGrowth } from '../api/babyLogApi'
 import { getStoredBabyId } from '../api/client'
 import SwipeToDelete from '../components/SwipeToDelete'
+import ErrorBanner from '../components/ErrorBanner'
 import type { GrowthRecord } from '../types'
 
 function formatTime(iso: string): string {
@@ -23,17 +25,30 @@ export default function GrowthRecordScreen() {
   const [records, setRecords] = useState<GrowthRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [refreshing, setRefreshing] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const [weightG, setWeightG] = useState('')
   const [heightCm, setHeightCm] = useState('')
   const [headCm, setHeadCm] = useState('')
   const [note, setNote] = useState('')
 
+  const loadRecords = useCallback(async (bid: string) => {
+    setRecords(await getGrowthRecords(bid))
+  }, [])
+
+  const onRefresh = useCallback(async () => {
+    if (!babyId) return
+    setRefreshing(true)
+    await loadRecords(babyId)
+    setRefreshing(false)
+  }, [babyId, loadRecords])
+
   useEffect(() => {
     const init = async () => {
       const bid = await getStoredBabyId()
       setBabyId(bid)
-      if (bid) setRecords(await getGrowthRecords(bid))
+      if (bid) await loadRecords(bid)
       setLoading(false)
     }
     init()
@@ -54,6 +69,8 @@ export default function GrowthRecordScreen() {
       setHeightCm('')
       setHeadCm('')
       setNote('')
+    } catch {
+      setError('성장 기록 저장에 실패했어요')
     } finally {
       setSubmitting(false)
     }
@@ -61,14 +78,19 @@ export default function GrowthRecordScreen() {
 
   const handleDelete = async (recordId: string) => {
     if (!babyId) return
-    await deleteGrowthRecord(babyId, recordId)
-    setRecords(prev => prev.filter(r => r.id !== recordId))
+    try {
+      await deleteGrowthRecord(babyId, recordId)
+      setRecords(prev => prev.filter(r => r.id !== recordId))
+    } catch {
+      setError('삭제에 실패했어요')
+    }
   }
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
 
   return (
     <View style={styles.container}>
+      <ErrorBanner message={error} onDismiss={() => setError(null)} />
       <View style={styles.form}>
         <Text style={styles.formTitle}>성장 기록</Text>
 
@@ -124,6 +146,7 @@ export default function GrowthRecordScreen() {
         data={records}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />}
         renderItem={({ item }) => (
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 성장 기록을 삭제할까요?">
             <View style={styles.recordItem}>
