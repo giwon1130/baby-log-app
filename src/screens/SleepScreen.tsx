@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { useFocusEffect } from '@react-navigation/native'
 import {
   ActivityIndicator,
   FlatList,
@@ -72,6 +73,10 @@ export default function SleepScreen() {
     }
     init()
   }, [])
+
+  useFocusEffect(useCallback(() => {
+    if (babyId) reload(babyId)
+  }, [babyId, reload]))
 
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current)

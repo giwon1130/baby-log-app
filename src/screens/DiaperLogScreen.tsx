@@ -141,7 +141,10 @@ export default function DiaperLogScreen() {
         renderItem={({ item }) => (
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 기저귀 기록을 삭제할까요?">
             <View style={styles.recordItem}>
-              <Text style={styles.recordType}>{DIAPER_TYPE_LABEL[item.diaperType]}</Text>
+              <View>
+                <Text style={styles.recordType}>{DIAPER_TYPE_LABEL[item.diaperType]}</Text>
+                {!!item.note && <Text style={styles.recordNote}>{item.note}</Text>}
+              </View>
               <View style={styles.recordRight}>
                 <Text style={styles.recordTime}>{formatTime(item.changedAt)}</Text>
                 <Text style={styles.recordAgo}>{timeSince(item.changedAt)}</Text>
@@ -183,5 +186,6 @@ const styles = StyleSheet.create({
   recordRight: { alignItems: 'flex-end', gap: 2 },
   recordTime: { fontSize: 13, color: '#444' },
   recordAgo: { fontSize: 12, color: '#aaa' },
+  recordNote: { fontSize: 11, color: '#bbb', marginTop: 2 },
   empty: { textAlign: 'center', color: '#bbb', marginTop: 40 },
 })

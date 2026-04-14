@@ -190,6 +190,7 @@ export default function FeedLogScreen() {
               <View style={styles.recordLeft}>
                 <Text style={styles.recordAmount}>{item.amountMl}ml</Text>
                 <Text style={styles.recordType}>{FEED_TYPE_LABEL[item.feedType]}</Text>
+                {!!item.note && <Text style={styles.recordNote}>{item.note}</Text>}
               </View>
               <View style={styles.recordRight}>
                 <Text style={styles.recordTime}>{formatTime(item.fedAt)}</Text>
@@ -244,6 +245,7 @@ const styles = StyleSheet.create({
   recordRight: { alignItems: 'flex-end', gap: 4 },
   recordAmount: { fontSize: 18, fontWeight: '700', color: '#1a1a1a' },
   recordType: { fontSize: 12, color: '#999' },
+  recordNote: { fontSize: 11, color: '#bbb', marginTop: 2, maxWidth: 140 },
   recordTime: { fontSize: 13, color: '#444' },
   recordNext: { fontSize: 12, color: '#FF6B9D' },
   editHint: { fontSize: 10, color: '#ccc', marginTop: 2 },

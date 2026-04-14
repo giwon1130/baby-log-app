@@ -14,6 +14,10 @@ import { scheduleFeedNotification } from '../hooks/useFeedNotification'
 import QuickActions from '../components/QuickActions'
 import type { DiaperRecord, FeedRecord, GrowthStage, SleepRecord, TodayStats } from '../types'
 
+const DIAPER_TYPE_LABEL: Record<string, string> = {
+  WET: '💧 소변', DIRTY: '💩 대변', MIXED: '🔄 혼합', DRY: '✅ 깨끗',
+}
+
 function timeSince(isoString: string): string {
   const diff = Date.now() - new Date(isoString).getTime()
   const mins = Math.floor(diff / 60000)
@@ -51,6 +55,10 @@ export default function HomeScreen({ navigation }: any) {
   const [familyId, setFamilyId] = useState<string | null>(null)
   const [activeSleep, setActiveSleep] = useState<SleepRecord | null>(null)
   const [lastSleep, setLastSleep] = useState<SleepRecord | null>(null)
+
+  useEffect(() => {
+    navigation.setOptions({ title: babyName ?? '홈' })
+  }, [babyName])
 
   const loadData = useCallback(async (bid: string, fid: string) => {
     const [feed, diaper, stage, babies, stats, active, sleeps] = await Promise.allSettled([
@@ -192,7 +200,7 @@ export default function HomeScreen({ navigation }: any) {
         <Text style={styles.cardLabel}>마지막 기저귀</Text>
         {latestDiaper ? (
           <>
-            <Text style={styles.cardTitle}>{latestDiaper.diaperType}</Text>
+            <Text style={styles.cardTitle}>{DIAPER_TYPE_LABEL[latestDiaper.diaperType] ?? latestDiaper.diaperType}</Text>
             <Text style={styles.cardDesc}>{timeSince(latestDiaper.changedAt)}</Text>
           </>
         ) : (
@@ -206,14 +214,14 @@ export default function HomeScreen({ navigation }: any) {
         {activeSleep ? (
           <>
             <Text style={[styles.cardTitle, styles.sleeping]}>😴 수면 중</Text>
-            <Text style={styles.cardDesc}>{timeSince(activeSleep.sleptAt)} 부터</Text>
+            <Text style={styles.cardDesc}>{timeSince(activeSleep.sleptAt)}부터</Text>
           </>
         ) : lastSleep ? (
           <>
             <Text style={styles.cardTitle}>
               {lastSleep.durationMinutes != null ? formatSleep(lastSleep.durationMinutes) : '-'}
             </Text>
-            <Text style={styles.cardDesc}>{timeSince(lastSleep.sleptAt)} 잠들었음</Text>
+            <Text style={styles.cardDesc}>마지막 수면 · {timeSince(lastSleep.wokeAt ?? lastSleep.sleptAt)} 완료</Text>
           </>
         ) : (
           <Text style={styles.cardDesc}>기록 없음</Text>

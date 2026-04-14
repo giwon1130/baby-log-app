@@ -164,25 +164,23 @@ export default function GrowthRecordScreen() {
       </View>
 
       {/* 성장 차트 — 2개 이상 기록 있을 때만 표시 */}
-      {records.length >= 2 && (() => {
-        const chartRecords = [...records].reverse() // 오래된 순
-        const labels = chartRecords.map(r => {
-          const d = new Date(r.measuredAt)
-          return `${d.getMonth() + 1}/${d.getDate()}`
-        })
-        const weightData = chartRecords.map(r => r.weightG != null ? r.weightG / 1000 : null)
-        const heightData = chartRecords.map(r => r.heightCm)
-        const hasWeight = weightData.some(v => v !== null)
-        const hasHeight = heightData.some(v => v !== null)
+      {(() => {
+        const sorted = [...records].reverse()
+        const weightRecs = sorted.filter(r => r.weightG != null)
+        const heightRecs = sorted.filter(r => r.heightCm != null)
+        if (weightRecs.length < 2 && heightRecs.length < 2) return null
+        const dateLabel = (iso: string) => {
+          const d = new Date(iso); return `${d.getMonth() + 1}/${d.getDate()}`
+        }
         return (
           <View style={styles.chartSection}>
-            {hasWeight && (
+            {weightRecs.length >= 2 && (
               <View style={styles.chartCard}>
                 <Text style={styles.chartLabel}>체중 추이 (kg)</Text>
                 <LineChart
                   data={{
-                    labels,
-                    datasets: [{ data: weightData.map(v => v ?? 0) }],
+                    labels: weightRecs.map(r => dateLabel(r.measuredAt)),
+                    datasets: [{ data: weightRecs.map(r => Math.round(r.weightG! / 100) / 10) }],
                   }}
                   width={CHART_WIDTH}
                   height={140}
@@ -193,13 +191,13 @@ export default function GrowthRecordScreen() {
                 />
               </View>
             )}
-            {hasHeight && (
+            {heightRecs.length >= 2 && (
               <View style={styles.chartCard}>
                 <Text style={styles.chartLabel}>키 추이 (cm)</Text>
                 <LineChart
                   data={{
-                    labels,
-                    datasets: [{ data: heightData.map(v => v ?? 0) }],
+                    labels: heightRecs.map(r => dateLabel(r.measuredAt)),
+                    datasets: [{ data: heightRecs.map(r => r.heightCm!) }],
                   }}
                   width={CHART_WIDTH}
                   height={140}

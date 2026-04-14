@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Dimensions,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native'
+import { useFocusEffect } from '@react-navigation/native'
 import { BarChart, LineChart } from 'react-native-chart-kit'
 import { getWeeklyStats } from '../api/babyLogApi'
 import { getStoredBabyId } from '../api/client'
@@ -46,19 +48,35 @@ function formatSleep(minutes: number): string {
 
 export default function StatsScreen() {
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [stats, setStats] = useState<WeeklyStats | null>(null)
+  const [babyId, setBabyId] = useState<string | null>(null)
+
+  const loadStats = useCallback(async (bid: string) => {
+    const data = await getWeeklyStats(bid).catch(() => null)
+    setStats(data)
+  }, [])
 
   useEffect(() => {
-    const load = async () => {
+    const init = async () => {
       const bid = await getStoredBabyId()
-      if (bid) {
-        const data = await getWeeklyStats(bid).catch(() => null)
-        setStats(data)
-      }
+      setBabyId(bid)
+      if (bid) await loadStats(bid)
       setLoading(false)
     }
-    load()
+    init()
   }, [])
+
+  useFocusEffect(useCallback(() => {
+    if (babyId) loadStats(babyId)
+  }, [babyId, loadStats]))
+
+  const onRefresh = useCallback(async () => {
+    if (!babyId) return
+    setRefreshing(true)
+    await loadStats(babyId)
+    setRefreshing(false)
+  }, [babyId, loadStats])
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
   if (!stats) return <View style={styles.center}><Text style={styles.emptyText}>데이터가 없어요</Text></View>
@@ -74,7 +92,11 @@ export default function StatsScreen() {
   const totalSleepHours = Math.round(sleepData.reduce((a, b) => a + b, 0) * 10) / 10
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />}
+    >
       {/* 주간 요약 */}
       <View style={styles.summaryCard}>
         <Text style={styles.cardLabel}>이번 주 요약</Text>
