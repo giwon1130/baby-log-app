@@ -14,7 +14,11 @@ import {
 import * as Clipboard from 'expo-clipboard'
 import { getBabies, getFamily, getGrowthStage, updateBaby } from '../api/babyLogApi'
 import { getStoredBabyId, getStoredFamilyId, storeFamilyAndBaby } from '../api/client'
-import { getNotificationEnabled, setNotificationEnabled } from '../hooks/useFeedNotification'
+import {
+  getDiaperNotificationEnabled, setDiaperNotificationEnabled,
+  getNotificationEnabled, setNotificationEnabled,
+  getSleepNotificationEnabled, setSleepNotificationEnabled,
+} from '../hooks/useFeedNotification'
 import ErrorBanner from '../components/ErrorBanner'
 import type { Baby, Family, GrowthStage } from '../types'
 
@@ -29,6 +33,8 @@ export default function BabyProfileScreen({ navigation }: any) {
   const [family, setFamily] = useState<Family | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notifEnabled, setNotifEnabled] = useState(true)
+  const [diaperNotifEnabled, setDiaperNotifEnabled] = useState(true)
+  const [sleepNotifEnabled, setSleepNotifEnabled] = useState(true)
 
   // 편집 상태
   const [editing, setEditing] = useState(false)
@@ -59,7 +65,14 @@ export default function BabyProfileScreen({ navigation }: any) {
       const bid = await getStoredBabyId()
       setFamilyId(fid)
       if (fid) await loadAll(fid, bid)
-      setNotifEnabled(await getNotificationEnabled())
+      const [feed, diaper, sleep] = await Promise.all([
+        getNotificationEnabled(),
+        getDiaperNotificationEnabled(),
+        getSleepNotificationEnabled(),
+      ])
+      setNotifEnabled(feed)
+      setDiaperNotifEnabled(diaper)
+      setSleepNotifEnabled(sleep)
       setLoading(false)
     }
     init()
@@ -262,9 +275,10 @@ export default function BabyProfileScreen({ navigation }: any) {
           )}
 
           <View style={styles.card}>
+            <Text style={styles.sectionTitle}>알림 설정</Text>
             <View style={styles.notifRow}>
               <View>
-                <Text style={styles.sectionTitle}>수유 알림</Text>
+                <Text style={styles.notifTitle}>🍼 수유 알림</Text>
                 <Text style={styles.notifDesc}>다음 수유 시간에 알림을 보내요</Text>
               </View>
               <Switch
@@ -272,6 +286,36 @@ export default function BabyProfileScreen({ navigation }: any) {
                 onValueChange={async (v) => {
                   setNotifEnabled(v)
                   await setNotificationEnabled(v)
+                }}
+                trackColor={{ false: '#e0e0e0', true: '#FF6B9D' }}
+                thumbColor="#fff"
+              />
+            </View>
+            <View style={styles.notifRow}>
+              <View>
+                <Text style={styles.notifTitle}>🧷 기저귀 알림</Text>
+                <Text style={styles.notifDesc}>마지막 교환 3시간 후 알림을 보내요</Text>
+              </View>
+              <Switch
+                value={diaperNotifEnabled}
+                onValueChange={async (v) => {
+                  setDiaperNotifEnabled(v)
+                  await setDiaperNotificationEnabled(v)
+                }}
+                trackColor={{ false: '#e0e0e0', true: '#FF6B9D' }}
+                thumbColor="#fff"
+              />
+            </View>
+            <View style={styles.notifRow}>
+              <View>
+                <Text style={styles.notifTitle}>😴 낮잠 알림</Text>
+                <Text style={styles.notifDesc}>기상 2시간 후 낮잠 알림을 보내요</Text>
+              </View>
+              <Switch
+                value={sleepNotifEnabled}
+                onValueChange={async (v) => {
+                  setSleepNotifEnabled(v)
+                  await setSleepNotificationEnabled(v)
                 }}
                 trackColor={{ false: '#e0e0e0', true: '#FF6B9D' }}
                 thumbColor="#fff"
@@ -397,6 +441,7 @@ const styles = StyleSheet.create({
   guideText: { fontSize: 14, color: '#555' },
   inviteDesc: { fontSize: 13, color: '#777' },
   notifRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  notifTitle: { fontSize: 13, fontWeight: '600', color: '#333' },
   notifDesc: { fontSize: 12, color: '#aaa', marginTop: 2 },
   inviteCodeBox: {
     backgroundColor: '#FFF0F5',

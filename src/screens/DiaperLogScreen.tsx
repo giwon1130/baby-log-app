@@ -10,8 +10,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { deleteDiaper, getDiapers, recordDiaper } from '../api/babyLogApi'
-import { getStoredBabyId } from '../api/client'
+import { deleteDiaper, getBabies, getDiapers, recordDiaper } from '../api/babyLogApi'
+import { getStoredBabyId, getStoredFamilyId } from '../api/client'
+import { scheduleDiaperReminder } from '../hooks/useFeedNotification'
 import DateFilter, { DateFilterValue, toDateParam } from '../components/DateFilter'
 import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'
@@ -42,6 +43,7 @@ function timeSince(iso: string): string {
 
 export default function DiaperLogScreen() {
   const [babyId, setBabyId] = useState<string | null>(null)
+  const [babyName, setBabyName] = useState<string | undefined>(undefined)
   const [diapers, setDiapers] = useState<DiaperRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -62,8 +64,17 @@ export default function DiaperLogScreen() {
   useEffect(() => {
     const init = async () => {
       const bid = await getStoredBabyId()
+      const fid = await getStoredFamilyId()
       setBabyId(bid)
-      if (bid) await loadDiapers(bid, dateFilter)
+      if (bid && fid) {
+        const [, babies] = await Promise.all([
+          loadDiapers(bid, dateFilter),
+          getBabies(fid),
+        ])
+        setBabyName(babies.find(b => b.id === bid)?.name)
+      } else if (bid) {
+        await loadDiapers(bid, dateFilter)
+      }
       setLoading(false)
     }
     init()
@@ -96,12 +107,14 @@ export default function DiaperLogScreen() {
     if (!babyId) return
     setSubmitting(true)
     try {
-      await recordDiaper(babyId, { diaperType, note, changedAt: changedAt.toISOString() })
+      const changedAtIso = changedAt.toISOString()
+      await recordDiaper(babyId, { diaperType, note, changedAt: changedAtIso })
       await loadDiapers(babyId, dateFilter)
       setNote('')
       setChangedAt(new Date())
       const typeLabel: Record<string, string> = { WET: '소변', DIRTY: '대변', MIXED: '혼합', DRY: '깨끗' }
       setSuccess(`기저귀 교환 기록 완료 (${typeLabel[diaperType] ?? diaperType})`)
+      await scheduleDiaperReminder(changedAtIso, babyName)
     } catch {
       setError('기저귀 기록 저장에 실패했어요')
     } finally {

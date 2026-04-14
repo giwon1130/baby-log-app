@@ -9,12 +9,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { deleteSleep, endSleep, getActiveSleep, getSleepRecords, startSleep } from '../api/babyLogApi'
+import { deleteSleep, endSleep, getActiveSleep, getBabies, getSleepRecords, startSleep } from '../api/babyLogApi'
+import { scheduleNapReminder } from '../hooks/useFeedNotification'
 import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'
 import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
-import { getStoredBabyId } from '../api/client'
+import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import type { SleepRecord } from '../types'
 
 function formatTime(iso: string): string {
@@ -41,6 +42,7 @@ function calcElapsed(iso: string, now: number): string {
 
 export default function SleepScreen() {
   const [babyId, setBabyId] = useState<string | null>(null)
+  const [babyName, setBabyName] = useState<string | undefined>(undefined)
   const [records, setRecords] = useState<SleepRecord[]>([])
   const [activeSleep, setActiveSleep] = useState<SleepRecord | null>(null)
   const [loading, setLoading] = useState(true)
@@ -71,8 +73,15 @@ export default function SleepScreen() {
   useEffect(() => {
     const init = async () => {
       const bid = await getStoredBabyId()
+      const fid = await getStoredFamilyId()
       setBabyId(bid)
-      if (bid) await reload(bid)
+      if (bid) {
+        await reload(bid)
+        if (fid) {
+          const babies = await getBabies(fid).catch(() => [])
+          setBabyName(babies.find(b => b.id === bid)?.name)
+        }
+      }
       setLoading(false)
     }
     init()
@@ -111,8 +120,9 @@ export default function SleepScreen() {
     if (!babyId || !activeSleep) return
     setSubmitting(true)
     try {
-      await endSleep(babyId, activeSleep.id, {})
+      const ended = await endSleep(babyId, activeSleep.id, {})
       await reload(babyId)
+      if (ended.wokeAt) await scheduleNapReminder(ended.wokeAt, babyName)
     } catch {
       setError('수면 종료 기록에 실패했어요')
     } finally {
