@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import { useFocusEffect } from '@react-navigation/native'
 import {
   ActivityIndicator,
   RefreshControl,
@@ -8,7 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { getActiveSleep, getBabies, getDiapers, getGrowthStage, getLatestFeed, getSleepRecords, getTodayStats } from '../api/babyLogApi'
+import { getActiveSleep, getBabies, getDiapers, getFeeds, getGrowthStage, getLatestFeed, getSleepRecords, getTodayStats } from '../api/babyLogApi'
 import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import { scheduleFeedNotification } from '../hooks/useFeedNotification'
 import QuickActions from '../components/QuickActions'
@@ -55,13 +56,18 @@ export default function HomeScreen({ navigation }: any) {
   const [familyId, setFamilyId] = useState<string | null>(null)
   const [activeSleep, setActiveSleep] = useState<SleepRecord | null>(null)
   const [lastSleep, setLastSleep] = useState<SleepRecord | null>(null)
+  const [yesterdayFeedMl, setYesterdayFeedMl] = useState<number | null>(null)
 
   useEffect(() => {
     navigation.setOptions({ title: babyName ?? '홈' })
   }, [babyName])
 
   const loadData = useCallback(async (bid: string, fid: string) => {
-    const [feed, diaper, stage, babies, stats, active, sleeps] = await Promise.allSettled([
+    const yesterday = new Date()
+    yesterday.setDate(yesterday.getDate() - 1)
+    const yyyymmdd = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`
+
+    const [feed, diaper, stage, babies, stats, active, sleeps, yFeeds] = await Promise.allSettled([
       getLatestFeed(bid),
       getDiapers(bid, 1),
       getGrowthStage(bid, fid),
@@ -69,6 +75,7 @@ export default function HomeScreen({ navigation }: any) {
       getTodayStats(bid),
       getActiveSleep(bid),
       getSleepRecords(bid, 3),
+      getFeeds(bid, 100, yyyymmdd),
     ])
 
     if (feed.status === 'fulfilled' && feed.value) {
@@ -88,6 +95,9 @@ export default function HomeScreen({ navigation }: any) {
       const completed = sleeps.value.find(s => s.wokeAt !== null)
       setLastSleep(completed ?? null)
     }
+    if (yFeeds.status === 'fulfilled') {
+      setYesterdayFeedMl(yFeeds.value.reduce((sum, f) => sum + f.amountMl, 0))
+    }
   }, [])
 
   useEffect(() => {
@@ -101,6 +111,20 @@ export default function HomeScreen({ navigation }: any) {
     }
     init()
   }, [])
+
+  // 탭 포커스 시 babyId 변경 감지 → 다른 아기로 전환됐으면 리로드
+  useFocusEffect(useCallback(() => {
+    const check = async () => {
+      const bid = await getStoredBabyId()
+      const fid = await getStoredFamilyId()
+      if (bid && fid && (bid !== babyId || fid !== familyId)) {
+        setBabyId(bid)
+        setFamilyId(fid)
+        await loadData(bid, fid)
+      }
+    }
+    check()
+  }, [babyId, familyId, loadData]))
 
   const onRefresh = useCallback(async () => {
     if (!babyId || !familyId) return
@@ -164,6 +188,15 @@ export default function HomeScreen({ navigation }: any) {
               <Text style={styles.statEmoji}>🍼</Text>
               <Text style={styles.statValue}>{todayStats.feedCount}회</Text>
               <Text style={styles.statSub}>{todayStats.totalFeedMl}ml</Text>
+              {yesterdayFeedMl != null && yesterdayFeedMl > 0 && (() => {
+                const diff = todayStats.totalFeedMl - yesterdayFeedMl
+                const pct = Math.round(Math.abs(diff) / yesterdayFeedMl * 100)
+                return (
+                  <Text style={[styles.statCompare, diff >= 0 ? styles.compareUp : styles.compareDown]}>
+                    {diff >= 0 ? '▲' : '▼'}{pct}%
+                  </Text>
+                )
+              })()}
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statEmoji}>🧷</Text>
@@ -267,6 +300,9 @@ const styles = StyleSheet.create({
   statEmoji: { fontSize: 24 },
   statValue: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
   statSub: { fontSize: 12, color: '#aaa' },
+  statCompare: { fontSize: 11, fontWeight: '700' },
+  compareUp: { color: '#4CAF50' },
+  compareDown: { color: '#F44336' },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: '#444' },
   primaryButton: {
     backgroundColor: '#FF6B9D',

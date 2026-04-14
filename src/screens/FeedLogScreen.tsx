@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import { useFocusEffect } from '@react-navigation/native'
 import {
   ActivityIndicator,
   FlatList,
@@ -16,6 +17,8 @@ import DateFilter, { DateFilterValue, toDateParam } from '../components/DateFilt
 import SwipeToDelete from '../components/SwipeToDelete'
 import EditFeedModal from '../components/EditFeedModal'
 import ErrorBanner from '../components/ErrorBanner'
+import TimeOffsetPicker from '../components/TimeOffsetPicker'
+import SuccessToast from '../components/SuccessToast'
 import type { FeedRecord } from '../types'
 
 const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
@@ -45,6 +48,8 @@ export default function FeedLogScreen() {
   const [amount, setAmount] = useState('')
   const [feedType, setFeedType] = useState<string>('FORMULA')
   const [note, setNote] = useState('')
+  const [fedAt, setFedAt] = useState(new Date())
+  const [success, setSuccess] = useState<string | null>(null)
 
   const loadFeeds = useCallback(async (bid: string, filter: DateFilterValue) => {
     const data = await getFeeds(bid, 50, toDateParam(filter))
@@ -75,6 +80,17 @@ export default function FeedLogScreen() {
     setRefreshing(false)
   }, [babyId, dateFilter, loadFeeds])
 
+  useFocusEffect(useCallback(() => {
+    const check = async () => {
+      const bid = await getStoredBabyId()
+      if (bid && bid !== babyId) {
+        setBabyId(bid)
+        await loadFeeds(bid, dateFilter)
+      }
+    }
+    check()
+  }, [babyId, dateFilter, loadFeeds]))
+
   const handleFilterChange = async (filter: DateFilterValue) => {
     setDateFilter(filter)
     if (babyId) await loadFeeds(babyId, filter)
@@ -84,10 +100,17 @@ export default function FeedLogScreen() {
     if (!babyId || !amount) return
     setSubmitting(true)
     try {
-      const record = await recordFeed(babyId, { amountMl: parseInt(amount), feedType, note })
+      const record = await recordFeed(babyId, {
+        amountMl: parseInt(amount),
+        feedType,
+        note,
+        fedAt: fedAt.toISOString(),
+      })
       await loadFeeds(babyId, dateFilter)
       setAmount('')
       setNote('')
+      setFedAt(new Date())
+      setSuccess(`${parseInt(amount)}ml 수유 기록 완료`)
       await scheduleFeedNotification(record.nextFeedAt, babyName)
     } catch {
       setError('수유 기록 저장에 실패했어요')
@@ -121,6 +144,7 @@ export default function FeedLogScreen() {
   return (
     <View style={styles.container}>
       <ErrorBanner message={error} onDismiss={() => setError(null)} />
+      <SuccessToast message={success} onHide={() => setSuccess(null)} />
       <EditFeedModal
         record={editingRecord}
         onClose={() => setEditingRecord(null)}
@@ -164,6 +188,7 @@ export default function FeedLogScreen() {
           ))}
         </View>
         <TextInput style={styles.input} placeholder="메모 (선택)" value={note} onChangeText={setNote} />
+        <TimeOffsetPicker value={fedAt} onChange={setFedAt} />
         <TouchableOpacity
           style={[styles.submitButton, (!amount || submitting) && styles.submitButtonDisabled]}
           onPress={handleSubmit}

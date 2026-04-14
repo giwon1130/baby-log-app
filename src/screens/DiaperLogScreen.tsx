@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
+import { useFocusEffect } from '@react-navigation/native'
 import {
   ActivityIndicator,
   FlatList,
@@ -14,6 +15,8 @@ import { getStoredBabyId } from '../api/client'
 import DateFilter, { DateFilterValue, toDateParam } from '../components/DateFilter'
 import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'
+import TimeOffsetPicker from '../components/TimeOffsetPicker'
+import SuccessToast from '../components/SuccessToast'
 import type { DiaperRecord } from '../types'
 
 const DIAPER_TYPES = ['WET', 'DIRTY', 'MIXED', 'DRY'] as const
@@ -48,6 +51,8 @@ export default function DiaperLogScreen() {
 
   const [diaperType, setDiaperType] = useState<string>('WET')
   const [note, setNote] = useState('')
+  const [changedAt, setChangedAt] = useState(new Date())
+  const [success, setSuccess] = useState<string | null>(null)
 
   const loadDiapers = useCallback(async (bid: string, filter: DateFilterValue) => {
     const data = await getDiapers(bid, 50, toDateParam(filter))
@@ -71,6 +76,17 @@ export default function DiaperLogScreen() {
     setRefreshing(false)
   }, [babyId, dateFilter, loadDiapers])
 
+  useFocusEffect(useCallback(() => {
+    const check = async () => {
+      const bid = await getStoredBabyId()
+      if (bid && bid !== babyId) {
+        setBabyId(bid)
+        await loadDiapers(bid, dateFilter)
+      }
+    }
+    check()
+  }, [babyId, dateFilter, loadDiapers]))
+
   const handleFilterChange = async (filter: DateFilterValue) => {
     setDateFilter(filter)
     if (babyId) await loadDiapers(babyId, filter)
@@ -80,9 +96,12 @@ export default function DiaperLogScreen() {
     if (!babyId) return
     setSubmitting(true)
     try {
-      await recordDiaper(babyId, { diaperType, note })
+      await recordDiaper(babyId, { diaperType, note, changedAt: changedAt.toISOString() })
       await loadDiapers(babyId, dateFilter)
       setNote('')
+      setChangedAt(new Date())
+      const typeLabel: Record<string, string> = { WET: '소변', DIRTY: '대변', MIXED: '혼합', DRY: '깨끗' }
+      setSuccess(`기저귀 교환 기록 완료 (${typeLabel[diaperType] ?? diaperType})`)
     } catch {
       setError('기저귀 기록 저장에 실패했어요')
     } finally {
@@ -105,6 +124,7 @@ export default function DiaperLogScreen() {
   return (
     <View style={styles.container}>
       <ErrorBanner message={error} onDismiss={() => setError(null)} />
+      <SuccessToast message={success} onHide={() => setSuccess(null)} />
       <View style={styles.form}>
         <Text style={styles.formTitle}>기저귀 교환 기록</Text>
         <Text style={styles.label}>종류</Text>
@@ -122,6 +142,7 @@ export default function DiaperLogScreen() {
           ))}
         </View>
         <TextInput style={styles.input} placeholder="메모 (선택)" value={note} onChangeText={setNote} />
+        <TimeOffsetPicker value={changedAt} onChange={setChangedAt} />
         <TouchableOpacity
           style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
           onPress={handleSubmit}

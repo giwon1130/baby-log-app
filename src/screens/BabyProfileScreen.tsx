@@ -3,7 +3,6 @@ import { useFocusEffect } from '@react-navigation/native'
 import {
   ActivityIndicator,
   Alert,
-  Clipboard,
   ScrollView,
   Switch,
   StyleSheet,
@@ -12,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import * as Clipboard from 'expo-clipboard'
 import { getBabies, getFamily, getGrowthStage, updateBaby } from '../api/babyLogApi'
 import { getStoredBabyId, getStoredFamilyId, storeFamilyAndBaby } from '../api/client'
 import { getNotificationEnabled, setNotificationEnabled } from '../hooks/useFeedNotification'
@@ -107,9 +107,9 @@ export default function BabyProfileScreen({ navigation }: any) {
     }
   }
 
-  const copyInviteCode = () => {
+  const copyInviteCode = async () => {
     if (!family) return
-    Clipboard.setString(family.inviteCode)
+    await Clipboard.setStringAsync(family.inviteCode)
     Alert.alert('복사됨', `초대 코드 ${family.inviteCode}가 클립보드에 복사됐어요.`)
   }
 

@@ -12,6 +12,8 @@ import {
 import { deleteSleep, endSleep, getActiveSleep, getSleepRecords, startSleep } from '../api/babyLogApi'
 import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'
+import TimeOffsetPicker from '../components/TimeOffsetPicker'
+import SuccessToast from '../components/SuccessToast'
 import { getStoredBabyId } from '../api/client'
 import type { SleepRecord } from '../types'
 
@@ -45,6 +47,8 @@ export default function SleepScreen() {
   const [submitting, setSubmitting] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [sleptAt, setSleptAt] = useState(new Date())
+  const [success, setSuccess] = useState<string | null>(null)
   const [now, setNow] = useState(Date.now())
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -92,7 +96,9 @@ export default function SleepScreen() {
     if (!babyId) return
     setSubmitting(true)
     try {
-      await startSleep(babyId, {})
+      await startSleep(babyId, { sleptAt: sleptAt.toISOString() })
+      setSleptAt(new Date())
+      setSuccess('수면 기록 시작')
       await reload(babyId)
     } catch {
       setError('수면 시작 기록에 실패했어요')
@@ -130,6 +136,7 @@ export default function SleepScreen() {
   return (
     <View style={styles.container}>
       <ErrorBanner message={error} onDismiss={() => setError(null)} />
+      <SuccessToast message={success} onHide={() => setSuccess(null)} />
       {/* 수면 상태 카드 */}
       <View style={styles.statusCard}>
         {activeSleep ? (
@@ -152,7 +159,7 @@ export default function SleepScreen() {
         ) : (
           <>
             <Text style={styles.awakeTitle}>깨어있음</Text>
-            <Text style={styles.awakeDesc}>잠들면 기록해주세요</Text>
+            <TimeOffsetPicker value={sleptAt} onChange={setSleptAt} />
             <TouchableOpacity
               style={[styles.actionButton, styles.sleepButton]}
               onPress={handleStart}
