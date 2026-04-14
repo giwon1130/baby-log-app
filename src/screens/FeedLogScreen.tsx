@@ -8,9 +8,11 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { getBabies, getFeeds, recordFeed } from '../api/babyLogApi'
+import { deleteFeed, getBabies, getFeeds, recordFeed } from '../api/babyLogApi'
 import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import { scheduleFeedNotification } from '../hooks/useFeedNotification'
+import DateFilter, { DateFilterValue, toDateParam } from '../components/DateFilter'
+import SwipeToDelete from '../components/SwipeToDelete'
 import type { FeedRecord } from '../types'
 
 const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
@@ -19,7 +21,6 @@ const FEED_TYPE_LABEL: Record<string, string> = {
   BREAST: '모유',
   MIXED: '혼합',
 }
-
 const QUICK_AMOUNTS = [30, 60, 80, 90, 100, 120, 150]
 
 function formatTime(iso: string): string {
@@ -33,10 +34,16 @@ export default function FeedLogScreen() {
   const [feeds, setFeeds] = useState<FeedRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [dateFilter, setDateFilter] = useState<DateFilterValue>('today')
 
   const [amount, setAmount] = useState('')
   const [feedType, setFeedType] = useState<string>('FORMULA')
   const [note, setNote] = useState('')
+
+  const loadFeeds = async (bid: string, filter: DateFilterValue) => {
+    const data = await getFeeds(bid, 50, toDateParam(filter))
+    setFeeds(data)
+  }
 
   useEffect(() => {
     const init = async () => {
@@ -44,11 +51,10 @@ export default function FeedLogScreen() {
       const fid = await getStoredFamilyId()
       setBabyId(bid)
       if (bid && fid) {
-        const [data, babies] = await Promise.all([
-          getFeeds(bid),
+        const [, babies] = await Promise.all([
+          loadFeeds(bid, dateFilter),
           getBabies(fid),
         ])
-        setFeeds(data)
         setBabyName(babies.find(b => b.id === bid)?.name)
       }
       setLoading(false)
@@ -56,40 +62,42 @@ export default function FeedLogScreen() {
     init()
   }, [])
 
+  const handleFilterChange = async (filter: DateFilterValue) => {
+    setDateFilter(filter)
+    if (babyId) await loadFeeds(babyId, filter)
+  }
+
   const handleSubmit = async () => {
     if (!babyId || !amount) return
     setSubmitting(true)
     try {
-      const record = await recordFeed(babyId, {
-        amountMl: parseInt(amount),
-        feedType,
-        note,
-      })
-      setFeeds(prev => [record, ...prev])
+      const record = await recordFeed(babyId, { amountMl: parseInt(amount), feedType, note })
+      setFeeds(prev => [record, ...prev.filter(f =>
+        dateFilter === 'all' || toDateParam(dateFilter) === record.fedAt.slice(0, 10)
+          ? true : prev.includes(f)
+      )])
+      // 오늘 필터일 때만 새 항목 리스트에 바로 반영
+      await loadFeeds(babyId, dateFilter)
       setAmount('')
       setNote('')
-      // 다음 수유 알림 스케줄
       await scheduleFeedNotification(record.nextFeedAt, babyName)
     } finally {
       setSubmitting(false)
     }
   }
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#FF6B9D" />
-      </View>
-    )
+  const handleDelete = async (feedId: string) => {
+    if (!babyId) return
+    await deleteFeed(babyId, feedId)
+    setFeeds(prev => prev.filter(f => f.id !== feedId))
   }
+
+  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
 
   return (
     <View style={styles.container}>
-      {/* 입력 폼 */}
       <View style={styles.form}>
         <Text style={styles.formTitle}>수유 기록</Text>
-
-        {/* 수유량 빠른 선택 */}
         <Text style={styles.label}>수유량 (ml)</Text>
         <View style={styles.quickRow}>
           {QUICK_AMOUNTS.map(ml => (
@@ -111,8 +119,6 @@ export default function FeedLogScreen() {
           value={amount}
           onChangeText={setAmount}
         />
-
-        {/* 수유 타입 */}
         <Text style={styles.label}>수유 방법</Text>
         <View style={styles.typeRow}>
           {FEED_TYPES.map(t => (
@@ -127,45 +133,37 @@ export default function FeedLogScreen() {
             </TouchableOpacity>
           ))}
         </View>
-
-        <TextInput
-          style={styles.input}
-          placeholder="메모 (선택)"
-          value={note}
-          onChangeText={setNote}
-        />
-
+        <TextInput style={styles.input} placeholder="메모 (선택)" value={note} onChangeText={setNote} />
         <TouchableOpacity
           style={[styles.submitButton, (!amount || submitting) && styles.submitButtonDisabled]}
           onPress={handleSubmit}
           disabled={!amount || submitting}
         >
-          <Text style={styles.submitButtonText}>
-            {submitting ? '저장 중...' : '기록하기'}
-          </Text>
+          <Text style={styles.submitButtonText}>{submitting ? '저장 중...' : '기록하기'}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* 기록 목록 */}
+      <DateFilter value={dateFilter} onChange={handleFilterChange} />
+
       <FlatList
         data={feeds}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
-          <View style={styles.recordItem}>
-            <View style={styles.recordLeft}>
-              <Text style={styles.recordAmount}>{item.amountMl}ml</Text>
-              <Text style={styles.recordType}>{FEED_TYPE_LABEL[item.feedType]}</Text>
+          <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 수유 기록을 삭제할까요?">
+            <View style={styles.recordItem}>
+              <View style={styles.recordLeft}>
+                <Text style={styles.recordAmount}>{item.amountMl}ml</Text>
+                <Text style={styles.recordType}>{FEED_TYPE_LABEL[item.feedType]}</Text>
+              </View>
+              <View style={styles.recordRight}>
+                <Text style={styles.recordTime}>{formatTime(item.fedAt)}</Text>
+                <Text style={styles.recordNext}>다음 {formatTime(item.nextFeedAt)}</Text>
+              </View>
             </View>
-            <View style={styles.recordRight}>
-              <Text style={styles.recordTime}>{formatTime(item.fedAt)}</Text>
-              <Text style={styles.recordNext}>다음 {formatTime(item.nextFeedAt)}</Text>
-            </View>
-          </View>
+          </SwipeToDelete>
         )}
-        ListEmptyComponent={
-          <Text style={styles.empty}>수유 기록이 없어요</Text>
-        }
+        ListEmptyComponent={<Text style={styles.empty}>수유 기록이 없어요</Text>}
       />
     </View>
   )
@@ -184,56 +182,27 @@ const styles = StyleSheet.create({
   formTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
   label: { fontSize: 12, color: '#888', fontWeight: '600', marginTop: 4 },
   quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  quickChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: '#f5f5f5',
-  },
+  quickChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: '#f5f5f5' },
   quickChipActive: { backgroundColor: '#FF6B9D' },
   quickChipText: { fontSize: 13, color: '#555', fontWeight: '600' },
   quickChipTextActive: { color: '#fff' },
   typeRow: { flexDirection: 'row', gap: 8 },
-  typeChip: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 10,
-    backgroundColor: '#f5f5f5',
-    alignItems: 'center',
-  },
+  typeChip: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: '#f5f5f5', alignItems: 'center' },
   typeChipActive: { backgroundColor: '#FF6B9D' },
   typeChipText: { fontSize: 13, color: '#555', fontWeight: '600' },
   typeChipTextActive: { color: '#fff' },
-  input: {
-    borderWidth: 1,
-    borderColor: '#e8e8e8',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 14,
-  },
-  submitButton: {
-    backgroundColor: '#FF6B9D',
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: 4,
-  },
+  input: { borderWidth: 1, borderColor: '#e8e8e8', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14 },
+  submitButton: { backgroundColor: '#FF6B9D', borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 4 },
   submitButtonDisabled: { backgroundColor: '#ffb3cc' },
   submitButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   listContent: { padding: 16, gap: 10 },
   recordItem: {
+    flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
   },
   recordLeft: { gap: 4 },
   recordRight: { alignItems: 'flex-end', gap: 4 },

@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { endSleep, getActiveSleep, getSleepRecords, startSleep } from '../api/babyLogApi'
+import { deleteSleep, endSleep, getActiveSleep, getSleepRecords, startSleep } from '../api/babyLogApi'
+import SwipeToDelete from '../components/SwipeToDelete'
 import { getStoredBabyId } from '../api/client'
 import type { SleepRecord } from '../types'
 
@@ -79,6 +80,13 @@ export default function SleepScreen() {
     }
   }
 
+  const handleDelete = async (sleepId: string) => {
+    if (!babyId) return
+    await deleteSleep(babyId, sleepId)
+    setRecords(prev => prev.filter(r => r.id !== sleepId))
+    if (activeSleep?.id === sleepId) setActiveSleep(null)
+  }
+
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
 
   return (
@@ -123,21 +131,23 @@ export default function SleepScreen() {
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
-          <View style={styles.recordItem}>
-            <View>
-              <Text style={styles.recordSlept}>잠든 시각 {formatTime(item.sleptAt)}</Text>
-              {item.wokeAt && (
-                <Text style={styles.recordWoke}>깬 시각 {formatTime(item.wokeAt)}</Text>
-              )}
+          <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 수면 기록을 삭제할까요?">
+            <View style={styles.recordItem}>
+              <View>
+                <Text style={styles.recordSlept}>잠든 시각 {formatTime(item.sleptAt)}</Text>
+                {item.wokeAt && (
+                  <Text style={styles.recordWoke}>깬 시각 {formatTime(item.wokeAt)}</Text>
+                )}
+              </View>
+              <View style={styles.recordRight}>
+                {item.durationMinutes != null ? (
+                  <Text style={styles.duration}>{formatDuration(item.durationMinutes)}</Text>
+                ) : (
+                  <Text style={styles.ongoing}>수면 중</Text>
+                )}
+              </View>
             </View>
-            <View style={styles.recordRight}>
-              {item.durationMinutes != null ? (
-                <Text style={styles.duration}>{formatDuration(item.durationMinutes)}</Text>
-              ) : (
-                <Text style={styles.ongoing}>수면 중</Text>
-              )}
-            </View>
-          </View>
+          </SwipeToDelete>
         )}
         ListEmptyComponent={<Text style={styles.empty}>수면 기록이 없어요</Text>}
       />
@@ -176,17 +186,12 @@ const styles = StyleSheet.create({
   actionButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
   listContent: { paddingHorizontal: 16, gap: 10, paddingBottom: 16 },
   recordItem: {
+    flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
   },
   recordSlept: { fontSize: 13, color: '#444' },
   recordWoke: { fontSize: 13, color: '#888', marginTop: 2 },

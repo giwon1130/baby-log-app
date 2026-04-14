@@ -8,8 +8,10 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { getDiapers, recordDiaper } from '../api/babyLogApi'
+import { deleteDiaper, getDiapers, recordDiaper } from '../api/babyLogApi'
 import { getStoredBabyId } from '../api/client'
+import DateFilter, { DateFilterValue, toDateParam } from '../components/DateFilter'
+import SwipeToDelete from '../components/SwipeToDelete'
 import type { DiaperRecord } from '../types'
 
 const DIAPER_TYPES = ['WET', 'DIRTY', 'MIXED', 'DRY'] as const
@@ -38,48 +40,55 @@ export default function DiaperLogScreen() {
   const [diapers, setDiapers] = useState<DiaperRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [dateFilter, setDateFilter] = useState<DateFilterValue>('today')
 
   const [diaperType, setDiaperType] = useState<string>('WET')
   const [note, setNote] = useState('')
+
+  const loadDiapers = async (bid: string, filter: DateFilterValue) => {
+    const data = await getDiapers(bid, 50, toDateParam(filter))
+    setDiapers(data)
+  }
 
   useEffect(() => {
     const init = async () => {
       const bid = await getStoredBabyId()
       setBabyId(bid)
-      if (bid) {
-        const data = await getDiapers(bid)
-        setDiapers(data)
-      }
+      if (bid) await loadDiapers(bid, dateFilter)
       setLoading(false)
     }
     init()
   }, [])
 
+  const handleFilterChange = async (filter: DateFilterValue) => {
+    setDateFilter(filter)
+    if (babyId) await loadDiapers(babyId, filter)
+  }
+
   const handleSubmit = async () => {
     if (!babyId) return
     setSubmitting(true)
     try {
-      const record = await recordDiaper(babyId, { diaperType, note })
-      setDiapers(prev => [record, ...prev])
+      await recordDiaper(babyId, { diaperType, note })
+      await loadDiapers(babyId, dateFilter)
       setNote('')
     } finally {
       setSubmitting(false)
     }
   }
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#FF6B9D" />
-      </View>
-    )
+  const handleDelete = async (diaperId: string) => {
+    if (!babyId) return
+    await deleteDiaper(babyId, diaperId)
+    setDiapers(prev => prev.filter(d => d.id !== diaperId))
   }
+
+  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
 
   return (
     <View style={styles.container}>
       <View style={styles.form}>
         <Text style={styles.formTitle}>기저귀 교환 기록</Text>
-
         <Text style={styles.label}>종류</Text>
         <View style={styles.typeGrid}>
           {DIAPER_TYPES.map(t => (
@@ -94,41 +103,34 @@ export default function DiaperLogScreen() {
             </TouchableOpacity>
           ))}
         </View>
-
-        <TextInput
-          style={styles.input}
-          placeholder="메모 (선택)"
-          value={note}
-          onChangeText={setNote}
-        />
-
+        <TextInput style={styles.input} placeholder="메모 (선택)" value={note} onChangeText={setNote} />
         <TouchableOpacity
           style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
           onPress={handleSubmit}
           disabled={submitting}
         >
-          <Text style={styles.submitButtonText}>
-            {submitting ? '저장 중...' : '지금 기록하기'}
-          </Text>
+          <Text style={styles.submitButtonText}>{submitting ? '저장 중...' : '지금 기록하기'}</Text>
         </TouchableOpacity>
       </View>
+
+      <DateFilter value={dateFilter} onChange={handleFilterChange} />
 
       <FlatList
         data={diapers}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
-          <View style={styles.recordItem}>
-            <Text style={styles.recordType}>{DIAPER_TYPE_LABEL[item.diaperType]}</Text>
-            <View style={styles.recordRight}>
-              <Text style={styles.recordTime}>{formatTime(item.changedAt)}</Text>
-              <Text style={styles.recordAgo}>{timeSince(item.changedAt)}</Text>
+          <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 기저귀 기록을 삭제할까요?">
+            <View style={styles.recordItem}>
+              <Text style={styles.recordType}>{DIAPER_TYPE_LABEL[item.diaperType]}</Text>
+              <View style={styles.recordRight}>
+                <Text style={styles.recordTime}>{formatTime(item.changedAt)}</Text>
+                <Text style={styles.recordAgo}>{timeSince(item.changedAt)}</Text>
+              </View>
             </View>
-          </View>
+          </SwipeToDelete>
         )}
-        ListEmptyComponent={
-          <Text style={styles.empty}>기저귀 기록이 없어요</Text>
-        }
+        ListEmptyComponent={<Text style={styles.empty}>기저귀 기록이 없어요</Text>}
       />
     </View>
   )
@@ -137,56 +139,26 @@ export default function DiaperLogScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF9FB' },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  form: {
-    backgroundColor: '#fff',
-    padding: 20,
-    gap: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
+  form: { backgroundColor: '#fff', padding: 20, gap: 10, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
   formTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
   label: { fontSize: 12, color: '#888', fontWeight: '600' },
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  typeChip: {
-    flex: 1,
-    minWidth: '45%',
-    paddingVertical: 12,
-    borderRadius: 12,
-    backgroundColor: '#f5f5f5',
-    alignItems: 'center',
-  },
+  typeChip: { flex: 1, minWidth: '45%', paddingVertical: 12, borderRadius: 12, backgroundColor: '#f5f5f5', alignItems: 'center' },
   typeChipActive: { backgroundColor: '#FF6B9D' },
   typeChipText: { fontSize: 14, color: '#555', fontWeight: '600' },
   typeChipTextActive: { color: '#fff' },
-  input: {
-    borderWidth: 1,
-    borderColor: '#e8e8e8',
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    fontSize: 14,
-  },
-  submitButton: {
-    backgroundColor: '#FF6B9D',
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
+  input: { borderWidth: 1, borderColor: '#e8e8e8', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14 },
+  submitButton: { backgroundColor: '#FF6B9D', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   submitButtonDisabled: { backgroundColor: '#ffb3cc' },
   submitButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   listContent: { padding: 16, gap: 10 },
   recordItem: {
+    flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
   },
   recordType: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
   recordRight: { alignItems: 'flex-end', gap: 2 },

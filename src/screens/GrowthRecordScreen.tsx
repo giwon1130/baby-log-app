@@ -8,8 +8,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { getGrowthRecords, recordGrowth } from '../api/babyLogApi'
+import { deleteGrowthRecord, getGrowthRecords, recordGrowth } from '../api/babyLogApi'
 import { getStoredBabyId } from '../api/client'
+import SwipeToDelete from '../components/SwipeToDelete'
 import type { GrowthRecord } from '../types'
 
 function formatTime(iso: string): string {
@@ -56,6 +57,12 @@ export default function GrowthRecordScreen() {
     } finally {
       setSubmitting(false)
     }
+  }
+
+  const handleDelete = async (recordId: string) => {
+    if (!babyId) return
+    await deleteGrowthRecord(babyId, recordId)
+    setRecords(prev => prev.filter(r => r.id !== recordId))
   }
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
@@ -118,29 +125,31 @@ export default function GrowthRecordScreen() {
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
         renderItem={({ item }) => (
-          <View style={styles.recordItem}>
-            <View style={styles.metrics}>
-              {item.weightG != null && (
-                <View style={styles.metric}>
-                  <Text style={styles.metricLabel}>체중</Text>
-                  <Text style={styles.metricValue}>{(item.weightG / 1000).toFixed(2)}kg</Text>
-                </View>
-              )}
-              {item.heightCm != null && (
-                <View style={styles.metric}>
-                  <Text style={styles.metricLabel}>키</Text>
-                  <Text style={styles.metricValue}>{item.heightCm}cm</Text>
-                </View>
-              )}
-              {item.headCm != null && (
-                <View style={styles.metric}>
-                  <Text style={styles.metricLabel}>머리</Text>
-                  <Text style={styles.metricValue}>{item.headCm}cm</Text>
-                </View>
-              )}
+          <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 성장 기록을 삭제할까요?">
+            <View style={styles.recordItem}>
+              <View style={styles.metrics}>
+                {item.weightG != null && (
+                  <View style={styles.metric}>
+                    <Text style={styles.metricLabel}>체중</Text>
+                    <Text style={styles.metricValue}>{(item.weightG / 1000).toFixed(2)}kg</Text>
+                  </View>
+                )}
+                {item.heightCm != null && (
+                  <View style={styles.metric}>
+                    <Text style={styles.metricLabel}>키</Text>
+                    <Text style={styles.metricValue}>{item.heightCm}cm</Text>
+                  </View>
+                )}
+                {item.headCm != null && (
+                  <View style={styles.metric}>
+                    <Text style={styles.metricLabel}>머리</Text>
+                    <Text style={styles.metricValue}>{item.headCm}cm</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.recordTime}>{formatTime(item.measuredAt)}</Text>
             </View>
-            <Text style={styles.recordTime}>{formatTime(item.measuredAt)}</Text>
-          </View>
+          </SwipeToDelete>
         )}
         ListEmptyComponent={<Text style={styles.empty}>성장 기록이 없어요</Text>}
       />
@@ -181,17 +190,12 @@ const styles = StyleSheet.create({
   submitButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   listContent: { padding: 16, gap: 10 },
   recordItem: {
+    flex: 1,
     backgroundColor: '#fff',
-    borderRadius: 12,
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 4,
-    elevation: 1,
   },
   metrics: { flexDirection: 'row', gap: 16 },
   metric: { alignItems: 'center' },

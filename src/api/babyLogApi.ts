@@ -26,11 +26,14 @@ export const recordFeed = (babyId: string, data: {
   note?: string
 }) => api.post<FeedRecord>(`/api/v1/babies/${babyId}/feeds`, data)
 
-export const getFeeds = (babyId: string, limit = 20) =>
-  api.get<FeedRecord[]>(`/api/v1/babies/${babyId}/feeds?limit=${limit}`)
+export const getFeeds = (babyId: string, limit = 50, date?: string) =>
+  api.get<FeedRecord[]>(`/api/v1/babies/${babyId}/feeds?limit=${limit}${date ? `&date=${date}` : ''}`)
 
 export const getLatestFeed = (babyId: string) =>
   api.get<FeedRecord | null>(`/api/v1/babies/${babyId}/feeds/latest`)
+
+export const deleteFeed = (babyId: string, feedId: string) =>
+  api.delete<void>(`/api/v1/babies/${babyId}/feeds/${feedId}`)
 
 // Diaper
 export const recordDiaper = (babyId: string, data: {
@@ -39,8 +42,11 @@ export const recordDiaper = (babyId: string, data: {
   note?: string
 }) => api.post<DiaperRecord>(`/api/v1/babies/${babyId}/diapers`, data)
 
-export const getDiapers = (babyId: string, limit = 20) =>
-  api.get<DiaperRecord[]>(`/api/v1/babies/${babyId}/diapers?limit=${limit}`)
+export const getDiapers = (babyId: string, limit = 50, date?: string) =>
+  api.get<DiaperRecord[]>(`/api/v1/babies/${babyId}/diapers?limit=${limit}${date ? `&date=${date}` : ''}`)
+
+export const deleteDiaper = (babyId: string, diaperId: string) =>
+  api.delete<void>(`/api/v1/babies/${babyId}/diapers/${diaperId}`)
 
 // Growth Records
 export const recordGrowth = (babyId: string, data: {
@@ -61,11 +67,17 @@ export const startSleep = (babyId: string, data: { sleptAt?: string; note?: stri
 export const endSleep = (babyId: string, sleepId: string, data: { wokeAt?: string }) =>
   api.post<SleepRecord>(`/api/v1/babies/${babyId}/sleeps/${sleepId}/end`, data)
 
-export const getSleepRecords = (babyId: string, limit = 20) =>
+export const getSleepRecords = (babyId: string, limit = 50) =>
   api.get<SleepRecord[]>(`/api/v1/babies/${babyId}/sleeps?limit=${limit}`)
 
 export const getActiveSleep = (babyId: string) =>
   api.get<SleepRecord | null>(`/api/v1/babies/${babyId}/sleeps/active`)
+
+export const deleteSleep = (babyId: string, sleepId: string) =>
+  api.delete<void>(`/api/v1/babies/${babyId}/sleeps/${sleepId}`)
+
+export const deleteGrowthRecord = (babyId: string, recordId: string) =>
+  api.delete<void>(`/api/v1/babies/${babyId}/growth-records/${recordId}`)
 
 // Growth Stage
 export const getGrowthStage = (babyId: string, familyId: string) =>

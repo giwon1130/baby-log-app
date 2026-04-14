@@ -17,6 +17,7 @@ export const api = {
   get: <T>(path: string) => request<T>(path),
   post: <T>(path: string, body: unknown) =>
     request<T>(path, { method: 'POST', body: JSON.stringify(body) }),
+  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 }
 
 // 로컬 저장소 키
