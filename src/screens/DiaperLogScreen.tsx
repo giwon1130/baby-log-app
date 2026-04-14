@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { deleteDiaper, getBabies, getDiapers, recordDiaper } from '../api/babyLogApi'
+import { deleteDiaper, getBabies, getDiapers, recordDiaper, updateDiaper } from '../api/babyLogApi'
 import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import { scheduleDiaperReminder } from '../hooks/useFeedNotification'
 import DateFilter, { DateFilterValue, toDateParam } from '../components/DateFilter'
@@ -18,6 +18,7 @@ import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'
 import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
+import EditDiaperModal from '../components/EditDiaperModal'
 import type { DiaperRecord } from '../types'
 
 const DIAPER_TYPES = ['WET', 'DIRTY', 'MIXED', 'DRY'] as const
@@ -55,6 +56,7 @@ export default function DiaperLogScreen() {
   const [note, setNote] = useState('')
   const [changedAt, setChangedAt] = useState(new Date())
   const [success, setSuccess] = useState<string | null>(null)
+  const [editingRecord, setEditingRecord] = useState<DiaperRecord | null>(null)
 
   const loadDiapers = useCallback(async (bid: string, filter: DateFilterValue) => {
     const data = await getDiapers(bid, 50, toDateParam(filter))
@@ -122,6 +124,13 @@ export default function DiaperLogScreen() {
     }
   }
 
+  const handleUpdate = async (id: string, newDiaperType: string, newNote: string) => {
+    if (!babyId) return
+    await updateDiaper(babyId, id, { diaperType: newDiaperType, note: newNote })
+    await loadDiapers(babyId, dateFilter)
+    setSuccess('기저귀 기록이 수정됐어요')
+  }
+
   const handleDelete = async (diaperId: string) => {
     if (!babyId) return
     try {
@@ -136,6 +145,11 @@ export default function DiaperLogScreen() {
 
   return (
     <View style={styles.container}>
+      <EditDiaperModal
+        record={editingRecord}
+        onClose={() => setEditingRecord(null)}
+        onSave={handleUpdate}
+      />
       <ErrorBanner message={error} onDismiss={() => setError(null)} />
       <SuccessToast message={success} onHide={() => setSuccess(null)} />
       <View style={styles.form}>
@@ -174,16 +188,18 @@ export default function DiaperLogScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />}
         renderItem={({ item }) => (
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 기저귀 기록을 삭제할까요?">
-            <View style={styles.recordItem}>
-              <View>
-                <Text style={styles.recordType}>{DIAPER_TYPE_LABEL[item.diaperType]}</Text>
-                {!!item.note && <Text style={styles.recordNote}>{item.note}</Text>}
+            <TouchableOpacity onLongPress={() => setEditingRecord(item)} activeOpacity={0.85}>
+              <View style={styles.recordItem}>
+                <View>
+                  <Text style={styles.recordType}>{DIAPER_TYPE_LABEL[item.diaperType]}</Text>
+                  {!!item.note && <Text style={styles.recordNote}>{item.note}</Text>}
+                </View>
+                <View style={styles.recordRight}>
+                  <Text style={styles.recordTime}>{formatTime(item.changedAt)}</Text>
+                  <Text style={styles.recordAgo}>{timeSince(item.changedAt)}</Text>
+                </View>
               </View>
-              <View style={styles.recordRight}>
-                <Text style={styles.recordTime}>{formatTime(item.changedAt)}</Text>
-                <Text style={styles.recordAgo}>{timeSince(item.changedAt)}</Text>
-              </View>
-            </View>
+            </TouchableOpacity>
           </SwipeToDelete>
         )}
         ListEmptyComponent={<Text style={styles.empty}>기저귀 기록이 없어요</Text>}

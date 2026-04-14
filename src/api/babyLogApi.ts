@@ -60,6 +60,12 @@ export const recordDiaper = (babyId: string, data: {
 export const getDiapers = (babyId: string, limit = 50, date?: string) =>
   api.get<DiaperRecord[]>(`/api/v1/babies/${babyId}/diapers?limit=${limit}${date ? `&date=${date}` : ''}`)
 
+export const updateDiaper = (babyId: string, diaperId: string, data: {
+  changedAt?: string
+  diaperType?: string
+  note?: string
+}) => api.put<DiaperRecord>(`/api/v1/babies/${babyId}/diapers/${diaperId}`, data)
+
 export const deleteDiaper = (babyId: string, diaperId: string) =>
   api.delete<void>(`/api/v1/babies/${babyId}/diapers/${diaperId}`)
 
@@ -87,6 +93,12 @@ export const getSleepRecords = (babyId: string, limit = 50) =>
 
 export const getActiveSleep = (babyId: string) =>
   api.get<SleepRecord | null>(`/api/v1/babies/${babyId}/sleeps/active`)
+
+export const updateSleep = (babyId: string, sleepId: string, data: {
+  sleptAt?: string
+  wokeAt?: string
+  note?: string
+}) => api.put<SleepRecord>(`/api/v1/babies/${babyId}/sleeps/${sleepId}`, data)
 
 export const deleteSleep = (babyId: string, sleepId: string) =>
   api.delete<void>(`/api/v1/babies/${babyId}/sleeps/${sleepId}`)

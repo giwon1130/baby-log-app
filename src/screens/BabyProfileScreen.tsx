@@ -20,6 +20,7 @@ import {
   getSleepNotificationEnabled, setSleepNotificationEnabled,
 } from '../hooks/useFeedNotification'
 import ErrorBanner from '../components/ErrorBanner'
+import VaccinationCard from '../components/VaccinationCard'
 import type { Baby, Family, GrowthStage } from '../types'
 
 const GENDER_LABEL: Record<string, string> = { MALE: '남아', FEMALE: '여아' }
@@ -322,6 +323,13 @@ export default function BabyProfileScreen({ navigation }: any) {
               />
             </View>
           </View>
+
+          {selectedBaby && (
+            <VaccinationCard
+              daysOld={selectedBaby.daysOld}
+              birthDate={selectedBaby.birthDate}
+            />
+          )}
 
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>가족 초대</Text>

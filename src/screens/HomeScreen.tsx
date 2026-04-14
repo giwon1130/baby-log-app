@@ -44,6 +44,14 @@ function formatSleep(minutes: number): string {
   return `${h}시간 ${m}분`
 }
 
+function formatAge(daysOld: number): string {
+  const months = Math.floor(daysOld / 30)
+  const days = daysOld % 30
+  if (months === 0) return `${daysOld}일`
+  if (days === 0) return `${months}개월`
+  return `${months}개월 ${days}일`
+}
+
 export default function HomeScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -57,6 +65,7 @@ export default function HomeScreen({ navigation }: any) {
   const [activeSleep, setActiveSleep] = useState<SleepRecord | null>(null)
   const [lastSleep, setLastSleep] = useState<SleepRecord | null>(null)
   const [yesterdayFeedMl, setYesterdayFeedMl] = useState<number | null>(null)
+  const [daysOld, setDaysOld] = useState<number | null>(null)
 
   useEffect(() => {
     navigation.setOptions({ title: babyName ?? '홈' })
@@ -78,13 +87,16 @@ export default function HomeScreen({ navigation }: any) {
       getFeeds(bid, 100, yyyymmdd),
     ])
 
-    if (feed.status === 'fulfilled' && feed.value) {
+    if (babies.status === 'fulfilled') {
+      const baby = babies.value.find(b => b.id === bid)
+      setBabyName(baby?.name)
+      setDaysOld(baby?.daysOld ?? null)
+      if (feed.status === 'fulfilled' && feed.value) {
+        setLatestFeed(feed.value)
+        await scheduleFeedNotification(feed.value.nextFeedAt, baby?.name)
+      }
+    } else if (feed.status === 'fulfilled' && feed.value) {
       setLatestFeed(feed.value)
-      const name = babies.status === 'fulfilled'
-        ? babies.value.find(b => b.id === bid)?.name
-        : undefined
-      setBabyName(name)
-      await scheduleFeedNotification(feed.value.nextFeedAt, name)
     }
     if (diaper.status === 'fulfilled' && diaper.value.length > 0)
       setLatestDiaper(diaper.value[0])
@@ -163,14 +175,26 @@ export default function HomeScreen({ navigation }: any) {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />
       }
     >
-      {/* 성장 단계 */}
-      {growthStage && (
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>성장 단계</Text>
-          <Text style={styles.cardTitle}>{growthStage.title}</Text>
-          <Text style={styles.cardDesc}>{growthStage.description}</Text>
+      {/* 아기 정보 + 성장 단계 */}
+      <View style={styles.babyCard}>
+        <View style={styles.babyCardTop}>
+          <View>
+            <Text style={styles.babyCardName}>{babyName ?? '아기'}</Text>
+            {daysOld != null && (
+              <Text style={styles.babyCardAge}>
+                D+{daysOld}일 · {formatAge(daysOld)}
+              </Text>
+            )}
+          </View>
+          <Text style={styles.babyCardEmoji}>👶</Text>
         </View>
-      )}
+        {growthStage && (
+          <View style={styles.stageRow}>
+            <Text style={styles.stageTitle}>{growthStage.title}</Text>
+            <Text style={styles.stageDesc}>{growthStage.description}</Text>
+          </View>
+        )}
+      </View>
 
       {/* 빠른 기록 */}
       <QuickActions
@@ -217,11 +241,30 @@ export default function HomeScreen({ navigation }: any) {
         <Text style={styles.cardLabel}>마지막 수유</Text>
         {latestFeed ? (
           <>
-            <Text style={styles.cardTitle}>{latestFeed.amountMl}ml</Text>
-            <Text style={styles.cardDesc}>{timeSince(latestFeed.fedAt)}</Text>
-            <Text style={[styles.cardDesc, styles.nextFeed]}>
-              다음 수유: {timeUntil(latestFeed.nextFeedAt)}
-            </Text>
+            <View style={styles.feedRow}>
+              <Text style={styles.cardTitle}>{latestFeed.amountMl}ml</Text>
+              <Text style={styles.cardDesc}>{timeSince(latestFeed.fedAt)}</Text>
+            </View>
+            {(() => {
+              const total = new Date(latestFeed.nextFeedAt).getTime() - new Date(latestFeed.fedAt).getTime()
+              const elapsed = Date.now() - new Date(latestFeed.fedAt).getTime()
+              const progress = Math.min(Math.max(elapsed / total, 0), 1)
+              const isReady = elapsed >= total
+              return (
+                <>
+                  <View style={styles.progressTrack}>
+                    <View style={[
+                      styles.progressFill,
+                      { width: `${progress * 100}%` as any },
+                      isReady && styles.progressFillReady,
+                    ]} />
+                  </View>
+                  <Text style={[styles.cardDesc, isReady ? styles.nextFeedReady : styles.nextFeed]}>
+                    {isReady ? '🍼 지금 수유 가능해요' : `다음 수유: ${timeUntil(latestFeed.nextFeedAt)}`}
+                  </Text>
+                </>
+              )
+            })()}
           </>
         ) : (
           <Text style={styles.cardDesc}>기록 없음</Text>
@@ -289,6 +332,39 @@ const styles = StyleSheet.create({
     elevation: 2,
     gap: 6,
   },
+  babyCard: {
+    backgroundColor: '#FF6B9D',
+    borderRadius: 20,
+    padding: 20,
+    gap: 12,
+    shadowColor: '#FF6B9D',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  babyCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  babyCardName: { fontSize: 22, fontWeight: '800', color: '#fff' },
+  babyCardAge: { fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
+  babyCardEmoji: { fontSize: 36 },
+  stageRow: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)', paddingTop: 10, gap: 4 },
+  stageTitle: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  stageDesc: { fontSize: 12, color: 'rgba(255,255,255,0.8)', lineHeight: 18 },
+  feedRow: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
+  progressTrack: {
+    height: 6,
+    backgroundColor: '#f5f5f5',
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginVertical: 2,
+  },
+  progressFill: {
+    height: 6,
+    backgroundColor: '#FF6B9D',
+    borderRadius: 3,
+  },
+  progressFillReady: { backgroundColor: '#4CAF50' },
+  nextFeedReady: { color: '#4CAF50', fontWeight: '700' },
   cardLabel: { fontSize: 12, color: '#999', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   cardTitle: { fontSize: 22, fontWeight: '700', color: '#1a1a1a' },
   cardDesc: { fontSize: 14, color: '#666' },

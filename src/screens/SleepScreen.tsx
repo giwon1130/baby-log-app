@@ -9,12 +9,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { deleteSleep, endSleep, getActiveSleep, getBabies, getSleepRecords, startSleep } from '../api/babyLogApi'
+import { deleteSleep, endSleep, getActiveSleep, getBabies, getSleepRecords, startSleep, updateSleep } from '../api/babyLogApi'
 import { scheduleNapReminder } from '../hooks/useFeedNotification'
 import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'
 import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
+import EditSleepModal from '../components/EditSleepModal'
 import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import type { SleepRecord } from '../types'
 
@@ -53,6 +54,7 @@ export default function SleepScreen() {
   const [success, setSuccess] = useState<string | null>(null)
   const [now, setNow] = useState(Date.now())
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [editingRecord, setEditingRecord] = useState<SleepRecord | null>(null)
 
   const reload = useCallback(async (bid: string) => {
     const [recs, active] = await Promise.all([
@@ -130,6 +132,13 @@ export default function SleepScreen() {
     }
   }
 
+  const handleUpdate = async (id: string, newSleptAt: string, newWokeAt: string | null, newNote: string) => {
+    if (!babyId) return
+    await updateSleep(babyId, id, { sleptAt: newSleptAt, wokeAt: newWokeAt ?? undefined, note: newNote })
+    await reload(babyId)
+    setSuccess('수면 기록이 수정됐어요')
+  }
+
   const handleDelete = async (sleepId: string) => {
     if (!babyId) return
     try {
@@ -145,6 +154,11 @@ export default function SleepScreen() {
 
   return (
     <View style={styles.container}>
+      <EditSleepModal
+        record={editingRecord}
+        onClose={() => setEditingRecord(null)}
+        onSave={handleUpdate}
+      />
       <ErrorBanner message={error} onDismiss={() => setError(null)} />
       <SuccessToast message={success} onHide={() => setSuccess(null)} />
       {/* 수면 상태 카드 */}
@@ -189,21 +203,23 @@ export default function SleepScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />}
         renderItem={({ item }) => (
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 수면 기록을 삭제할까요?">
-            <View style={styles.recordItem}>
-              <View>
-                <Text style={styles.recordSlept}>잠든 시각 {formatTime(item.sleptAt)}</Text>
-                {item.wokeAt && (
-                  <Text style={styles.recordWoke}>깬 시각 {formatTime(item.wokeAt)}</Text>
-                )}
+            <TouchableOpacity onLongPress={() => setEditingRecord(item)} activeOpacity={0.85}>
+              <View style={styles.recordItem}>
+                <View>
+                  <Text style={styles.recordSlept}>잠든 시각 {formatTime(item.sleptAt)}</Text>
+                  {item.wokeAt && (
+                    <Text style={styles.recordWoke}>깬 시각 {formatTime(item.wokeAt)}</Text>
+                  )}
+                </View>
+                <View style={styles.recordRight}>
+                  {item.durationMinutes != null ? (
+                    <Text style={styles.duration}>{formatDuration(item.durationMinutes)}</Text>
+                  ) : (
+                    <Text style={styles.ongoing}>수면 중</Text>
+                  )}
+                </View>
               </View>
-              <View style={styles.recordRight}>
-                {item.durationMinutes != null ? (
-                  <Text style={styles.duration}>{formatDuration(item.durationMinutes)}</Text>
-                ) : (
-                  <Text style={styles.ongoing}>수면 중</Text>
-                )}
-              </View>
-            </View>
+            </TouchableOpacity>
           </SwipeToDelete>
         )}
         ListEmptyComponent={<Text style={styles.empty}>수면 기록이 없어요</Text>}
