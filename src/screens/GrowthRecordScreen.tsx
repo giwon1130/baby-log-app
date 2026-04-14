@@ -90,8 +90,8 @@ export default function GrowthRecordScreen() {
       setHeightCm('')
       setHeadCm('')
       setNote('')
-    } catch {
-      setError('성장 기록 저장에 실패했어요')
+    } catch (err) {
+      setError((err as Error).message || '성장 기록 저장에 실패했어요')
     } finally {
       setSubmitting(false)
     }
@@ -102,8 +102,8 @@ export default function GrowthRecordScreen() {
     try {
       await deleteGrowthRecord(babyId, recordId)
       setRecords(prev => prev.filter(r => r.id !== recordId))
-    } catch {
-      setError('삭제에 실패했어요')
+    } catch (err) {
+      setError((err as Error).message || '삭제에 실패했어요')
     }
   }
 

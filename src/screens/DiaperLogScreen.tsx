@@ -117,8 +117,8 @@ export default function DiaperLogScreen() {
       const typeLabel: Record<string, string> = { WET: '소변', DIRTY: '대변', MIXED: '혼합', DRY: '깨끗' }
       setSuccess(`기저귀 교환 기록 완료 (${typeLabel[diaperType] ?? diaperType})`)
       await scheduleDiaperReminder(changedAtIso, babyName)
-    } catch {
-      setError('기저귀 기록 저장에 실패했어요')
+    } catch (err) {
+      setError((err as Error).message || '기저귀 기록 저장에 실패했어요')
     } finally {
       setSubmitting(false)
     }
@@ -136,8 +136,8 @@ export default function DiaperLogScreen() {
     try {
       await deleteDiaper(babyId, diaperId)
       setDiapers(prev => prev.filter(d => d.id !== diaperId))
-    } catch {
-      setError('삭제에 실패했어요')
+    } catch (err) {
+      setError((err as Error).message || '삭제에 실패했어요')
     }
   }
 

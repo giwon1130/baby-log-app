@@ -112,8 +112,8 @@ export default function FeedLogScreen() {
       setFedAt(new Date())
       setSuccess(`${parseInt(amount)}ml 수유 기록 완료`)
       await scheduleFeedNotification(record.nextFeedAt, babyName)
-    } catch {
-      setError('수유 기록 저장에 실패했어요')
+    } catch (err) {
+      setError((err as Error).message || '수유 기록 저장에 실패했어요')
     } finally {
       setSubmitting(false)
     }
@@ -124,8 +124,8 @@ export default function FeedLogScreen() {
     try {
       await deleteFeed(babyId, feedId)
       setFeeds(prev => prev.filter(f => f.id !== feedId))
-    } catch {
-      setError('삭제에 실패했어요')
+    } catch (err) {
+      setError((err as Error).message || '삭제에 실패했어요')
     }
   }
 
@@ -134,8 +134,8 @@ export default function FeedLogScreen() {
     try {
       const updated = await updateFeed(babyId, feedId, { amountMl, feedType, note })
       setFeeds(prev => prev.map(f => f.id === feedId ? updated : f))
-    } catch {
-      setError('수정에 실패했어요')
+    } catch (err) {
+      setError((err as Error).message || '수정에 실패했어요')
     }
   }
 

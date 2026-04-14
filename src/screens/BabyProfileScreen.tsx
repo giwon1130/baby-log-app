@@ -114,8 +114,8 @@ export default function BabyProfileScreen({ navigation }: any) {
       setSelectedBaby(updated)
       setBabies(prev => prev.map(b => b.id === updated.id ? updated : b))
       setEditing(false)
-    } catch {
-      setError('저장에 실패했어요')
+    } catch (err) {
+      setError((err as Error).message || '저장에 실패했어요')
     } finally {
       setSaving(false)
     }

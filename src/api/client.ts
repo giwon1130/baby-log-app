@@ -4,12 +4,17 @@ import Constants from 'expo-constants'
 const BASE_URL: string = Constants.expoConfig?.extra?.apiBaseUrl ?? 'http://localhost:8092'
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-    ...options,
-  })
+  let response: Response
+  try {
+    response = await fetch(`${BASE_URL}${path}`, {
+      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      ...options,
+    })
+  } catch {
+    throw new Error('서버에 연결할 수 없어요. 인터넷 연결을 확인해주세요.')
+  }
   const json = await response.json()
-  if (!response.ok) throw new Error(json.error ?? json.message ?? 'API error')
+  if (!response.ok) throw new Error(json.error ?? json.message ?? '알 수 없는 오류가 발생했어요.')
   return json.data as T
 }
 

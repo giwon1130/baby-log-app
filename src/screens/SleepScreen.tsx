@@ -111,8 +111,8 @@ export default function SleepScreen() {
       setSleptAt(new Date())
       setSuccess('수면 기록 시작')
       await reload(babyId)
-    } catch {
-      setError('수면 시작 기록에 실패했어요')
+    } catch (err) {
+      setError((err as Error).message || '수면 시작 기록에 실패했어요')
     } finally {
       setSubmitting(false)
     }
@@ -125,8 +125,8 @@ export default function SleepScreen() {
       const ended = await endSleep(babyId, activeSleep.id, {})
       await reload(babyId)
       if (ended.wokeAt) await scheduleNapReminder(ended.wokeAt, babyName)
-    } catch {
-      setError('수면 종료 기록에 실패했어요')
+    } catch (err) {
+      setError((err as Error).message || '수면 종료 기록에 실패했어요')
     } finally {
       setSubmitting(false)
     }
@@ -145,8 +145,8 @@ export default function SleepScreen() {
       await deleteSleep(babyId, sleepId)
       setRecords(prev => prev.filter(r => r.id !== sleepId))
       if (activeSleep?.id === sleepId) setActiveSleep(null)
-    } catch {
-      setError('삭제에 실패했어요')
+    } catch (err) {
+      setError((err as Error).message || '삭제에 실패했어요')
     }
   }
 

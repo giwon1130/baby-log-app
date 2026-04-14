@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { createBaby, createFamily, getBabies, joinFamily } from '../api/babyLogApi'
 import { storeFamilyAndBaby } from '../api/client'
 import ErrorBanner from '../components/ErrorBanner'
@@ -46,12 +47,13 @@ export default function FamilySetupScreen({ navigation, route }: any) {
 
   const handleCreateFamily = async () => {
     setSubmitting(true)
+    setError(null)
     try {
       const family = await createFamily()
       setFamilyId(family.id)
       setStep('baby')
-    } catch {
-      setError('가족 생성에 실패했어요. 다시 시도해주세요.')
+    } catch (err) {
+      setError((err as Error).message || '가족 생성에 실패했어요. 다시 시도해주세요.')
     } finally {
       setSubmitting(false)
     }
@@ -75,8 +77,8 @@ export default function FamilySetupScreen({ navigation, route }: any) {
         // 아기가 아직 없으면 등록으로
         setStep('baby')
       }
-    } catch {
-      setError('초대 코드를 찾을 수 없어요. 다시 확인해주세요.')
+    } catch (err) {
+      setError((err as Error).message || '초대 코드를 찾을 수 없어요. 다시 확인해주세요.')
     } finally {
       setSubmitting(false)
     }
@@ -104,16 +106,17 @@ export default function FamilySetupScreen({ navigation, route }: any) {
       } else {
         navigation.replace('Main')
       }
-    } catch {
-      setError('아기 등록에 실패했어요. 다시 시도해주세요.')
+    } catch (err) {
+      setError((err as Error).message || '아기 등록에 실패했어요. 다시 시도해주세요.')
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
+    <SafeAreaView style={styles.container}>
     <KeyboardAvoidingView
-      style={styles.container}
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <ErrorBanner message={error} onDismiss={() => setError(null)} />
@@ -273,6 +276,7 @@ export default function FamilySetupScreen({ navigation, route }: any) {
         )}
       </ScrollView>
     </KeyboardAvoidingView>
+    </SafeAreaView>
   )
 }
 
