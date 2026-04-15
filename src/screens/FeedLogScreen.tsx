@@ -19,6 +19,7 @@ import EditFeedModal from '../components/EditFeedModal'
 import ErrorBanner from '../components/ErrorBanner'
 import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
+import BreastfeedingTimer from '../components/BreastfeedingTimer'
 import { formatTime } from '../utils/dateUtils'
 import { FEED_TYPE_LABEL } from '../utils/constants'
 import type { FeedRecord } from '../types'
@@ -41,6 +42,11 @@ export default function FeedLogScreen() {
   const [note, setNote] = useState('')
   const [fedAt, setFedAt] = useState(new Date())
   const [success, setSuccess] = useState<string | null>(null)
+  const [timerVisible, setTimerVisible] = useState(false)
+  const [leftMinutes, setLeftMinutes] = useState<number | null>(null)
+  const [rightMinutes, setRightMinutes] = useState<number | null>(null)
+
+  const isBreast = feedType === 'BREAST' || feedType === 'MIXED'
 
   const loadFeeds = useCallback(async (bid: string, filter: DateFilterValue) => {
     const data = await getFeeds(bid, 50, toDateParam(filter))
@@ -69,21 +75,36 @@ export default function FeedLogScreen() {
     if (babyId) await loadFeeds(babyId, filter)
   }
 
+  const handleTimerComplete = (left: number, right: number) => {
+    setLeftMinutes(left)
+    setRightMinutes(right)
+    setTimerVisible(false)
+  }
+
   const handleSubmit = async () => {
-    if (!babyId || !amount) return
+    if (!babyId) return
+    if (!isBreast && !amount) return
+    if (isBreast && !amount && leftMinutes == null) return
     setSubmitting(true)
     try {
       const record = await recordFeed(babyId, {
-        amountMl: parseInt(amount),
+        amountMl: amount ? parseInt(amount) : 0,
         feedType,
         note,
         fedAt: fedAt.toISOString(),
+        leftMinutes: leftMinutes ?? undefined,
+        rightMinutes: rightMinutes ?? undefined,
       })
       await loadFeeds(babyId, dateFilter)
       setAmount('')
       setNote('')
       setFedAt(new Date())
-      setSuccess(`${parseInt(amount)}ml 수유 기록 완료`)
+      setLeftMinutes(null)
+      setRightMinutes(null)
+      const label = isBreast && leftMinutes != null
+        ? `수유 완료 (왼쪽 ${Math.round(leftMinutes)}분 오른쪽 ${Math.round(rightMinutes ?? 0)}분)`
+        : `${parseInt(amount)}ml 수유 기록 완료`
+      setSuccess(label)
       if (record.nextFeedAt) await scheduleFeedNotification(record.nextFeedAt, babyName)
     } catch (err) {
       setError((err as Error).message || '수유 기록 저장에 실패했어요')
@@ -116,6 +137,11 @@ export default function FeedLogScreen() {
 
   return (
     <View style={styles.container}>
+      <BreastfeedingTimer
+        visible={timerVisible}
+        onComplete={handleTimerComplete}
+        onCancel={() => setTimerVisible(false)}
+      />
       <ErrorBanner message={error} onDismiss={() => setError(null)} />
       <SuccessToast message={success} onHide={() => setSuccess(null)} />
       <EditFeedModal
@@ -160,12 +186,22 @@ export default function FeedLogScreen() {
             </TouchableOpacity>
           ))}
         </View>
+        {/* 모유/혼합 수유 타이머 */}
+        {isBreast && (
+          <TouchableOpacity style={styles.timerButton} onPress={() => setTimerVisible(true)}>
+            <Text style={styles.timerButtonText}>
+              {leftMinutes != null
+                ? `⏱ 왼쪽 ${Math.round(leftMinutes)}분 · 오른쪽 ${Math.round(rightMinutes ?? 0)}분`
+                : '⏱ 타이머로 수유 시간 기록'}
+            </Text>
+          </TouchableOpacity>
+        )}
         <TextInput style={styles.input} placeholder="메모 (선택)" value={note} onChangeText={setNote} />
         <TimeOffsetPicker value={fedAt} onChange={setFedAt} />
         <TouchableOpacity
-          style={[styles.submitButton, (!amount || submitting) && styles.submitButtonDisabled]}
+          style={[styles.submitButton, ((!amount && (!isBreast || leftMinutes == null)) || submitting) && styles.submitButtonDisabled]}
           onPress={handleSubmit}
-          disabled={!amount || submitting}
+          disabled={(!amount && (!isBreast || leftMinutes == null)) || submitting}
         >
           <Text style={styles.submitButtonText}>{submitting ? '저장 중...' : '기록하기'}</Text>
         </TouchableOpacity>
@@ -186,8 +222,15 @@ export default function FeedLogScreen() {
               delayLongPress={400}
             >
               <View style={styles.recordLeft}>
-                <Text style={styles.recordAmount}>{item.amountMl}ml</Text>
+                {item.amountMl > 0
+                  ? <Text style={styles.recordAmount}>{item.amountMl}ml</Text>
+                  : null}
                 <Text style={styles.recordType}>{FEED_TYPE_LABEL[item.feedType]}</Text>
+                {(item.leftMinutes != null || item.rightMinutes != null) && (
+                  <Text style={styles.recordBreast}>
+                    왼 {Math.round(item.leftMinutes ?? 0)}분 · 오 {Math.round(item.rightMinutes ?? 0)}분
+                  </Text>
+                )}
                 {!!item.note && <Text style={styles.recordNote}>{item.note}</Text>}
               </View>
               <View style={styles.recordRight}>
@@ -244,6 +287,16 @@ const styles = StyleSheet.create({
   recordAmount: { fontSize: 18, fontWeight: '700', color: '#1a1a1a' },
   recordType: { fontSize: 12, color: '#999' },
   recordNote: { fontSize: 11, color: '#bbb', marginTop: 2, maxWidth: 140 },
+  recordBreast: { fontSize: 12, color: '#FF6B9D', fontWeight: '600' },
+  timerButton: {
+    borderWidth: 1.5,
+    borderColor: '#FF6B9D',
+    borderStyle: 'dashed',
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  timerButtonText: { fontSize: 13, color: '#FF6B9D', fontWeight: '600' },
   recordTime: { fontSize: 13, color: '#444' },
   recordNext: { fontSize: 12, color: '#FF6B9D' },
   editHint: { fontSize: 10, color: '#ccc', marginTop: 2 },

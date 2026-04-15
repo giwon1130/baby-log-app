@@ -110,15 +110,35 @@ export async function cancelFeedNotification(): Promise<void> {
   await Notifications.cancelScheduledNotificationAsync(FEED_NOTIFICATION_ID_KEY).catch(() => {})
 }
 
-// ── 기저귀 알림 (마지막 교환 3시간 후) ──────────────────────────────
+// ── 알림 시간 커스텀 ─────────────────────────────────────────────────
+const DIAPER_REMINDER_HOURS_KEY = 'diaperReminderHours'
+const NAP_REMINDER_HOURS_KEY = 'napReminderHours'
+
+export async function getDiaperReminderHours(): Promise<number> {
+  const val = await AsyncStorage.getItem(DIAPER_REMINDER_HOURS_KEY)
+  return val ? parseFloat(val) : 3
+}
+export async function setDiaperReminderHours(hours: number): Promise<void> {
+  await AsyncStorage.setItem(DIAPER_REMINDER_HOURS_KEY, String(hours))
+}
+
+export async function getNapReminderHours(): Promise<number> {
+  const val = await AsyncStorage.getItem(NAP_REMINDER_HOURS_KEY)
+  return val ? parseFloat(val) : 2
+}
+export async function setNapReminderHours(hours: number): Promise<void> {
+  await AsyncStorage.setItem(NAP_REMINDER_HOURS_KEY, String(hours))
+}
+
+// ── 기저귀 알림 ───────────────────────────────────────────────────────
 const DIAPER_NOTIFICATION_ID = 'diaper_reminder'
-const DIAPER_REMINDER_HOURS = 3
 
 export async function scheduleDiaperReminder(changedAt: string, babyName?: string): Promise<void> {
   const enabled = await getDiaperNotificationEnabled()
   if (!enabled) return
 
-  const triggerDate = new Date(new Date(changedAt).getTime() + DIAPER_REMINDER_HOURS * 60 * 60 * 1000)
+  const hours = await getDiaperReminderHours()
+  const triggerDate = new Date(new Date(changedAt).getTime() + hours * 60 * 60 * 1000)
   if (triggerDate.getTime() <= Date.now()) return
 
   await cancelDiaperReminder()
@@ -140,15 +160,15 @@ export async function cancelDiaperReminder(): Promise<void> {
   await Notifications.cancelScheduledNotificationAsync(DIAPER_NOTIFICATION_ID).catch(() => {})
 }
 
-// ── 낮잠 알림 (기상 2시간 후) ────────────────────────────────────────
+// ── 낮잠 알림 ─────────────────────────────────────────────────────────
 const NAP_NOTIFICATION_ID = 'nap_reminder'
-const AWAKE_LIMIT_HOURS = 2
 
 export async function scheduleNapReminder(wokeAt: string, babyName?: string): Promise<void> {
   const enabled = await getSleepNotificationEnabled()
   if (!enabled) return
 
-  const triggerDate = new Date(new Date(wokeAt).getTime() + AWAKE_LIMIT_HOURS * 60 * 60 * 1000)
+  const hours = await getNapReminderHours()
+  const triggerDate = new Date(new Date(wokeAt).getTime() + hours * 60 * 60 * 1000)
   if (triggerDate.getTime() <= Date.now()) return
 
   await cancelNapReminder()

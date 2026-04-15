@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   RefreshControl,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -112,6 +113,23 @@ export default function HomeScreen({ navigation }: any) {
     if (babyId && familyId) loadData(babyId, familyId)
   }, [babyId, familyId, loadData])
 
+  const handleShareReport = useCallback(async () => {
+    if (!todayStats) return
+    const today = new Date().toLocaleDateString('ko-KR', { month: 'long', day: 'numeric' })
+    const name = babyName ?? '아기'
+    const sleepH = Math.floor(todayStats.totalSleepMinutes / 60)
+    const sleepM = todayStats.totalSleepMinutes % 60
+    const sleepStr = sleepH > 0 ? `${sleepH}시간 ${sleepM}분` : `${sleepM}분`
+    const text = [
+      `🍼 ${today} ${name} 기록`,
+      ``,
+      `수유: ${todayStats.feedCount}회 · ${todayStats.totalFeedMl}ml`,
+      `기저귀: ${todayStats.diaperCount}회 (소변 ${todayStats.wetCount}회 · 대변 ${todayStats.dirtyCount}회)`,
+      `수면: ${todayStats.sleepCount}회 · ${sleepStr}`,
+    ].join('\n')
+    await Share.share({ message: text })
+  }, [todayStats, babyName])
+
   const renderFeedProgress = () => {
     if (!latestFeed) return <Text style={styles.cardDesc}>기록 없음</Text>
     const fedAt = parseApiTimestamp(latestFeed.fedAt)
@@ -217,7 +235,12 @@ export default function HomeScreen({ navigation }: any) {
       {/* 오늘 요약 */}
       {todayStats && (
         <View style={styles.card}>
-          <Text style={styles.cardLabel}>오늘 요약</Text>
+          <View style={styles.cardLabelRow}>
+            <Text style={styles.cardLabel}>오늘 요약</Text>
+            <TouchableOpacity onPress={handleShareReport}>
+              <Text style={styles.shareBtn}>공유 ↗</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.statsGrid}>
             <View style={styles.statItem}>
               <Text style={styles.statEmoji}>🍼</Text>
@@ -339,7 +362,9 @@ const styles = StyleSheet.create({
   },
   progressFillReady: { backgroundColor: '#4CAF50' },
   nextFeedReady: { color: '#4CAF50', fontWeight: '700' },
+  cardLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardLabel: { fontSize: 12, color: '#999', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  shareBtn: { fontSize: 12, color: '#FF6B9D', fontWeight: '600' },
   cardTitle: { fontSize: 22, fontWeight: '700', color: '#1a1a1a' },
   cardDesc: { fontSize: 14, color: '#666' },
   nextFeed: { color: '#FF6B9D', fontWeight: '600' },

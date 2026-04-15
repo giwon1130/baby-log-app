@@ -23,6 +23,8 @@ export type FeedRecord = {
   note: string
   nextFeedAt: string | null
   nextFeedIntervalHours: number
+  leftMinutes: number | null
+  rightMinutes: number | null
 }
 
 export type DiaperRecord = {
@@ -71,6 +73,16 @@ export type TodayStats = {
   dirtyCount: number
   sleepCount: number
   totalSleepMinutes: number
+}
+
+export type HealthRecord = {
+  id: string
+  babyId: string
+  recordedAt: string
+  type: 'TEMPERATURE' | 'MEDICINE'
+  value: number | null
+  name: string
+  note: string
 }
 
 export type DailyFeedStat = { date: string; feedCount: number; totalMl: number }

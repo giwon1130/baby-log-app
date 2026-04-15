@@ -1,5 +1,5 @@
 import { api } from './client'
-import type { Baby, DiaperRecord, FeedRecord, Family, GrowthRecord, GrowthStage, SleepRecord, TodayStats, WeeklyStats } from '../types'
+import type { Baby, DiaperRecord, FeedRecord, Family, GrowthRecord, GrowthStage, HealthRecord, SleepRecord, TodayStats, WeeklyStats } from '../types'
 
 // Family
 export const createFamily = () => api.post<Family>('/api/v1/families', {})
@@ -29,9 +29,11 @@ export const updateBaby = (familyId: string, babyId: string, data: {
 // Feed
 export const recordFeed = (babyId: string, data: {
   fedAt?: string
-  amountMl: number
+  amountMl?: number
   feedType?: string
   note?: string
+  leftMinutes?: number
+  rightMinutes?: number
 }) => api.post<FeedRecord>(`/api/v1/babies/${babyId}/feeds`, data)
 
 export const getFeeds = (babyId: string, limit = 50, date?: string) =>
@@ -45,6 +47,8 @@ export const updateFeed = (babyId: string, feedId: string, data: {
   amountMl?: number
   feedType?: string
   note?: string
+  leftMinutes?: number
+  rightMinutes?: number
 }) => api.put<FeedRecord>(`/api/v1/babies/${babyId}/feeds/${feedId}`, data)
 
 export const deleteFeed = (babyId: string, feedId: string) =>
@@ -112,6 +116,21 @@ export const updateGrowthRecord = (babyId: string, recordId: string, data: {
 
 export const deleteGrowthRecord = (babyId: string, recordId: string) =>
   api.delete<void>(`/api/v1/babies/${babyId}/growth-records/${recordId}`)
+
+// Health Records
+export const recordHealth = (babyId: string, data: {
+  recordedAt?: string
+  type: 'TEMPERATURE' | 'MEDICINE'
+  value?: number
+  name?: string
+  note?: string
+}) => api.post<HealthRecord>(`/api/v1/babies/${babyId}/health-records`, data)
+
+export const getHealthRecords = (babyId: string, limit = 50) =>
+  api.get<HealthRecord[]>(`/api/v1/babies/${babyId}/health-records?limit=${limit}`)
+
+export const deleteHealthRecord = (babyId: string, recordId: string) =>
+  api.delete<void>(`/api/v1/babies/${babyId}/health-records/${recordId}`)
 
 // Growth Stage
 export const getGrowthStage = (babyId: string, familyId: string) =>

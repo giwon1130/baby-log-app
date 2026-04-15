@@ -18,6 +18,8 @@ import {
   getDiaperNotificationEnabled, setDiaperNotificationEnabled,
   getNotificationEnabled, setNotificationEnabled,
   getSleepNotificationEnabled, setSleepNotificationEnabled,
+  getDiaperReminderHours, setDiaperReminderHours,
+  getNapReminderHours, setNapReminderHours,
 } from '../hooks/useFeedNotification'
 import ErrorBanner from '../components/ErrorBanner'
 import VaccinationCard from '../components/VaccinationCard'
@@ -36,6 +38,8 @@ export default function BabyProfileScreen({ navigation }: any) {
   const [notifEnabled, setNotifEnabled] = useState(true)
   const [diaperNotifEnabled, setDiaperNotifEnabled] = useState(true)
   const [sleepNotifEnabled, setSleepNotifEnabled] = useState(true)
+  const [diaperHours, setDiaperHours] = useState(3)
+  const [napHours, setNapHours] = useState(2)
 
   // 편집 상태
   const [editing, setEditing] = useState(false)
@@ -66,14 +70,18 @@ export default function BabyProfileScreen({ navigation }: any) {
       const bid = await getStoredBabyId()
       setFamilyId(fid)
       if (fid) await loadAll(fid, bid)
-      const [feed, diaper, sleep] = await Promise.all([
+      const [feed, diaper, sleep, dh, nh] = await Promise.all([
         getNotificationEnabled(),
         getDiaperNotificationEnabled(),
         getSleepNotificationEnabled(),
+        getDiaperReminderHours(),
+        getNapReminderHours(),
       ])
       setNotifEnabled(feed)
       setDiaperNotifEnabled(diaper)
       setSleepNotifEnabled(sleep)
+      setDiaperHours(dh)
+      setNapHours(nh)
       setLoading(false)
     }
     init()
@@ -293,31 +301,51 @@ export default function BabyProfileScreen({ navigation }: any) {
               />
             </View>
             <View style={styles.notifRow}>
-              <View>
+              <View style={{ flex: 1 }}>
                 <Text style={styles.notifTitle}>🧷 기저귀 알림</Text>
-                <Text style={styles.notifDesc}>마지막 교환 3시간 후 알림을 보내요</Text>
+                <Text style={styles.notifDesc}>마지막 교환 {diaperHours}시간 후 알림</Text>
+                {diaperNotifEnabled && (
+                  <View style={styles.hourPicker}>
+                    {[1, 2, 3, 4, 5, 6].map(h => (
+                      <TouchableOpacity
+                        key={h}
+                        style={[styles.hourChip, diaperHours === h && styles.hourChipActive]}
+                        onPress={async () => { setDiaperHours(h); await setDiaperReminderHours(h) }}
+                      >
+                        <Text style={[styles.hourChipText, diaperHours === h && styles.hourChipTextActive]}>{h}h</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
               </View>
               <Switch
                 value={diaperNotifEnabled}
-                onValueChange={async (v) => {
-                  setDiaperNotifEnabled(v)
-                  await setDiaperNotificationEnabled(v)
-                }}
+                onValueChange={async (v) => { setDiaperNotifEnabled(v); await setDiaperNotificationEnabled(v) }}
                 trackColor={{ false: '#e0e0e0', true: '#FF6B9D' }}
                 thumbColor="#fff"
               />
             </View>
             <View style={styles.notifRow}>
-              <View>
+              <View style={{ flex: 1 }}>
                 <Text style={styles.notifTitle}>😴 낮잠 알림</Text>
-                <Text style={styles.notifDesc}>기상 2시간 후 낮잠 알림을 보내요</Text>
+                <Text style={styles.notifDesc}>기상 {napHours}시간 후 알림</Text>
+                {sleepNotifEnabled && (
+                  <View style={styles.hourPicker}>
+                    {[1, 2, 3, 4].map(h => (
+                      <TouchableOpacity
+                        key={h}
+                        style={[styles.hourChip, napHours === h && styles.hourChipActive]}
+                        onPress={async () => { setNapHours(h); await setNapReminderHours(h) }}
+                      >
+                        <Text style={[styles.hourChipText, napHours === h && styles.hourChipTextActive]}>{h}h</Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
               </View>
               <Switch
                 value={sleepNotifEnabled}
-                onValueChange={async (v) => {
-                  setSleepNotifEnabled(v)
-                  await setSleepNotificationEnabled(v)
-                }}
+                onValueChange={async (v) => { setSleepNotifEnabled(v); await setSleepNotificationEnabled(v) }}
                 trackColor={{ false: '#e0e0e0', true: '#FF6B9D' }}
                 thumbColor="#fff"
               />
@@ -469,4 +497,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  hourPicker: { flexDirection: 'row', gap: 6, marginTop: 8 },
+  hourChip: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  hourChipActive: { backgroundColor: '#FF6B9D' },
+  hourChipText: { fontSize: 12, color: '#666', fontWeight: '600' },
+  hourChipTextActive: { color: '#fff' },
 })
