@@ -96,6 +96,7 @@ export default function DiaperLogScreen() {
       await recordDiaper(babyId, { diaperType, note, changedAt: changedAtIso })
       await loadDiapers(babyId, dateFilter)
       setNote('')
+      setDiaperType('WET')
       setChangedAt(new Date())
       const typeLabel: Record<string, string> = { WET: '소변', DIRTY: '대변', MIXED: '혼합', DRY: '깨끗' }
       setSuccess(`기저귀 교환 기록 완료 (${typeLabel[diaperType] ?? diaperType})`)

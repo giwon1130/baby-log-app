@@ -82,15 +82,22 @@ export default function SleepScreen() {
     if (babyId) reload(babyId)
   }, [babyId, reload]))
 
+  const [isFocused, setIsFocused] = useState(true)
+
+  useFocusEffect(useCallback(() => {
+    setIsFocused(true)
+    return () => setIsFocused(false)
+  }, []))
+
   useEffect(() => {
     if (timerRef.current) clearInterval(timerRef.current)
-    if (activeSleep && !activeSleep.wokeAt) {
+    if (isFocused && activeSleep && !activeSleep.wokeAt) {
       timerRef.current = setInterval(() => setNow(Date.now()), 1000)
     }
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [activeSleep])
+  }, [activeSleep, isFocused])
 
   const handleStart = async () => {
     if (!babyId) return
