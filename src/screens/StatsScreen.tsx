@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
   Dimensions,
@@ -72,20 +72,25 @@ export default function StatsScreen() {
     setRefreshing(false)
   }, [babyId, loadStats])
 
+  const chartData = useMemo(() => {
+    if (!stats) return null
+    const feedLabels = stats.feedStats.map(s => shortDate(s.date))
+    const feedMlData = stats.feedStats.map(s => s.totalMl)
+    const feedCountData = stats.feedStats.map(s => s.feedCount)
+    const sleepLabels = stats.sleepStats.map(s => shortDate(s.date))
+    const sleepData = stats.sleepStats.map(s => Math.round(s.totalMinutes / 60 * 10) / 10)
+    const totalFeedThisWeek = feedMlData.reduce((a, b) => a + b, 0)
+    const avgFeedPerDay = stats.feedStats.length > 0
+      ? Math.round(totalFeedThisWeek / stats.feedStats.length)
+      : 0
+    const totalSleepHours = Math.round(sleepData.reduce((a, b) => a + b, 0) * 10) / 10
+    return { feedLabels, feedMlData, feedCountData, sleepLabels, sleepData, totalFeedThisWeek, avgFeedPerDay, totalSleepHours }
+  }, [stats])
+
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
-  if (!stats) return <View style={styles.center}><Text style={styles.emptyText}>데이터가 없어요</Text></View>
+  if (!stats || !chartData) return <View style={styles.center}><Text style={styles.emptyText}>데이터가 없어요</Text></View>
 
-  const feedLabels = stats.feedStats.map(s => shortDate(s.date))
-  const feedMlData = stats.feedStats.map(s => s.totalMl)
-  const feedCountData = stats.feedStats.map(s => s.feedCount)
-  const sleepLabels = stats.sleepStats.map(s => shortDate(s.date))
-  const sleepData = stats.sleepStats.map(s => Math.round(s.totalMinutes / 60 * 10) / 10) // 시간 단위
-
-  const totalFeedThisWeek = feedMlData.reduce((a, b) => a + b, 0)
-  const avgFeedPerDay = stats.feedStats.length > 0
-    ? Math.round(totalFeedThisWeek / stats.feedStats.length)
-    : 0
-  const totalSleepHours = Math.round(sleepData.reduce((a, b) => a + b, 0) * 10) / 10
+  const { feedLabels, feedMlData, feedCountData, sleepLabels, sleepData, totalFeedThisWeek, avgFeedPerDay, totalSleepHours } = chartData
 
   return (
     <ScrollView

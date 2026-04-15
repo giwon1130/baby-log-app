@@ -10,9 +10,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { deleteFeed, getBabies, getFeeds, recordFeed, updateFeed } from '../api/babyLogApi'
-import { getStoredBabyId, getStoredFamilyId } from '../api/client'
+import { deleteFeed, getFeeds, recordFeed, updateFeed } from '../api/babyLogApi'
 import { scheduleFeedNotification } from '../hooks/useFeedNotification'
+import { useStoredBaby } from '../hooks/useStoredBaby'
 import DateFilter, { DateFilterValue, toDateParam } from '../components/DateFilter'
 import SwipeToDelete from '../components/SwipeToDelete'
 import EditFeedModal from '../components/EditFeedModal'
@@ -27,8 +27,7 @@ const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
 const QUICK_AMOUNTS = [30, 60, 80, 90, 100, 120, 150]
 
 export default function FeedLogScreen() {
-  const [babyId, setBabyId] = useState<string | null>(null)
-  const [babyName, setBabyName] = useState<string | undefined>(undefined)
+  const { babyId, babyName, initialized, loadBaby } = useStoredBaby()
   const [feeds, setFeeds] = useState<FeedRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -49,21 +48,12 @@ export default function FeedLogScreen() {
   }, [])
 
   useEffect(() => {
-    const init = async () => {
-      const bid = await getStoredBabyId()
-      const fid = await getStoredFamilyId()
-      setBabyId(bid)
-      if (bid && fid) {
-        const [, babies] = await Promise.all([
-          loadFeeds(bid, dateFilter),
-          getBabies(fid),
-        ])
-        setBabyName(babies.find(b => b.id === bid)?.name)
-      }
-      setLoading(false)
+    if (!initialized || !babyId) {
+      if (initialized) setLoading(false)
+      return
     }
-    init()
-  }, [])
+    loadFeeds(babyId, dateFilter).then(() => setLoading(false))
+  }, [initialized, babyId, loadFeeds])
 
   const onRefresh = useCallback(async () => {
     if (!babyId) return
@@ -72,16 +62,7 @@ export default function FeedLogScreen() {
     setRefreshing(false)
   }, [babyId, dateFilter, loadFeeds])
 
-  useFocusEffect(useCallback(() => {
-    const check = async () => {
-      const bid = await getStoredBabyId()
-      if (bid && bid !== babyId) {
-        setBabyId(bid)
-        await loadFeeds(bid, dateFilter)
-      }
-    }
-    check()
-  }, [babyId, dateFilter, loadFeeds]))
+  useFocusEffect(useCallback(() => { loadBaby() }, [loadBaby]))
 
   const handleFilterChange = async (filter: DateFilterValue) => {
     setDateFilter(filter)

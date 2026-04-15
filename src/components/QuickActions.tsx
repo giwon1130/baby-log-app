@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import {
   ActivityIndicator,
   StyleSheet,
@@ -27,7 +27,7 @@ export default function QuickActions({ babyId, babyName, onRecorded, onError }: 
   const [loadingFeed, setLoadingFeed] = useState<number | null>(null)
   const [loadingDiaper, setLoadingDiaper] = useState<string | null>(null)
 
-  const handleFeed = async (ml: number) => {
+  const handleFeed = useCallback(async (ml: number) => {
     setLoadingFeed(ml)
     try {
       const record = await recordFeed(babyId, { amountMl: ml, feedType: 'FORMULA' })
@@ -38,9 +38,9 @@ export default function QuickActions({ babyId, babyName, onRecorded, onError }: 
     } finally {
       setLoadingFeed(null)
     }
-  }
+  }, [babyId, babyName, onRecorded, onError])
 
-  const handleDiaper = async (type: string) => {
+  const handleDiaper = useCallback(async (type: string) => {
     setLoadingDiaper(type)
     try {
       await recordDiaper(babyId, { diaperType: type })
@@ -50,7 +50,7 @@ export default function QuickActions({ babyId, babyName, onRecorded, onError }: 
     } finally {
       setLoadingDiaper(null)
     }
-  }
+  }, [babyId, onRecorded, onError])
 
   return (
     <View style={styles.container}>

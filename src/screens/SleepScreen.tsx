@@ -9,14 +9,14 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { deleteSleep, endSleep, getActiveSleep, getBabies, getSleepRecords, startSleep, updateSleep } from '../api/babyLogApi'
+import { deleteSleep, endSleep, getActiveSleep, getSleepRecords, startSleep, updateSleep } from '../api/babyLogApi'
 import { scheduleNapReminder } from '../hooks/useFeedNotification'
+import { useStoredBaby } from '../hooks/useStoredBaby'
 import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'
 import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
 import EditSleepModal from '../components/EditSleepModal'
-import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import { formatTime, formatDuration } from '../utils/dateUtils'
 import type { SleepRecord } from '../types'
 
@@ -31,8 +31,7 @@ function calcElapsed(iso: string, now: number): string {
 }
 
 export default function SleepScreen() {
-  const [babyId, setBabyId] = useState<string | null>(null)
-  const [babyName, setBabyName] = useState<string | undefined>(undefined)
+  const { babyId, babyName, initialized, loadBaby } = useStoredBaby()
   const [records, setRecords] = useState<SleepRecord[]>([])
   const [activeSleep, setActiveSleep] = useState<SleepRecord | null>(null)
   const [loading, setLoading] = useState(true)
@@ -62,25 +61,17 @@ export default function SleepScreen() {
   }, [babyId, reload])
 
   useEffect(() => {
-    const init = async () => {
-      const bid = await getStoredBabyId()
-      const fid = await getStoredFamilyId()
-      setBabyId(bid)
-      if (bid) {
-        await reload(bid)
-        if (fid) {
-          const babies = await getBabies(fid).catch(() => [])
-          setBabyName(babies.find(b => b.id === bid)?.name)
-        }
-      }
-      setLoading(false)
+    if (!initialized || !babyId) {
+      if (initialized) setLoading(false)
+      return
     }
-    init()
-  }, [])
+    reload(babyId).then(() => setLoading(false))
+  }, [initialized, babyId, reload])
 
   useFocusEffect(useCallback(() => {
+    loadBaby()
     if (babyId) reload(babyId)
-  }, [babyId, reload]))
+  }, [babyId, reload, loadBaby]))
 
   const [isFocused, setIsFocused] = useState(true)
 

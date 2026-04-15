@@ -10,9 +10,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { deleteDiaper, getBabies, getDiapers, recordDiaper, updateDiaper } from '../api/babyLogApi'
-import { getStoredBabyId, getStoredFamilyId } from '../api/client'
+import { deleteDiaper, getDiapers, recordDiaper, updateDiaper } from '../api/babyLogApi'
 import { scheduleDiaperReminder } from '../hooks/useFeedNotification'
+import { useStoredBaby } from '../hooks/useStoredBaby'
 import DateFilter, { DateFilterValue, toDateParam } from '../components/DateFilter'
 import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'
@@ -26,8 +26,7 @@ import type { DiaperRecord } from '../types'
 const DIAPER_TYPES = ['WET', 'DIRTY', 'MIXED', 'DRY'] as const
 
 export default function DiaperLogScreen() {
-  const [babyId, setBabyId] = useState<string | null>(null)
-  const [babyName, setBabyName] = useState<string | undefined>(undefined)
+  const { babyId, babyName, initialized, loadBaby } = useStoredBaby()
   const [diapers, setDiapers] = useState<DiaperRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -47,23 +46,12 @@ export default function DiaperLogScreen() {
   }, [])
 
   useEffect(() => {
-    const init = async () => {
-      const bid = await getStoredBabyId()
-      const fid = await getStoredFamilyId()
-      setBabyId(bid)
-      if (bid && fid) {
-        const [, babies] = await Promise.all([
-          loadDiapers(bid, dateFilter),
-          getBabies(fid),
-        ])
-        setBabyName(babies.find(b => b.id === bid)?.name)
-      } else if (bid) {
-        await loadDiapers(bid, dateFilter)
-      }
-      setLoading(false)
+    if (!initialized || !babyId) {
+      if (initialized) setLoading(false)
+      return
     }
-    init()
-  }, [])
+    loadDiapers(babyId, dateFilter).then(() => setLoading(false))
+  }, [initialized, babyId, loadDiapers])
 
   const onRefresh = useCallback(async () => {
     if (!babyId) return
@@ -72,16 +60,7 @@ export default function DiaperLogScreen() {
     setRefreshing(false)
   }, [babyId, dateFilter, loadDiapers])
 
-  useFocusEffect(useCallback(() => {
-    const check = async () => {
-      const bid = await getStoredBabyId()
-      if (bid && bid !== babyId) {
-        setBabyId(bid)
-        await loadDiapers(bid, dateFilter)
-      }
-    }
-    check()
-  }, [babyId, dateFilter, loadDiapers]))
+  useFocusEffect(useCallback(() => { loadBaby() }, [loadBaby]))
 
   const handleFilterChange = async (filter: DateFilterValue) => {
     setDateFilter(filter)

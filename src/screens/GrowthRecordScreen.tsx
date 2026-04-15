@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
   Dimensions,
@@ -115,6 +115,19 @@ export default function GrowthRecordScreen() {
     }
   }
 
+  const { weightRecs, heightRecs } = useMemo(() => {
+    const sorted = [...records].reverse()
+    return {
+      weightRecs: sorted.filter(r => r.weightG != null),
+      heightRecs: sorted.filter(r => r.heightCm != null),
+    }
+  }, [records])
+
+  const dateLabel = useCallback((iso: string) => {
+    const d = new Date(iso)
+    return `${d.getMonth() + 1}/${d.getDate()}`
+  }, [])
+
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
 
   return (
@@ -177,53 +190,44 @@ export default function GrowthRecordScreen() {
       </View>
 
       {/* 성장 차트 — 2개 이상 기록 있을 때만 표시 */}
-      {(() => {
-        const sorted = [...records].reverse()
-        const weightRecs = sorted.filter(r => r.weightG != null)
-        const heightRecs = sorted.filter(r => r.heightCm != null)
-        if (weightRecs.length < 2 && heightRecs.length < 2) return null
-        const dateLabel = (iso: string) => {
-          const d = new Date(iso); return `${d.getMonth() + 1}/${d.getDate()}`
-        }
-        return (
-          <View style={styles.chartSection}>
-            {weightRecs.length >= 2 && (
-              <View style={styles.chartCard}>
-                <Text style={styles.chartLabel}>체중 추이 (kg)</Text>
-                <LineChart
-                  data={{
-                    labels: weightRecs.map(r => dateLabel(r.measuredAt)),
-                    datasets: [{ data: weightRecs.map(r => Math.round(r.weightG! / 100) / 10) }],
-                  }}
-                  width={CHART_WIDTH}
-                  height={140}
-                  chartConfig={WEIGHT_CHART_CONFIG}
-                  style={styles.chart}
-                  bezier
-                  fromZero={false}
-                />
-              </View>
-            )}
-            {heightRecs.length >= 2 && (
-              <View style={styles.chartCard}>
-                <Text style={styles.chartLabel}>키 추이 (cm)</Text>
-                <LineChart
-                  data={{
-                    labels: heightRecs.map(r => dateLabel(r.measuredAt)),
-                    datasets: [{ data: heightRecs.map(r => r.heightCm!) }],
-                  }}
-                  width={CHART_WIDTH}
-                  height={140}
-                  chartConfig={HEIGHT_CHART_CONFIG}
-                  style={styles.chart}
-                  bezier
-                  fromZero={false}
-                />
-              </View>
-            )}
-          </View>
-        )
-      })()}
+      {(weightRecs.length >= 2 || heightRecs.length >= 2) && (
+        <View style={styles.chartSection}>
+          {weightRecs.length >= 2 && (
+            <View style={styles.chartCard}>
+              <Text style={styles.chartLabel}>체중 추이 (kg)</Text>
+              <LineChart
+                data={{
+                  labels: weightRecs.map(r => dateLabel(r.measuredAt)),
+                  datasets: [{ data: weightRecs.map(r => Math.round(r.weightG! / 100) / 10) }],
+                }}
+                width={CHART_WIDTH}
+                height={140}
+                chartConfig={WEIGHT_CHART_CONFIG}
+                style={styles.chart}
+                bezier
+                fromZero={false}
+              />
+            </View>
+          )}
+          {heightRecs.length >= 2 && (
+            <View style={styles.chartCard}>
+              <Text style={styles.chartLabel}>키 추이 (cm)</Text>
+              <LineChart
+                data={{
+                  labels: heightRecs.map(r => dateLabel(r.measuredAt)),
+                  datasets: [{ data: heightRecs.map(r => r.heightCm!) }],
+                }}
+                width={CHART_WIDTH}
+                height={140}
+                chartConfig={HEIGHT_CHART_CONFIG}
+                style={styles.chart}
+                bezier
+                fromZero={false}
+              />
+            </View>
+          )}
+        </View>
+      )}
 
       <FlatList
         data={records}

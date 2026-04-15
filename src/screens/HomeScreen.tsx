@@ -108,6 +108,52 @@ export default function HomeScreen({ navigation }: any) {
     setRefreshing(false)
   }, [babyId, familyId, loadData])
 
+  const onRecorded = useCallback(() => {
+    if (babyId && familyId) loadData(babyId, familyId)
+  }, [babyId, familyId, loadData])
+
+  const renderFeedProgress = () => {
+    if (!latestFeed) return <Text style={styles.cardDesc}>기록 없음</Text>
+    const fedAt = parseApiTimestamp(latestFeed.fedAt)
+    const nextFeedAt = parseApiTimestamp(latestFeed.nextFeedAt)
+    if (fedAt == null || nextFeedAt == null) {
+      return <Text style={styles.cardDesc}>다음 수유 시간을 확인할 수 없어요</Text>
+    }
+    const total = nextFeedAt - fedAt
+    const elapsed = Date.now() - fedAt
+    const progress = Math.min(Math.max(elapsed / total, 0), 1)
+    const isReady = elapsed >= total
+    return (
+      <>
+        <View style={styles.feedRow}>
+          <Text style={styles.cardTitle}>{latestFeed.amountMl}ml</Text>
+          <Text style={styles.cardDesc}>{timeSince(latestFeed.fedAt)}</Text>
+        </View>
+        <View style={styles.progressTrack}>
+          <View style={[
+            styles.progressFill,
+            { width: `${progress * 100}%` as any },
+            isReady && styles.progressFillReady,
+          ]} />
+        </View>
+        <Text style={[styles.cardDesc, isReady ? styles.nextFeedReady : styles.nextFeed]}>
+          {isReady ? '🍼 지금 수유 가능해요' : `다음 수유: ${timeUntil(latestFeed.nextFeedAt)}`}
+        </Text>
+      </>
+    )
+  }
+
+  const renderYesterdayCompare = (totalFeedMl: number) => {
+    if (yesterdayFeedMl == null || yesterdayFeedMl <= 0) return null
+    const diff = totalFeedMl - yesterdayFeedMl
+    const pct = Math.round(Math.abs(diff) / yesterdayFeedMl * 100)
+    return (
+      <Text style={[styles.statCompare, diff >= 0 ? styles.compareUp : styles.compareDown]}>
+        {diff >= 0 ? '▲' : '▼'}{pct}%
+      </Text>
+    )
+  }
+
   if (loading) {
     return (
       <View style={styles.center}>
@@ -164,7 +210,7 @@ export default function HomeScreen({ navigation }: any) {
       <QuickActions
         babyId={babyId}
         babyName={babyName}
-        onRecorded={() => babyId && familyId && loadData(babyId, familyId)}
+        onRecorded={onRecorded}
         onError={setQuickError}
       />
 
@@ -177,15 +223,7 @@ export default function HomeScreen({ navigation }: any) {
               <Text style={styles.statEmoji}>🍼</Text>
               <Text style={styles.statValue}>{todayStats.feedCount}회</Text>
               <Text style={styles.statSub}>{todayStats.totalFeedMl}ml</Text>
-              {yesterdayFeedMl != null && yesterdayFeedMl > 0 && (() => {
-                const diff = todayStats.totalFeedMl - yesterdayFeedMl
-                const pct = Math.round(Math.abs(diff) / yesterdayFeedMl * 100)
-                return (
-                  <Text style={[styles.statCompare, diff >= 0 ? styles.compareUp : styles.compareDown]}>
-                    {diff >= 0 ? '▲' : '▼'}{pct}%
-                  </Text>
-                )
-              })()}
+              {renderYesterdayCompare(todayStats.totalFeedMl)}
             </View>
             <View style={styles.statItem}>
               <Text style={styles.statEmoji}>🧷</Text>
@@ -204,42 +242,7 @@ export default function HomeScreen({ navigation }: any) {
       {/* 마지막 수유 */}
       <View style={styles.card}>
         <Text style={styles.cardLabel}>마지막 수유</Text>
-        {latestFeed ? (
-          <>
-            <View style={styles.feedRow}>
-              <Text style={styles.cardTitle}>{latestFeed.amountMl}ml</Text>
-              <Text style={styles.cardDesc}>{timeSince(latestFeed.fedAt)}</Text>
-            </View>
-            {(() => {
-              const fedAt = parseApiTimestamp(latestFeed.fedAt)
-              const nextFeedAt = parseApiTimestamp(latestFeed.nextFeedAt)
-              if (fedAt == null || nextFeedAt == null) {
-                return <Text style={styles.cardDesc}>다음 수유 시간을 확인할 수 없어요</Text>
-              }
-
-              const total = nextFeedAt - fedAt
-              const elapsed = Date.now() - fedAt
-              const progress = Math.min(Math.max(elapsed / total, 0), 1)
-              const isReady = elapsed >= total
-              return (
-                <>
-                  <View style={styles.progressTrack}>
-                    <View style={[
-                      styles.progressFill,
-                      { width: `${progress * 100}%` as any },
-                      isReady && styles.progressFillReady,
-                    ]} />
-                  </View>
-                  <Text style={[styles.cardDesc, isReady ? styles.nextFeedReady : styles.nextFeed]}>
-                    {isReady ? '🍼 지금 수유 가능해요' : `다음 수유: ${timeUntil(latestFeed.nextFeedAt)}`}
-                  </Text>
-                </>
-              )
-            })()}
-          </>
-        ) : (
-          <Text style={styles.cardDesc}>기록 없음</Text>
-        )}
+        {renderFeedProgress()}
       </View>
 
       {/* 마지막 기저귀 */}

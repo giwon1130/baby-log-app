@@ -1,3 +1,14 @@
+export const COLORS = {
+  primary: '#FF6B9D',
+  primaryDisabled: '#ffb3cc',
+  primaryBg: '#FFF9FB',
+  primarySurface: '#FFF0F5',
+  sleep: '#5C6BC0',
+  amber: '#FF8F00',
+  success: '#4CAF50',
+  error: '#F44336',
+} as const
+
 export const DIAPER_TYPE_LABEL: Record<string, string> = {
   WET: '💧 소변',
   DIRTY: '💩 대변',
