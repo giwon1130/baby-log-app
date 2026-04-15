@@ -7,7 +7,7 @@ import {
   View,
 } from 'react-native'
 import { recordDiaper, recordFeed } from '../api/babyLogApi'
-import { scheduleFeedNotification } from '../hooks/useFeedNotification'
+import { scheduleDiaperReminder, scheduleFeedNotification } from '../hooks/useFeedNotification'
 
 const QUICK_AMOUNTS = [60, 80, 100, 120, 150]
 const QUICK_DIAPERS = [
@@ -43,14 +43,15 @@ export default function QuickActions({ babyId, babyName, onRecorded, onError }: 
   const handleDiaper = useCallback(async (type: string) => {
     setLoadingDiaper(type)
     try {
-      await recordDiaper(babyId, { diaperType: type })
+      const record = await recordDiaper(babyId, { diaperType: type })
+      await scheduleDiaperReminder(record.changedAt, babyName)
       onRecorded()
     } catch (err) {
       onError?.((err as Error).message || '기저귀 기록에 실패했어요')
     } finally {
       setLoadingDiaper(null)
     }
-  }, [babyId, onRecorded, onError])
+  }, [babyId, babyName, onRecorded, onError])
 
   return (
     <View style={styles.container}>

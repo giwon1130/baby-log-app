@@ -61,10 +61,10 @@ export default function App() {
     }
     init()
 
-    notificationListenerRef.current = Notifications.addNotificationReceivedListener(() => {
-      navigationRef.current?.navigate('Main', { screen: 'Home' })
-    })
+    // 포그라운드 수신은 배너만 표시 (setNotificationHandler에서 처리) — 강제 이동 없음
+    notificationListenerRef.current = Notifications.addNotificationReceivedListener(() => {})
 
+    // 사용자가 알림을 탭했을 때만 홈으로 이동
     responseListenerRef.current = Notifications.addNotificationResponseReceivedListener(() => {
       navigationRef.current?.navigate('Main', { screen: 'Home' })
     })
