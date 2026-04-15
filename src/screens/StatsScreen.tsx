@@ -12,6 +12,7 @@ import { useFocusEffect } from '@react-navigation/native'
 import { BarChart, LineChart } from 'react-native-chart-kit'
 import { getWeeklyStats } from '../api/babyLogApi'
 import { getStoredBabyId } from '../api/client'
+import { formatDuration } from '../utils/dateUtils'
 import type { WeeklyStats } from '../types'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
@@ -37,13 +38,6 @@ const SLEEP_CHART_CONFIG = {
 function shortDate(iso: string): string {
   const d = new Date(iso)
   return `${d.getMonth() + 1}/${d.getDate()}`
-}
-
-function formatSleep(minutes: number): string {
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  if (h === 0) return `${m}분`
-  return `${h}h${m > 0 ? ` ${m}m` : ''}`
 }
 
 export default function StatsScreen() {
@@ -88,7 +82,9 @@ export default function StatsScreen() {
   const sleepData = stats.sleepStats.map(s => Math.round(s.totalMinutes / 60 * 10) / 10) // 시간 단위
 
   const totalFeedThisWeek = feedMlData.reduce((a, b) => a + b, 0)
-  const avgFeedPerDay = Math.round(totalFeedThisWeek / 7)
+  const avgFeedPerDay = stats.feedStats.length > 0
+    ? Math.round(totalFeedThisWeek / stats.feedStats.length)
+    : 0
   const totalSleepHours = Math.round(sleepData.reduce((a, b) => a + b, 0) * 10) / 10
 
   return (
@@ -166,7 +162,7 @@ export default function StatsScreen() {
             <View key={s.date} style={styles.sleepDetailRow}>
               <Text style={styles.sleepDetailDate}>{shortDate(s.date)}</Text>
               <Text style={styles.sleepDetailValue}>
-                {s.sleepCount}회 · {formatSleep(s.totalMinutes)}
+                {s.sleepCount}회 · {formatDuration(s.totalMinutes)}
               </Text>
             </View>
           ))}

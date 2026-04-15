@@ -15,11 +15,8 @@ import { scheduleFeedNotification } from '../hooks/useFeedNotification'
 import QuickActions from '../components/QuickActions'
 import ErrorBanner from '../components/ErrorBanner'
 import { parseApiTimestamp, timeSince, timeUntil, formatDuration as formatSleep, formatAge, yesterdayString } from '../utils/dateUtils'
+import { DIAPER_TYPE_LABEL } from '../utils/constants'
 import type { DiaperRecord, FeedRecord, GrowthStage, SleepRecord, TodayStats } from '../types'
-
-const DIAPER_TYPE_LABEL: Record<string, string> = {
-  WET: '💧 소변', DIRTY: '💩 대변', MIXED: '🔄 혼합', DRY: '✅ 깨끗',
-}
 
 export default function HomeScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true)

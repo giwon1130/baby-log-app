@@ -20,15 +20,10 @@ import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
 import EditDiaperModal from '../components/EditDiaperModal'
 import { formatTime, timeSince } from '../utils/dateUtils'
+import { DIAPER_TYPE_LABEL } from '../utils/constants'
 import type { DiaperRecord } from '../types'
 
 const DIAPER_TYPES = ['WET', 'DIRTY', 'MIXED', 'DRY'] as const
-const DIAPER_TYPE_LABEL: Record<string, string> = {
-  WET: '💧 소변',
-  DIRTY: '💩 대변',
-  MIXED: '🔄 혼합',
-  DRY: '✅ 깨끗',
-}
 
 export default function DiaperLogScreen() {
   const [babyId, setBabyId] = useState<string | null>(null)
@@ -114,9 +109,13 @@ export default function DiaperLogScreen() {
 
   const handleUpdate = async (id: string, newDiaperType: string, newNote: string, newChangedAt: string) => {
     if (!babyId) return
-    await updateDiaper(babyId, id, { diaperType: newDiaperType, note: newNote, changedAt: newChangedAt })
-    await loadDiapers(babyId, dateFilter)
-    setSuccess('기저귀 기록이 수정됐어요')
+    try {
+      const updated = await updateDiaper(babyId, id, { diaperType: newDiaperType, note: newNote, changedAt: newChangedAt })
+      setDiapers(prev => prev.map(d => d.id === id ? updated : d))
+      setSuccess('기저귀 기록이 수정됐어요')
+    } catch (err) {
+      setError((err as Error).message || '수정에 실패했어요')
+    }
   }
 
   const handleDelete = async (diaperId: string) => {

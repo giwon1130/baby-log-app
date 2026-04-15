@@ -11,14 +11,10 @@ import {
   View,
 } from 'react-native'
 import TimeOffsetPicker from './TimeOffsetPicker'
+import { FEED_TYPE_LABEL } from '../utils/constants'
 import type { FeedRecord } from '../types'
 
 const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
-const FEED_TYPE_LABEL: Record<string, string> = {
-  FORMULA: '분유',
-  BREAST: '모유',
-  MIXED: '혼합',
-}
 const QUICK_AMOUNTS = [30, 60, 80, 90, 100, 120, 150]
 
 type Props = {

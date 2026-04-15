@@ -4,12 +4,10 @@ import {
   Text, TextInput, TouchableOpacity, View,
 } from 'react-native'
 import TimeOffsetPicker from './TimeOffsetPicker'
+import { DIAPER_TYPE_LABEL } from '../utils/constants'
 import type { DiaperRecord } from '../types'
 
 const DIAPER_TYPES = ['WET', 'DIRTY', 'MIXED', 'DRY'] as const
-const DIAPER_TYPE_LABEL: Record<string, string> = {
-  WET: '💧 소변', DIRTY: '💩 대변', MIXED: '🔄 혼합', DRY: '✅ 깨끗',
-}
 
 type Props = {
   record: DiaperRecord | null

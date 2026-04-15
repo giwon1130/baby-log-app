@@ -123,9 +123,14 @@ export default function SleepScreen() {
 
   const handleUpdate = async (id: string, newSleptAt: string, newWokeAt: string | null, newNote: string) => {
     if (!babyId) return
-    await updateSleep(babyId, id, { sleptAt: newSleptAt, wokeAt: newWokeAt ?? undefined, note: newNote })
-    await reload(babyId)
-    setSuccess('수면 기록이 수정됐어요')
+    try {
+      const updated = await updateSleep(babyId, id, { sleptAt: newSleptAt, wokeAt: newWokeAt ?? undefined, note: newNote })
+      setRecords(prev => prev.map(r => r.id === id ? updated : r))
+      if (activeSleep?.id === id) setActiveSleep(updated)
+      setSuccess('수면 기록이 수정됐어요')
+    } catch (err) {
+      setError((err as Error).message || '수정에 실패했어요')
+    }
   }
 
   const handleDelete = async (sleepId: string) => {
