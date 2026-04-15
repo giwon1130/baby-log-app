@@ -14,16 +14,10 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { createBaby, createFamily, getBabies, joinFamily } from '../api/babyLogApi'
 import { storeFamilyAndBaby } from '../api/client'
 import ErrorBanner from '../components/ErrorBanner'
+import BirthDatePicker from '../components/BirthDatePicker'
 import type { Baby } from '../types'
 
 type Step = 'choice' | 'create' | 'join' | 'baby' | 'selectBaby'
-
-function autoFormatDate(raw: string): string {
-  const digits = raw.replace(/\D/g, '').slice(0, 8)
-  if (digits.length <= 4) return digits
-  if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`
-  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`
-}
 
 export default function FamilySetupScreen({ navigation, route }: any) {
   const params = route?.params as { mode?: 'addBaby'; familyId?: string } | undefined
@@ -38,12 +32,12 @@ export default function FamilySetupScreen({ navigation, route }: any) {
 
   // Baby form
   const [babyName, setBabyName] = useState('')
-  const [birthDateRaw, setBirthDateRaw] = useState('')
+  const [birthDate, setBirthDate] = useState(new Date())
   const [gender, setGender] = useState<'MALE' | 'FEMALE'>('MALE')
   const [birthWeightG, setBirthWeightG] = useState('')
   const [birthHeightCm, setBirthHeightCm] = useState('')
 
-  const birthDate = autoFormatDate(birthDateRaw)
+  const birthDateStr = `${birthDate.getFullYear()}-${String(birthDate.getMonth() + 1).padStart(2, '0')}-${String(birthDate.getDate()).padStart(2, '0')}`
 
   const handleCreateFamily = async () => {
     setSubmitting(true)
@@ -90,12 +84,12 @@ export default function FamilySetupScreen({ navigation, route }: any) {
   }
 
   const handleCreateBaby = async () => {
-    if (!babyName.trim() || birthDate.length !== 10) return
+    if (!babyName.trim()) return
     setSubmitting(true)
     try {
       const baby = await createBaby(familyId, {
         name: babyName,
-        birthDate,
+        birthDate: birthDateStr,
         gender,
         birthWeightG: birthWeightG ? parseInt(birthWeightG) : undefined,
         birthHeightCm: birthHeightCm ? parseFloat(birthHeightCm) : undefined,
@@ -220,14 +214,7 @@ export default function FamilySetupScreen({ navigation, route }: any) {
             />
 
             <Text style={styles.label}>생년월일</Text>
-            <TextInput
-              style={[styles.input, birthDate.length === 10 && styles.inputValid]}
-              placeholder="20250101 입력 → 자동 포맷"
-              value={birthDate}
-              onChangeText={v => setBirthDateRaw(v.replace(/\D/g, ''))}
-              keyboardType="number-pad"
-              maxLength={10}
-            />
+            <BirthDatePicker value={birthDate} onChange={setBirthDate} />
 
             <Text style={styles.label}>성별</Text>
             <View style={styles.genderRow}>
@@ -263,9 +250,9 @@ export default function FamilySetupScreen({ navigation, route }: any) {
             />
 
             <TouchableOpacity
-              style={[styles.primaryButton, (!babyName || birthDate.length !== 10 || submitting) && styles.buttonDisabled]}
+              style={[styles.primaryButton, (!babyName || submitting) && styles.buttonDisabled]}
               onPress={handleCreateBaby}
-              disabled={!babyName || birthDate.length !== 10 || submitting}
+              disabled={!babyName || submitting}
             >
               {submitting
                 ? <ActivityIndicator color="#fff" />

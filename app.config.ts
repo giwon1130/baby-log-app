@@ -53,6 +53,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         sounds: [],
       },
     ],
+    '@react-native-community/datetimepicker',
   ],
   extra: {
     apiBaseUrl: process.env.BABY_LOG_API_URL ?? 'https://baby-log-api-production.up.railway.app',
