@@ -17,19 +17,8 @@ import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
 import EditSleepModal from '../components/EditSleepModal'
 import { getStoredBabyId, getStoredFamilyId } from '../api/client'
+import { formatTime, formatDuration } from '../utils/dateUtils'
 import type { SleepRecord } from '../types'
-
-function formatTime(iso: string): string {
-  const d = new Date(iso)
-  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-}
-
-function formatDuration(minutes: number): string {
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  if (h === 0) return `${m}분`
-  return `${h}시간 ${m}분`
-}
 
 function calcElapsed(iso: string, now: number): string {
   const totalSecs = Math.floor((now - new Date(iso).getTime()) / 1000)

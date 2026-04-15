@@ -13,59 +13,12 @@ import { getActiveSleep, getBabies, getDiapers, getFeeds, getGrowthStage, getLat
 import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import { scheduleFeedNotification } from '../hooks/useFeedNotification'
 import QuickActions from '../components/QuickActions'
+import ErrorBanner from '../components/ErrorBanner'
+import { parseApiTimestamp, timeSince, timeUntil, formatDuration as formatSleep, formatAge, yesterdayString } from '../utils/dateUtils'
 import type { DiaperRecord, FeedRecord, GrowthStage, SleepRecord, TodayStats } from '../types'
 
 const DIAPER_TYPE_LABEL: Record<string, string> = {
   WET: '💧 소변', DIRTY: '💩 대변', MIXED: '🔄 혼합', DRY: '✅ 깨끗',
-}
-
-function timeSince(isoString: string): string {
-  const timestamp = parseApiTimestamp(isoString)
-  if (timestamp == null) return '시간 확인 필요'
-
-  const diff = Date.now() - timestamp
-  const mins = Math.max(0, Math.floor(diff / 60000))
-  if (mins < 1) return '방금 전'
-  if (mins < 60) return `${mins}분 전`
-  const hours = Math.floor(mins / 60)
-  const remainingMins = mins % 60
-  return remainingMins > 0 ? `${hours}시간 ${remainingMins}분 전` : `${hours}시간 전`
-}
-
-function timeUntil(isoString: string): string {
-  const timestamp = parseApiTimestamp(isoString)
-  if (timestamp == null) return '시간 확인 필요'
-
-  const diff = timestamp - Date.now()
-  if (diff <= 0) return '지금 수유 가능'
-  const mins = Math.floor(diff / 60000)
-  if (mins < 60) return `${mins}분 후`
-  const hours = Math.floor(mins / 60)
-  return `${hours}시간 ${mins % 60}분 후`
-}
-
-function formatSleep(minutes: number): string {
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  if (h === 0) return `${m}분`
-  return `${h}시간 ${m}분`
-}
-
-function formatAge(daysOld: number): string {
-  const months = Math.floor(daysOld / 30)
-  const days = daysOld % 30
-  if (months === 0) return `${daysOld}일`
-  if (days === 0) return `${months}개월`
-  return `${months}개월 ${days}일`
-}
-
-function parseApiTimestamp(isoString: string): number | null {
-  const trimmed = isoString.trim()
-  const normalized = trimmed
-    .replace(' ', 'T')
-    .replace(/T(\d{2}:\d{2})(Z|[+-]\d{2}:?\d{2})$/, 'T$1:00$2')
-  const timestamp = new Date(normalized).getTime()
-  return Number.isNaN(timestamp) ? null : timestamp
 }
 
 export default function HomeScreen({ navigation }: any) {
@@ -82,16 +35,13 @@ export default function HomeScreen({ navigation }: any) {
   const [lastSleep, setLastSleep] = useState<SleepRecord | null>(null)
   const [yesterdayFeedMl, setYesterdayFeedMl] = useState<number | null>(null)
   const [daysOld, setDaysOld] = useState<number | null>(null)
+  const [quickError, setQuickError] = useState<string | null>(null)
 
   useEffect(() => {
     navigation.setOptions({ title: babyName ?? '홈' })
   }, [babyName])
 
   const loadData = useCallback(async (bid: string, fid: string) => {
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    const yyyymmdd = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`
-
     const [feed, diaper, stage, babies, stats, active, sleeps, yFeeds] = await Promise.allSettled([
       getLatestFeed(bid),
       getDiapers(bid, 1),
@@ -100,7 +50,7 @@ export default function HomeScreen({ navigation }: any) {
       getTodayStats(bid),
       getActiveSleep(bid),
       getSleepRecords(bid, 3),
-      getFeeds(bid, 100, yyyymmdd),
+      getFeeds(bid, 100, yesterdayString()),
     ])
 
     if (babies.status === 'fulfilled') {
@@ -109,7 +59,7 @@ export default function HomeScreen({ navigation }: any) {
       setDaysOld(baby?.daysOld ?? null)
       if (feed.status === 'fulfilled' && feed.value) {
         setLatestFeed(feed.value)
-        await scheduleFeedNotification(feed.value.nextFeedAt, baby?.name)
+        if (feed.value.nextFeedAt) await scheduleFeedNotification(feed.value.nextFeedAt, baby?.name)
       }
     } else if (feed.status === 'fulfilled' && feed.value) {
       setLatestFeed(feed.value)
@@ -213,10 +163,12 @@ export default function HomeScreen({ navigation }: any) {
       </View>
 
       {/* 빠른 기록 */}
+      <ErrorBanner message={quickError} onDismiss={() => setQuickError(null)} />
       <QuickActions
         babyId={babyId}
         babyName={babyName}
         onRecorded={() => babyId && familyId && loadData(babyId, familyId)}
+        onError={setQuickError}
       />
 
       {/* 오늘 요약 */}

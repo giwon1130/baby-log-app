@@ -3,12 +3,14 @@ import {
   KeyboardAvoidingView,
   Modal,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native'
+import TimeOffsetPicker from './TimeOffsetPicker'
 import type { FeedRecord } from '../types'
 
 const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
@@ -22,13 +24,14 @@ const QUICK_AMOUNTS = [30, 60, 80, 90, 100, 120, 150]
 type Props = {
   record: FeedRecord | null
   onClose: () => void
-  onSave: (feedId: string, amountMl: number, feedType: string, note: string) => Promise<void>
+  onSave: (feedId: string, amountMl: number, feedType: string, note: string, fedAt: string) => Promise<void>
 }
 
 export default function EditFeedModal({ record, onClose, onSave }: Props) {
   const [amount, setAmount] = useState('')
   const [feedType, setFeedType] = useState('FORMULA')
   const [note, setNote] = useState('')
+  const [fedAt, setFedAt] = useState(new Date())
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -36,6 +39,7 @@ export default function EditFeedModal({ record, onClose, onSave }: Props) {
       setAmount(String(record.amountMl))
       setFeedType(record.feedType)
       setNote(record.note)
+      setFedAt(new Date(record.fedAt))
     }
   }, [record])
 
@@ -43,7 +47,7 @@ export default function EditFeedModal({ record, onClose, onSave }: Props) {
     if (!record || !amount) return
     setSaving(true)
     try {
-      await onSave(record.id, parseInt(amount), feedType, note)
+      await onSave(record.id, parseInt(amount), feedType, note, fedAt.toISOString())
       onClose()
     } finally {
       setSaving(false)
@@ -59,6 +63,7 @@ export default function EditFeedModal({ record, onClose, onSave }: Props) {
         <TouchableOpacity style={styles.backdrop} onPress={onClose} />
         <View style={styles.sheet}>
           <View style={styles.handle} />
+          <ScrollView showsVerticalScrollIndicator={false}>
           <Text style={styles.title}>수유 기록 수정</Text>
 
           <Text style={styles.label}>수유량 (ml)</Text>
@@ -105,6 +110,9 @@ export default function EditFeedModal({ record, onClose, onSave }: Props) {
             onChangeText={setNote}
           />
 
+          <Text style={styles.label}>수유 시각</Text>
+          <TimeOffsetPicker value={fedAt} onChange={setFedAt} />
+
           <View style={styles.buttons}>
             <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
               <Text style={styles.cancelButtonText}>취소</Text>
@@ -117,6 +125,7 @@ export default function EditFeedModal({ record, onClose, onSave }: Props) {
               <Text style={styles.saveButtonText}>{saving ? '저장 중...' : '저장'}</Text>
             </TouchableOpacity>
           </View>
+          </ScrollView>
         </View>
       </KeyboardAvoidingView>
     </Modal>
@@ -133,6 +142,7 @@ const styles = StyleSheet.create({
     padding: 24,
     paddingBottom: 40,
     gap: 10,
+    maxHeight: '85%',
   },
   handle: {
     width: 40,

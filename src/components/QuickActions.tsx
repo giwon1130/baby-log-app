@@ -19,10 +19,11 @@ const QUICK_DIAPERS = [
 type Props = {
   babyId: string
   babyName?: string
-  onRecorded: () => void  // 기록 후 홈 데이터 새로고침
+  onRecorded: () => void
+  onError?: (msg: string) => void
 }
 
-export default function QuickActions({ babyId, babyName, onRecorded }: Props) {
+export default function QuickActions({ babyId, babyName, onRecorded, onError }: Props) {
   const [loadingFeed, setLoadingFeed] = useState<number | null>(null)
   const [loadingDiaper, setLoadingDiaper] = useState<string | null>(null)
 
@@ -30,8 +31,10 @@ export default function QuickActions({ babyId, babyName, onRecorded }: Props) {
     setLoadingFeed(ml)
     try {
       const record = await recordFeed(babyId, { amountMl: ml, feedType: 'FORMULA' })
-      await scheduleFeedNotification(record.nextFeedAt, babyName)
+      if (record.nextFeedAt) await scheduleFeedNotification(record.nextFeedAt, babyName)
       onRecorded()
+    } catch (err) {
+      onError?.((err as Error).message || '수유 기록에 실패했어요')
     } finally {
       setLoadingFeed(null)
     }
@@ -42,6 +45,8 @@ export default function QuickActions({ babyId, babyName, onRecorded }: Props) {
     try {
       await recordDiaper(babyId, { diaperType: type })
       onRecorded()
+    } catch (err) {
+      onError?.((err as Error).message || '기저귀 기록에 실패했어요')
     } finally {
       setLoadingDiaper(null)
     }

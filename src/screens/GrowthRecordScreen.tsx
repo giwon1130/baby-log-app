@@ -11,10 +11,12 @@ import {
   View,
 } from 'react-native'
 import { LineChart } from 'react-native-chart-kit'
-import { deleteGrowthRecord, getGrowthRecords, recordGrowth } from '../api/babyLogApi'
+import { deleteGrowthRecord, getGrowthRecords, recordGrowth, updateGrowthRecord } from '../api/babyLogApi'
 import { getStoredBabyId } from '../api/client'
 import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'
+import EditGrowthModal from '../components/EditGrowthModal'
+import { formatTime } from '../utils/dateUtils'
 import type { GrowthRecord } from '../types'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
@@ -36,11 +38,6 @@ const HEIGHT_CHART_CONFIG = {
   propsForDots: { r: '4', strokeWidth: '2', stroke: '#5C6BC0' },
 }
 
-function formatTime(iso: string): string {
-  const d = new Date(iso)
-  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-}
-
 export default function GrowthRecordScreen() {
   const [babyId, setBabyId] = useState<string | null>(null)
   const [records, setRecords] = useState<GrowthRecord[]>([])
@@ -48,6 +45,7 @@ export default function GrowthRecordScreen() {
   const [submitting, setSubmitting] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [editingRecord, setEditingRecord] = useState<GrowthRecord | null>(null)
 
   const [weightG, setWeightG] = useState('')
   const [heightCm, setHeightCm] = useState('')
@@ -97,6 +95,16 @@ export default function GrowthRecordScreen() {
     }
   }
 
+  const handleUpdate = async (id: string, data: { weightG?: number; heightCm?: number; headCm?: number; note?: string }) => {
+    if (!babyId) return
+    try {
+      const updated = await updateGrowthRecord(babyId, id, data)
+      setRecords(prev => prev.map(r => r.id === id ? updated : r))
+    } catch (err) {
+      setError((err as Error).message || '수정에 실패했어요')
+    }
+  }
+
   const handleDelete = async (recordId: string) => {
     if (!babyId) return
     try {
@@ -111,6 +119,11 @@ export default function GrowthRecordScreen() {
 
   return (
     <View style={styles.container}>
+      <EditGrowthModal
+        record={editingRecord}
+        onClose={() => setEditingRecord(null)}
+        onSave={handleUpdate}
+      />
       <ErrorBanner message={error} onDismiss={() => setError(null)} />
       <View style={styles.form}>
         <Text style={styles.formTitle}>성장 기록</Text>
@@ -219,6 +232,7 @@ export default function GrowthRecordScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />}
         renderItem={({ item }) => (
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 성장 기록을 삭제할까요?">
+            <TouchableOpacity onLongPress={() => setEditingRecord(item)} activeOpacity={0.85}>
             <View style={styles.recordItem}>
               <View style={styles.metrics}>
                 {item.weightG != null && (
@@ -242,6 +256,7 @@ export default function GrowthRecordScreen() {
               </View>
               <Text style={styles.recordTime}>{formatTime(item.measuredAt)}</Text>
             </View>
+            </TouchableOpacity>
           </SwipeToDelete>
         )}
         ListEmptyComponent={<Text style={styles.empty}>성장 기록이 없어요</Text>}

@@ -21,7 +21,7 @@ export type FeedRecord = {
   amountMl: number
   feedType: 'FORMULA' | 'BREAST' | 'MIXED'
   note: string
-  nextFeedAt: string
+  nextFeedAt: string | null
   nextFeedIntervalHours: number
 }
 

@@ -103,6 +103,13 @@ export const updateSleep = (babyId: string, sleepId: string, data: {
 export const deleteSleep = (babyId: string, sleepId: string) =>
   api.delete<void>(`/api/v1/babies/${babyId}/sleeps/${sleepId}`)
 
+export const updateGrowthRecord = (babyId: string, recordId: string, data: {
+  weightG?: number
+  heightCm?: number
+  headCm?: number
+  note?: string
+}) => api.put<GrowthRecord>(`/api/v1/babies/${babyId}/growth-records/${recordId}`, data)
+
 export const deleteGrowthRecord = (babyId: string, recordId: string) =>
   api.delete<void>(`/api/v1/babies/${babyId}/growth-records/${recordId}`)
 

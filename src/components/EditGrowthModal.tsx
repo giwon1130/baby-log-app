@@ -3,31 +3,27 @@ import {
   KeyboardAvoidingView, Modal, Platform, StyleSheet,
   Text, TextInput, TouchableOpacity, View,
 } from 'react-native'
-import TimeOffsetPicker from './TimeOffsetPicker'
-import type { DiaperRecord } from '../types'
-
-const DIAPER_TYPES = ['WET', 'DIRTY', 'MIXED', 'DRY'] as const
-const DIAPER_TYPE_LABEL: Record<string, string> = {
-  WET: '💧 소변', DIRTY: '💩 대변', MIXED: '🔄 혼합', DRY: '✅ 깨끗',
-}
+import type { GrowthRecord } from '../types'
 
 type Props = {
-  record: DiaperRecord | null
+  record: GrowthRecord | null
   onClose: () => void
-  onSave: (id: string, diaperType: string, note: string, changedAt: string) => Promise<void>
+  onSave: (id: string, data: { weightG?: number; heightCm?: number; headCm?: number; note?: string }) => Promise<void>
 }
 
-export default function EditDiaperModal({ record, onClose, onSave }: Props) {
-  const [diaperType, setDiaperType] = useState('WET')
+export default function EditGrowthModal({ record, onClose, onSave }: Props) {
+  const [weightG, setWeightG] = useState('')
+  const [heightCm, setHeightCm] = useState('')
+  const [headCm, setHeadCm] = useState('')
   const [note, setNote] = useState('')
-  const [changedAt, setChangedAt] = useState(new Date())
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     if (record) {
-      setDiaperType(record.diaperType)
-      setNote(record.note)
-      setChangedAt(new Date(record.changedAt))
+      setWeightG(record.weightG != null ? String(record.weightG) : '')
+      setHeightCm(record.heightCm != null ? String(record.heightCm) : '')
+      setHeadCm(record.headCm != null ? String(record.headCm) : '')
+      setNote(record.note ?? '')
     }
   }, [record])
 
@@ -35,7 +31,12 @@ export default function EditDiaperModal({ record, onClose, onSave }: Props) {
     if (!record) return
     setSaving(true)
     try {
-      await onSave(record.id, diaperType, note, changedAt.toISOString())
+      await onSave(record.id, {
+        weightG: weightG ? parseInt(weightG) : undefined,
+        heightCm: heightCm ? parseFloat(heightCm) : undefined,
+        headCm: headCm ? parseFloat(headCm) : undefined,
+        note: note || undefined,
+      })
       onClose()
     } finally {
       setSaving(false)
@@ -51,22 +52,39 @@ export default function EditDiaperModal({ record, onClose, onSave }: Props) {
         <TouchableOpacity style={styles.backdrop} onPress={onClose} />
         <View style={styles.sheet}>
           <View style={styles.handle} />
-          <Text style={styles.title}>기저귀 기록 수정</Text>
+          <Text style={styles.title}>성장 기록 수정</Text>
 
-          <Text style={styles.label}>종류</Text>
-          <View style={styles.typeGrid}>
-            {DIAPER_TYPES.map(t => (
-              <TouchableOpacity
-                key={t}
-                style={[styles.typeChip, diaperType === t && styles.typeChipActive]}
-                onPress={() => setDiaperType(t)}
-              >
-                <Text style={[styles.typeChipText, diaperType === t && styles.typeChipTextActive]}>
-                  {DIAPER_TYPE_LABEL[t]}
-                </Text>
-              </TouchableOpacity>
-            ))}
+          <View style={styles.row}>
+            <View style={styles.half}>
+              <Text style={styles.label}>체중 (g)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="예: 3500"
+                value={weightG}
+                onChangeText={setWeightG}
+                keyboardType="number-pad"
+              />
+            </View>
+            <View style={styles.half}>
+              <Text style={styles.label}>키 (cm)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="예: 52.5"
+                value={heightCm}
+                onChangeText={setHeightCm}
+                keyboardType="decimal-pad"
+              />
+            </View>
           </View>
+
+          <Text style={styles.label}>머리 둘레 (cm)</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="예: 34.0"
+            value={headCm}
+            onChangeText={setHeadCm}
+            keyboardType="decimal-pad"
+          />
 
           <TextInput
             style={styles.input}
@@ -74,9 +92,6 @@ export default function EditDiaperModal({ record, onClose, onSave }: Props) {
             value={note}
             onChangeText={setNote}
           />
-
-          <Text style={styles.label}>교환 시각</Text>
-          <TimeOffsetPicker value={changedAt} onChange={setChangedAt} />
 
           <View style={styles.buttons}>
             <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
@@ -113,14 +128,8 @@ const styles = StyleSheet.create({
   },
   title: { fontSize: 17, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
   label: { fontSize: 12, color: '#888', fontWeight: '600' },
-  typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  typeChip: {
-    flex: 1, minWidth: '45%', paddingVertical: 12,
-    borderRadius: 12, backgroundColor: '#f5f5f5', alignItems: 'center',
-  },
-  typeChipActive: { backgroundColor: '#FF6B9D' },
-  typeChipText: { fontSize: 14, color: '#555', fontWeight: '600' },
-  typeChipTextActive: { color: '#fff' },
+  row: { flexDirection: 'row', gap: 12 },
+  half: { flex: 1, gap: 4 },
   input: {
     borderWidth: 1, borderColor: '#e8e8e8', borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 10, fontSize: 14,

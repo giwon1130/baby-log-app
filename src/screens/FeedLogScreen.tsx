@@ -19,6 +19,7 @@ import EditFeedModal from '../components/EditFeedModal'
 import ErrorBanner from '../components/ErrorBanner'
 import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
+import { formatTime } from '../utils/dateUtils'
 import type { FeedRecord } from '../types'
 
 const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
@@ -28,11 +29,6 @@ const FEED_TYPE_LABEL: Record<string, string> = {
   MIXED: '혼합',
 }
 const QUICK_AMOUNTS = [30, 60, 80, 90, 100, 120, 150]
-
-function formatTime(iso: string): string {
-  const d = new Date(iso)
-  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
-}
 
 export default function FeedLogScreen() {
   const [babyId, setBabyId] = useState<string | null>(null)
@@ -111,7 +107,7 @@ export default function FeedLogScreen() {
       setNote('')
       setFedAt(new Date())
       setSuccess(`${parseInt(amount)}ml 수유 기록 완료`)
-      await scheduleFeedNotification(record.nextFeedAt, babyName)
+      if (record.nextFeedAt) await scheduleFeedNotification(record.nextFeedAt, babyName)
     } catch (err) {
       setError((err as Error).message || '수유 기록 저장에 실패했어요')
     } finally {
@@ -129,10 +125,10 @@ export default function FeedLogScreen() {
     }
   }
 
-  const handleUpdate = async (feedId: string, amountMl: number, feedType: string, note: string) => {
+  const handleUpdate = async (feedId: string, amountMl: number, feedType: string, note: string, fedAt: string) => {
     if (!babyId) return
     try {
-      const updated = await updateFeed(babyId, feedId, { amountMl, feedType, note })
+      const updated = await updateFeed(babyId, feedId, { amountMl, feedType, note, fedAt })
       setFeeds(prev => prev.map(f => f.id === feedId ? updated : f))
     } catch (err) {
       setError((err as Error).message || '수정에 실패했어요')
@@ -219,7 +215,7 @@ export default function FeedLogScreen() {
               </View>
               <View style={styles.recordRight}>
                 <Text style={styles.recordTime}>{formatTime(item.fedAt)}</Text>
-                <Text style={styles.recordNext}>다음 {formatTime(item.nextFeedAt)}</Text>
+                {item.nextFeedAt && <Text style={styles.recordNext}>다음 {formatTime(item.nextFeedAt)}</Text>}
                 <Text style={styles.editHint}>꾹 눌러서 수정</Text>
               </View>
             </TouchableOpacity>
