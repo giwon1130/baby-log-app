@@ -11,13 +11,14 @@ import {
   View,
 } from 'react-native'
 import { LineChart } from 'react-native-chart-kit'
-import { deleteGrowthRecord, getGrowthRecords, recordGrowth, updateGrowthRecord } from '../api/babyLogApi'
-import { getStoredBabyId } from '../api/client'
+import { getBabies, deleteGrowthRecord, getGrowthRecords, recordGrowth, updateGrowthRecord } from '../api/babyLogApi'
+import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'
 import EditGrowthModal from '../components/EditGrowthModal'
 import { formatTime } from '../utils/dateUtils'
-import type { GrowthRecord } from '../types'
+import { ageInMonths, calcPercentile, formatPercentile, percentileColor } from '../utils/whoGrowth'
+import type { Baby, GrowthRecord } from '../types'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
 const CHART_WIDTH = SCREEN_WIDTH - 64
@@ -40,6 +41,7 @@ const HEIGHT_CHART_CONFIG = {
 
 export default function GrowthRecordScreen() {
   const [babyId, setBabyId] = useState<string | null>(null)
+  const [baby, setBaby] = useState<Baby | null>(null)
   const [records, setRecords] = useState<GrowthRecord[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
@@ -65,9 +67,18 @@ export default function GrowthRecordScreen() {
 
   useEffect(() => {
     const init = async () => {
-      const bid = await getStoredBabyId()
+      const [bid, fid] = await Promise.all([getStoredBabyId(), getStoredFamilyId()])
       setBabyId(bid)
-      if (bid) await loadRecords(bid)
+      if (bid && fid) {
+        const [, babies] = await Promise.all([
+          loadRecords(bid),
+          getBabies(fid).catch(() => [] as Baby[]),
+        ])
+        const found = babies.find(b => b.id === bid)
+        if (found) setBaby(found)
+      } else if (bid) {
+        await loadRecords(bid)
+      }
       setLoading(false)
     }
     init()
@@ -122,6 +133,20 @@ export default function GrowthRecordScreen() {
       heightRecs: sorted.filter(r => r.heightCm != null),
     }
   }, [records])
+
+  const latestPercentiles = useMemo(() => {
+    if (!baby) return null
+    const latest = records[0]
+    if (!latest) return null
+    const months = ageInMonths(baby.birthDate, latest.measuredAt)
+    const weight = latest.weightG != null
+      ? calcPercentile(latest.weightG / 1000, months, baby.gender, 'weight')
+      : null
+    const height = latest.heightCm != null
+      ? calcPercentile(latest.heightCm, months, baby.gender, 'height')
+      : null
+    return (weight != null || height != null) ? { weight, height, months } : null
+  }, [records, baby])
 
   const dateLabel = useCallback((iso: string) => {
     const d = new Date(iso)
@@ -189,6 +214,33 @@ export default function GrowthRecordScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* WHO 백분위 요약 */}
+      {latestPercentiles && (
+        <View style={styles.percentileCard}>
+          <Text style={styles.percentileTitle}>WHO 성장 백분위 (최근 측정)</Text>
+          <View style={styles.percentileRow}>
+            {latestPercentiles.weight != null && (
+              <View style={styles.percentileItem}>
+                <Text style={styles.percentileLabel}>체중</Text>
+                <Text style={[styles.percentileValue, { color: percentileColor(latestPercentiles.weight) }]}>
+                  {formatPercentile(latestPercentiles.weight)}
+                </Text>
+                <Text style={styles.percentileSub}>{latestPercentiles.months}개월 기준</Text>
+              </View>
+            )}
+            {latestPercentiles.height != null && (
+              <View style={styles.percentileItem}>
+                <Text style={styles.percentileLabel}>키</Text>
+                <Text style={[styles.percentileValue, { color: percentileColor(latestPercentiles.height) }]}>
+                  {formatPercentile(latestPercentiles.height)}
+                </Text>
+                <Text style={styles.percentileSub}>{latestPercentiles.months}개월 기준</Text>
+              </View>
+            )}
+          </View>
+        </View>
+      )}
+
       {/* 성장 차트 — 2개 이상 기록 있을 때만 표시 */}
       {(weightRecs.length >= 2 || heightRecs.length >= 2) && (
         <View style={styles.chartSection}>
@@ -234,7 +286,15 @@ export default function GrowthRecordScreen() {
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />}
-        renderItem={({ item }) => (
+        renderItem={({ item }) => {
+          const months = baby ? ageInMonths(baby.birthDate, item.measuredAt) : null
+          const weightP = (baby && item.weightG != null && months != null)
+            ? calcPercentile(item.weightG / 1000, months, baby.gender, 'weight')
+            : null
+          const heightP = (baby && item.heightCm != null && months != null)
+            ? calcPercentile(item.heightCm, months, baby.gender, 'height')
+            : null
+          return (
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 성장 기록을 삭제할까요?">
             <TouchableOpacity onLongPress={() => setEditingRecord(item)} activeOpacity={0.85}>
             <View style={styles.recordItem}>
@@ -243,12 +303,22 @@ export default function GrowthRecordScreen() {
                   <View style={styles.metric}>
                     <Text style={styles.metricLabel}>체중</Text>
                     <Text style={styles.metricValue}>{(item.weightG / 1000).toFixed(2)}kg</Text>
+                    {weightP != null && (
+                      <Text style={[styles.metricPercentile, { color: percentileColor(weightP) }]}>
+                        {formatPercentile(weightP)}
+                      </Text>
+                    )}
                   </View>
                 )}
                 {item.heightCm != null && (
                   <View style={styles.metric}>
                     <Text style={styles.metricLabel}>키</Text>
                     <Text style={styles.metricValue}>{item.heightCm}cm</Text>
+                    {heightP != null && (
+                      <Text style={[styles.metricPercentile, { color: percentileColor(heightP) }]}>
+                        {formatPercentile(heightP)}
+                      </Text>
+                    )}
                   </View>
                 )}
                 {item.headCm != null && (
@@ -262,7 +332,8 @@ export default function GrowthRecordScreen() {
             </View>
             </TouchableOpacity>
           </SwipeToDelete>
-        )}
+          )
+        }}
         ListEmptyComponent={<Text style={styles.empty}>성장 기록이 없어요</Text>}
       />
     </View>
@@ -329,4 +400,24 @@ const styles = StyleSheet.create({
   },
   chartLabel: { fontSize: 12, color: '#999', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   chart: { borderRadius: 8 },
+  percentileCard: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+    gap: 10,
+  },
+  percentileTitle: { fontSize: 12, color: '#999', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  percentileRow: { flexDirection: 'row', gap: 20 },
+  percentileItem: { alignItems: 'center', gap: 2 },
+  percentileLabel: { fontSize: 11, color: '#aaa', fontWeight: '600' },
+  percentileValue: { fontSize: 20, fontWeight: '800' },
+  percentileSub: { fontSize: 10, color: '#ccc' },
+  metricPercentile: { fontSize: 10, fontWeight: '700', marginTop: 1 },
 })
