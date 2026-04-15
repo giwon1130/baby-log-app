@@ -84,13 +84,29 @@ export default function StatsScreen() {
       ? Math.round(totalFeedThisWeek / stats.feedStats.length)
       : 0
     const totalSleepHours = Math.round(sleepData.reduce((a, b) => a + b, 0) * 10) / 10
-    return { feedLabels, feedMlData, feedCountData, sleepLabels, sleepData, totalFeedThisWeek, avgFeedPerDay, totalSleepHours }
+    const avgSleepPerDay = Math.round(totalSleepHours / 7 * 10) / 10
+
+    // 전반부(앞 3일) vs 후반부(뒤 3일) 트렌드
+    const feedTrend = (() => {
+      const recent = feedMlData.slice(-3).reduce((a, b) => a + b, 0)
+      const prev = feedMlData.slice(0, 3).reduce((a, b) => a + b, 0)
+      if (prev === 0) return null
+      return Math.round((recent - prev) / prev * 100)
+    })()
+    const sleepTrend = (() => {
+      const recent = sleepData.slice(-3).reduce((a, b) => a + b, 0)
+      const prev = sleepData.slice(0, 3).reduce((a, b) => a + b, 0)
+      if (prev === 0) return null
+      return Math.round((recent - prev) / prev * 100)
+    })()
+
+    return { feedLabels, feedMlData, feedCountData, sleepLabels, sleepData, totalFeedThisWeek, avgFeedPerDay, totalSleepHours, avgSleepPerDay, feedTrend, sleepTrend }
   }, [stats])
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
   if (!stats || !chartData) return <View style={styles.center}><Text style={styles.emptyText}>데이터가 없어요</Text></View>
 
-  const { feedLabels, feedMlData, feedCountData, sleepLabels, sleepData, totalFeedThisWeek, avgFeedPerDay, totalSleepHours } = chartData
+  const { feedLabels, feedMlData, feedCountData, sleepLabels, sleepData, totalFeedThisWeek, avgFeedPerDay, totalSleepHours, avgSleepPerDay, feedTrend, sleepTrend } = chartData
 
   return (
     <ScrollView
@@ -109,14 +125,37 @@ export default function StatsScreen() {
           <View style={styles.summaryDivider} />
           <View style={styles.summaryItem}>
             <Text style={styles.summaryValue}>{avgFeedPerDay}ml</Text>
-            <Text style={styles.summaryLabel}>일평균 수유량</Text>
+            <Text style={styles.summaryLabel}>일평균 수유</Text>
           </View>
           <View style={styles.summaryDivider} />
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>{totalSleepHours}h</Text>
-            <Text style={styles.summaryLabel}>총 수면</Text>
+            <Text style={styles.summaryValue}>{avgSleepPerDay}h</Text>
+            <Text style={styles.summaryLabel}>일평균 수면</Text>
           </View>
         </View>
+
+        {/* 트렌드 인사이트 */}
+        {(feedTrend != null || sleepTrend != null) && (
+          <View style={styles.trendRow}>
+            {feedTrend != null && Math.abs(feedTrend) >= 5 && (
+              <View style={[styles.trendChip, feedTrend > 0 ? styles.trendUp : styles.trendDown]}>
+                <Text style={styles.trendChipText}>
+                  {feedTrend > 0 ? '📈' : '📉'} 수유량 {feedTrend > 0 ? '+' : ''}{feedTrend}%
+                </Text>
+              </View>
+            )}
+            {sleepTrend != null && Math.abs(sleepTrend) >= 5 && (
+              <View style={[styles.trendChip, sleepTrend > 0 ? styles.trendUp : styles.trendDown]}>
+                <Text style={styles.trendChipText}>
+                  {sleepTrend > 0 ? '😴' : '⚠️'} 수면 {sleepTrend > 0 ? '+' : ''}{sleepTrend}%
+                </Text>
+              </View>
+            )}
+            {(feedTrend == null || Math.abs(feedTrend) < 5) && (sleepTrend == null || Math.abs(sleepTrend) < 5) && (
+              <Text style={styles.trendStable}>이번 주 패턴이 안정적이에요 ✅</Text>
+            )}
+          </View>
+        )}
       </View>
 
       {/* 일별 수유량 바 차트 */}
@@ -215,4 +254,10 @@ const styles = StyleSheet.create({
   sleepDetailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 },
   sleepDetailDate: { fontSize: 13, color: '#888' },
   sleepDetailValue: { fontSize: 13, color: '#5C6BC0', fontWeight: '600' },
+  trendRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  trendChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+  trendUp: { backgroundColor: '#E8F5E9' },
+  trendDown: { backgroundColor: '#FFF3E0' },
+  trendChipText: { fontSize: 13, fontWeight: '600', color: '#333' },
+  trendStable: { fontSize: 13, color: '#4CAF50', fontWeight: '600' },
 })

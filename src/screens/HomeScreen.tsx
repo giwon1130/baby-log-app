@@ -157,6 +157,11 @@ export default function HomeScreen({ navigation }: any) {
         <Text style={[styles.cardDesc, isReady ? styles.nextFeedReady : styles.nextFeed]}>
           {isReady ? '🍼 지금 수유 가능해요' : `다음 수유: ${timeUntil(latestFeed.nextFeedAt)}`}
         </Text>
+        {todayStats?.avgFeedIntervalMinutes != null && todayStats.feedCount >= 2 && (
+          <Text style={styles.insightText}>
+            평균 간격 {Math.round(todayStats.avgFeedIntervalMinutes / 6) / 10}h
+          </Text>
+        )}
       </>
     )
   }
@@ -299,6 +304,14 @@ export default function HomeScreen({ navigation }: any) {
         ) : (
           <Text style={styles.cardDesc}>기록 없음</Text>
         )}
+        {todayStats != null && todayStats.sleepCount > 0 && (
+          <View style={styles.sleepInsightRow}>
+            <Text style={styles.insightText}>오늘 {formatSleep(todayStats.totalSleepMinutes)}</Text>
+            {todayStats.longestSleepMinutes > 0 && (
+              <Text style={styles.insightText}>최장 {formatSleep(todayStats.longestSleepMinutes)}</Text>
+            )}
+          </View>
+        )}
       </View>
 
       {/* 성장 팁 */}
@@ -378,6 +391,8 @@ const styles = StyleSheet.create({
   statCompare: { fontSize: 11, fontWeight: '700' },
   compareUp: { color: '#4CAF50' },
   compareDown: { color: '#F44336' },
+  insightText: { fontSize: 12, color: '#FF8F00', fontWeight: '600', marginTop: 2 },
+  sleepInsightRow: { flexDirection: 'row', gap: 12, marginTop: 4 },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: '#444' },
   primaryButton: {
     backgroundColor: '#FF6B9D',

@@ -73,6 +73,8 @@ export type TodayStats = {
   dirtyCount: number
   sleepCount: number
   totalSleepMinutes: number
+  longestSleepMinutes: number
+  avgFeedIntervalMinutes: number | null
 }
 
 export type HealthRecord = {
