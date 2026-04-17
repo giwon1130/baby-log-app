@@ -105,7 +105,7 @@ export default function FeedLogScreen() {
         ? `수유 완료 (왼쪽 ${Math.round(leftMinutes)}분 오른쪽 ${Math.round(rightMinutes ?? 0)}분)`
         : `${parseInt(amount)}ml 수유 기록 완료`
       setSuccess(label)
-      if (record.nextFeedAt) await scheduleFeedNotification(record.nextFeedAt, babyName)
+      if (record.nextFeedAt) await scheduleFeedNotification(record.nextFeedAt, babyName, record.fedAt)
     } catch (err) {
       setError((err as Error).message || '수유 기록 저장에 실패했어요')
     } finally {

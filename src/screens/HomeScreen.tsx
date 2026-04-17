@@ -12,7 +12,7 @@ import {
 } from 'react-native'
 import { getActiveSleep, getBabies, getDiapers, getFeeds, getGrowthStage, getLatestFeed, getSleepRecords, getTodayStats } from '../api/babyLogApi'
 import { getStoredBabyId, getStoredFamilyId } from '../api/client'
-import { scheduleFeedNotification } from '../hooks/useFeedNotification'
+import { scheduleFeedNotification, getFeedIntervalOverride } from '../hooks/useFeedNotification'
 import QuickActions from '../components/QuickActions'
 import ErrorBanner from '../components/ErrorBanner'
 import { parseApiTimestamp, timeSince, timeUntil, formatDuration as formatSleep, formatAge, yesterdayString } from '../utils/dateUtils'
@@ -34,6 +34,7 @@ export default function HomeScreen({ navigation }: any) {
   const [yesterdayFeedMl, setYesterdayFeedMl] = useState<number | null>(null)
   const [daysOld, setDaysOld] = useState<number | null>(null)
   const [quickError, setQuickError] = useState<string | null>(null)
+  const [feedIntervalOverride, setFeedIntervalOverrideState] = useState<number | null>(null)
 
   useEffect(() => {
     navigation.setOptions({ title: babyName ?? '홈' })
@@ -57,7 +58,7 @@ export default function HomeScreen({ navigation }: any) {
       setDaysOld(baby?.daysOld ?? null)
       if (feed.status === 'fulfilled' && feed.value) {
         setLatestFeed(feed.value)
-        if (feed.value.nextFeedAt) await scheduleFeedNotification(feed.value.nextFeedAt, baby?.name)
+        if (feed.value.nextFeedAt) await scheduleFeedNotification(feed.value.nextFeedAt, baby?.name, feed.value.fedAt)
       }
     } else if (feed.status === 'fulfilled' && feed.value) {
       setLatestFeed(feed.value)
@@ -83,16 +84,20 @@ export default function HomeScreen({ navigation }: any) {
       setBabyId(bid)
       setFamilyId(fid)
       if (bid && fid) await loadData(bid, fid)
+      const override = await getFeedIntervalOverride()
+      setFeedIntervalOverrideState(override)
       setLoading(false)
     }
     init()
   }, [])
 
-  // 탭 포커스 시 babyId 변경 감지 → 다른 아기로 전환됐으면 리로드
+  // 탭 포커스 시 babyId 변경 감지 → 다른 아기로 전환됐으면 리로드 / 간격 설정 갱신
   useFocusEffect(useCallback(() => {
     const check = async () => {
       const bid = await getStoredBabyId()
       const fid = await getStoredFamilyId()
+      const override = await getFeedIntervalOverride()
+      setFeedIntervalOverrideState(override)
       if (bid && fid && (bid !== babyId || fid !== familyId)) {
         setBabyId(bid)
         setFamilyId(fid)
@@ -133,14 +138,19 @@ export default function HomeScreen({ navigation }: any) {
   const renderFeedProgress = () => {
     if (!latestFeed) return <Text style={styles.cardDesc}>기록 없음</Text>
     const fedAt = parseApiTimestamp(latestFeed.fedAt)
-    const nextFeedAt = parseApiTimestamp(latestFeed.nextFeedAt)
-    if (fedAt == null || nextFeedAt == null) {
+    const serverNextFeedAt = parseApiTimestamp(latestFeed.nextFeedAt)
+    if (fedAt == null || serverNextFeedAt == null) {
       return <Text style={styles.cardDesc}>다음 수유 시간을 확인할 수 없어요</Text>
     }
+    // 커스텀 간격이 설정된 경우 덮어쓰기
+    const nextFeedAt = feedIntervalOverride != null
+      ? fedAt + feedIntervalOverride * 60 * 60 * 1000
+      : serverNextFeedAt
     const total = nextFeedAt - fedAt
     const elapsed = Date.now() - fedAt
     const progress = Math.min(Math.max(elapsed / total, 0), 1)
     const isReady = elapsed >= total
+    const nextFeedIso = new Date(nextFeedAt).toISOString()
     return (
       <>
         <View style={styles.feedRow}>
@@ -155,7 +165,7 @@ export default function HomeScreen({ navigation }: any) {
           ]} />
         </View>
         <Text style={[styles.cardDesc, isReady ? styles.nextFeedReady : styles.nextFeed]}>
-          {isReady ? '🍼 지금 수유 가능해요' : `다음 수유: ${timeUntil(latestFeed.nextFeedAt)}`}
+          {isReady ? '🍼 지금 수유 가능해요' : `다음 수유: ${timeUntil(nextFeedIso)}`}
         </Text>
         {todayStats?.avgFeedIntervalMinutes != null && todayStats.feedCount >= 2 && (
           <Text style={styles.insightText}>

@@ -79,14 +79,21 @@ export async function requestNotificationPermission(): Promise<boolean> {
 }
 
 /**
- * nextFeedAt (ISO string) 기준으로 로컬 알림을 스케줄.
- * 기존 예약된 수유 알림은 먼저 취소한 뒤 새로 등록.
+ * 수유 알림 스케줄.
+ * - fedAt이 있고 커스텀 간격이 설정된 경우: fedAt + 커스텀 간격으로 계산
+ * - 그 외: 서버가 계산한 nextFeedAt 사용
  */
-export async function scheduleFeedNotification(nextFeedAt: string, babyName?: string): Promise<void> {
+export async function scheduleFeedNotification(nextFeedAt: string, babyName?: string, fedAt?: string): Promise<void> {
   const enabled = await getNotificationEnabled()
   if (!enabled) return
 
-  const triggerDate = new Date(nextFeedAt)
+  let triggerDate: Date
+  const override = await getFeedIntervalOverride()
+  if (override != null && fedAt) {
+    triggerDate = new Date(new Date(fedAt).getTime() + override * 60 * 60 * 1000)
+  } else {
+    triggerDate = new Date(nextFeedAt)
+  }
   if (triggerDate.getTime() <= Date.now()) return
 
   // 기존 알림 취소
@@ -111,8 +118,19 @@ export async function cancelFeedNotification(): Promise<void> {
 }
 
 // ── 알림 시간 커스텀 ─────────────────────────────────────────────────
+const FEED_INTERVAL_OVERRIDE_KEY = 'feedIntervalOverrideHours'
 const DIAPER_REMINDER_HOURS_KEY = 'diaperReminderHours'
 const NAP_REMINDER_HOURS_KEY = 'napReminderHours'
+
+/** null = 자동(서버 계산값 사용), number = 고정 간격(시간) */
+export async function getFeedIntervalOverride(): Promise<number | null> {
+  const val = await AsyncStorage.getItem(FEED_INTERVAL_OVERRIDE_KEY)
+  return val != null ? parseFloat(val) : null
+}
+export async function setFeedIntervalOverride(hours: number | null): Promise<void> {
+  if (hours == null) await AsyncStorage.removeItem(FEED_INTERVAL_OVERRIDE_KEY)
+  else await AsyncStorage.setItem(FEED_INTERVAL_OVERRIDE_KEY, String(hours))
+}
 
 export async function getDiaperReminderHours(): Promise<number> {
   const val = await AsyncStorage.getItem(DIAPER_REMINDER_HOURS_KEY)

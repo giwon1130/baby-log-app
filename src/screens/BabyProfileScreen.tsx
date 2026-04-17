@@ -20,6 +20,7 @@ import {
   getSleepNotificationEnabled, setSleepNotificationEnabled,
   getDiaperReminderHours, setDiaperReminderHours,
   getNapReminderHours, setNapReminderHours,
+  getFeedIntervalOverride, setFeedIntervalOverride,
 } from '../hooks/useFeedNotification'
 import ErrorBanner from '../components/ErrorBanner'
 import VaccinationCard from '../components/VaccinationCard'
@@ -40,6 +41,7 @@ export default function BabyProfileScreen({ navigation }: any) {
   const [sleepNotifEnabled, setSleepNotifEnabled] = useState(true)
   const [diaperHours, setDiaperHours] = useState(3)
   const [napHours, setNapHours] = useState(2)
+  const [feedIntervalOverride, setFeedIntervalOverrideState] = useState<number | null>(null)
 
   // 편집 상태
   const [editing, setEditing] = useState(false)
@@ -70,18 +72,20 @@ export default function BabyProfileScreen({ navigation }: any) {
       const bid = await getStoredBabyId()
       setFamilyId(fid)
       if (fid) await loadAll(fid, bid)
-      const [feed, diaper, sleep, dh, nh] = await Promise.all([
+      const [feed, diaper, sleep, dh, nh, fi] = await Promise.all([
         getNotificationEnabled(),
         getDiaperNotificationEnabled(),
         getSleepNotificationEnabled(),
         getDiaperReminderHours(),
         getNapReminderHours(),
+        getFeedIntervalOverride(),
       ])
       setNotifEnabled(feed)
       setDiaperNotifEnabled(diaper)
       setSleepNotifEnabled(sleep)
       setDiaperHours(dh)
       setNapHours(nh)
+      setFeedIntervalOverrideState(fi)
       setLoading(false)
     }
     init()
@@ -286,9 +290,31 @@ export default function BabyProfileScreen({ navigation }: any) {
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>알림 설정</Text>
             <View style={styles.notifRow}>
-              <View>
+              <View style={{ flex: 1 }}>
                 <Text style={styles.notifTitle}>🍼 수유 알림</Text>
-                <Text style={styles.notifDesc}>다음 수유 시간에 알림을 보내요</Text>
+                <Text style={styles.notifDesc}>
+                  {feedIntervalOverride != null
+                    ? `수유 ${feedIntervalOverride}시간 후 알림`
+                    : '다음 수유 시간에 알림을 보내요 (자동)'}
+                </Text>
+                {notifEnabled && (
+                  <View style={styles.hourPicker}>
+                    {([null, 2, 2.5, 3, 3.5, 4] as (number | null)[]).map(h => (
+                      <TouchableOpacity
+                        key={String(h)}
+                        style={[styles.hourChip, feedIntervalOverride === h && styles.hourChipActive]}
+                        onPress={async () => {
+                          setFeedIntervalOverrideState(h)
+                          await setFeedIntervalOverride(h)
+                        }}
+                      >
+                        <Text style={[styles.hourChipText, feedIntervalOverride === h && styles.hourChipTextActive]}>
+                          {h == null ? '자동' : `${h}h`}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                )}
               </View>
               <Switch
                 value={notifEnabled}
