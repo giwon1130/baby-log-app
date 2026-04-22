@@ -15,6 +15,7 @@ import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import { scheduleFeedNotification, getFeedIntervalOverride } from '../hooks/useFeedNotification'
 import QuickActions from '../components/QuickActions'
 import ErrorBanner from '../components/ErrorBanner'
+import UndoToast, { type UndoAction } from '../components/UndoToast'
 import { parseApiTimestamp, timeSince, timeUntil, formatDuration as formatSleep, formatAge, yesterdayString } from '../utils/dateUtils'
 import { DIAPER_TYPE_LABEL } from '../utils/constants'
 import type { DiaperRecord, FeedRecord, GrowthStage, SleepRecord, TodayStats } from '../types'
@@ -35,6 +36,7 @@ export default function HomeScreen({ navigation }: any) {
   const [daysOld, setDaysOld] = useState<number | null>(null)
   const [quickError, setQuickError] = useState<string | null>(null)
   const [feedIntervalOverride, setFeedIntervalOverrideState] = useState<number | null>(null)
+  const [undoAction, setUndoAction] = useState<UndoAction | null>(null)
 
   useEffect(() => {
     navigation.setOptions({ title: babyName ?? '홈' })
@@ -210,6 +212,7 @@ export default function HomeScreen({ navigation }: any) {
   }
 
   return (
+    <View style={{ flex: 1 }}>
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
@@ -243,8 +246,11 @@ export default function HomeScreen({ navigation }: any) {
       <QuickActions
         babyId={babyId}
         babyName={babyName}
+        activeSleep={activeSleep}
         onRecorded={onRecorded}
         onError={setQuickError}
+        onUndoAvailable={setUndoAction}
+        onNavigateBreastTimer={() => navigation.navigate('Log')}
       />
 
       {/* 오늘 요약 */}
@@ -334,6 +340,8 @@ export default function HomeScreen({ navigation }: any) {
         </View>
       )}
     </ScrollView>
+    <UndoToast action={undoAction} onDismiss={() => setUndoAction(null)} />
+    </View>
   )
 }
 
