@@ -23,7 +23,6 @@ import {
   getFeedIntervalOverride, setFeedIntervalOverride,
 } from '../hooks/useFeedNotification'
 import ErrorBanner from '../components/ErrorBanner'
-import VaccinationCard from '../components/VaccinationCard'
 import type { Baby, Family, GrowthStage } from '../types'
 
 const GENDER_LABEL: Record<string, string> = { MALE: '남아', FEMALE: '여아' }
@@ -287,6 +286,15 @@ export default function BabyProfileScreen({ navigation }: any) {
             </View>
           )}
 
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate('GrowthRecord')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.sectionTitle}>성장 기록</Text>
+            <Text style={styles.guideText}>체중·키·머리둘레를 기록하고 그래프로 보기 ›</Text>
+          </TouchableOpacity>
+
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>알림 설정</Text>
             <View style={styles.notifRow}>
@@ -377,13 +385,6 @@ export default function BabyProfileScreen({ navigation }: any) {
               />
             </View>
           </View>
-
-          {selectedBaby && (
-            <VaccinationCard
-              daysOld={selectedBaby.daysOld}
-              birthDate={selectedBaby.birthDate}
-            />
-          )}
 
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>가족 초대</Text>

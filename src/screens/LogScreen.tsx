@@ -3,15 +3,13 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import FeedLogScreen from './FeedLogScreen'
 import DiaperLogScreen from './DiaperLogScreen'
 import SleepScreen from './SleepScreen'
-import HealthScreen from './HealthScreen'
 
-type LogTab = 'feed' | 'diaper' | 'sleep' | 'health'
+type LogTab = 'feed' | 'diaper' | 'sleep'
 
 const TABS: { key: LogTab; label: string }[] = [
   { key: 'feed', label: '🍼 수유' },
   { key: 'diaper', label: '🧷 기저귀' },
   { key: 'sleep', label: '😴 수면' },
-  { key: 'health', label: '🌡 건강' },
 ]
 
 export default function LogScreen() {
@@ -37,7 +35,6 @@ export default function LogScreen() {
         {activeTab === 'feed' && <FeedLogScreen />}
         {activeTab === 'diaper' && <DiaperLogScreen />}
         {activeTab === 'sleep' && <SleepScreen />}
-        {activeTab === 'health' && <HealthScreen />}
       </View>
     </View>
   )

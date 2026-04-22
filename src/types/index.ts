@@ -77,16 +77,6 @@ export type TodayStats = {
   avgFeedIntervalMinutes: number | null
 }
 
-export type HealthRecord = {
-  id: string
-  babyId: string
-  recordedAt: string
-  type: 'TEMPERATURE' | 'MEDICINE'
-  value: number | null
-  name: string
-  note: string
-}
-
 export type DailyFeedStat = { date: string; feedCount: number; totalMl: number }
 export type DailySleepStat = { date: string; sleepCount: number; totalMinutes: number }
 export type WeeklyStats = {

@@ -10,32 +10,26 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { getActiveSleep, getBabies, getDiapers, getFeeds, getGrowthStage, getLatestFeed, getSleepRecords, getTodayStats } from '../api/babyLogApi'
+import { getActiveSleep, getBabies, getLatestFeed, getTodayStats } from '../api/babyLogApi'
 import { getStoredBabyId, getStoredFamilyId } from '../api/client'
-import { scheduleFeedNotification, getFeedIntervalOverride } from '../hooks/useFeedNotification'
+import { scheduleFeedNotification } from '../hooks/useFeedNotification'
 import QuickActions from '../components/QuickActions'
 import ErrorBanner from '../components/ErrorBanner'
 import UndoToast, { type UndoAction } from '../components/UndoToast'
-import { parseApiTimestamp, timeSince, timeUntil, formatDuration as formatSleep, formatAge, yesterdayString } from '../utils/dateUtils'
-import { DIAPER_TYPE_LABEL } from '../utils/constants'
-import type { DiaperRecord, FeedRecord, GrowthStage, SleepRecord, TodayStats } from '../types'
+import { parseApiTimestamp, timeUntil, formatDuration as formatSleep, formatAge } from '../utils/dateUtils'
+import type { SleepRecord, TodayStats } from '../types'
 
 export default function HomeScreen({ navigation }: any) {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
-  const [latestFeed, setLatestFeed] = useState<FeedRecord | null>(null)
-  const [latestDiaper, setLatestDiaper] = useState<DiaperRecord | null>(null)
-  const [growthStage, setGrowthStage] = useState<GrowthStage | null>(null)
   const [todayStats, setTodayStats] = useState<TodayStats | null>(null)
   const [babyId, setBabyId] = useState<string | null>(null)
   const [babyName, setBabyName] = useState<string | undefined>(undefined)
   const [familyId, setFamilyId] = useState<string | null>(null)
   const [activeSleep, setActiveSleep] = useState<SleepRecord | null>(null)
-  const [lastSleep, setLastSleep] = useState<SleepRecord | null>(null)
-  const [yesterdayFeedMl, setYesterdayFeedMl] = useState<number | null>(null)
   const [daysOld, setDaysOld] = useState<number | null>(null)
+  const [nextFeedAt, setNextFeedAt] = useState<string | null>(null)
   const [quickError, setQuickError] = useState<string | null>(null)
-  const [feedIntervalOverride, setFeedIntervalOverrideState] = useState<number | null>(null)
   const [undoAction, setUndoAction] = useState<UndoAction | null>(null)
 
   useEffect(() => {
@@ -43,40 +37,23 @@ export default function HomeScreen({ navigation }: any) {
   }, [babyName])
 
   const loadData = useCallback(async (bid: string, fid: string) => {
-    const [feed, diaper, stage, babies, stats, active, sleeps, yFeeds] = await Promise.allSettled([
+    const [feed, babies, stats, active] = await Promise.allSettled([
       getLatestFeed(bid),
-      getDiapers(bid, 1),
-      getGrowthStage(bid, fid),
       getBabies(fid),
       getTodayStats(bid),
       getActiveSleep(bid),
-      getSleepRecords(bid, 3),
-      getFeeds(bid, 100, yesterdayString()),
     ])
-
     if (babies.status === 'fulfilled') {
       const baby = babies.value.find(b => b.id === bid)
       setBabyName(baby?.name)
       setDaysOld(baby?.daysOld ?? null)
-      if (feed.status === 'fulfilled' && feed.value) {
-        setLatestFeed(feed.value)
-        if (feed.value.nextFeedAt) await scheduleFeedNotification(feed.value.nextFeedAt, baby?.name, feed.value.fedAt)
+      if (feed.status === 'fulfilled' && feed.value?.nextFeedAt) {
+        await scheduleFeedNotification(feed.value.nextFeedAt, baby?.name, feed.value.fedAt)
       }
-    } else if (feed.status === 'fulfilled' && feed.value) {
-      setLatestFeed(feed.value)
     }
-    if (diaper.status === 'fulfilled' && diaper.value.length > 0)
-      setLatestDiaper(diaper.value[0])
-    if (stage.status === 'fulfilled') setGrowthStage(stage.value)
+    if (feed.status === 'fulfilled') setNextFeedAt(feed.value?.nextFeedAt ?? null)
     if (stats.status === 'fulfilled') setTodayStats(stats.value)
     if (active.status === 'fulfilled') setActiveSleep(active.value)
-    if (sleeps.status === 'fulfilled') {
-      const completed = sleeps.value.find(s => s.wokeAt !== null)
-      setLastSleep(completed ?? null)
-    }
-    if (yFeeds.status === 'fulfilled') {
-      setYesterdayFeedMl(yFeeds.value.reduce((sum, f) => sum + f.amountMl, 0))
-    }
   }, [])
 
   useEffect(() => {
@@ -86,20 +63,15 @@ export default function HomeScreen({ navigation }: any) {
       setBabyId(bid)
       setFamilyId(fid)
       if (bid && fid) await loadData(bid, fid)
-      const override = await getFeedIntervalOverride()
-      setFeedIntervalOverrideState(override)
       setLoading(false)
     }
     init()
   }, [])
 
-  // 탭 포커스 시 babyId 변경 감지 → 다른 아기로 전환됐으면 리로드 / 간격 설정 갱신
   useFocusEffect(useCallback(() => {
     const check = async () => {
       const bid = await getStoredBabyId()
       const fid = await getStoredFamilyId()
-      const override = await getFeedIntervalOverride()
-      setFeedIntervalOverrideState(override)
       if (bid && fid && (bid !== babyId || fid !== familyId)) {
         setBabyId(bid)
         setFamilyId(fid)
@@ -137,54 +109,14 @@ export default function HomeScreen({ navigation }: any) {
     await Share.share({ message: text })
   }, [todayStats, babyName])
 
-  const renderFeedProgress = () => {
-    if (!latestFeed) return <Text style={styles.cardDesc}>기록 없음</Text>
-    const fedAt = parseApiTimestamp(latestFeed.fedAt)
-    const serverNextFeedAt = parseApiTimestamp(latestFeed.nextFeedAt)
-    if (fedAt == null || serverNextFeedAt == null) {
-      return <Text style={styles.cardDesc}>다음 수유 시간을 확인할 수 없어요</Text>
-    }
-    // 커스텀 간격이 설정된 경우 덮어쓰기
-    const nextFeedAt = feedIntervalOverride != null
-      ? fedAt + feedIntervalOverride * 60 * 60 * 1000
-      : serverNextFeedAt
-    const total = nextFeedAt - fedAt
-    const elapsed = Date.now() - fedAt
-    const progress = Math.min(Math.max(elapsed / total, 0), 1)
-    const isReady = elapsed >= total
-    const nextFeedIso = new Date(nextFeedAt).toISOString()
+  const renderNextFeedHint = () => {
+    if (!nextFeedAt) return null
+    const at = parseApiTimestamp(nextFeedAt)
+    if (at == null) return null
+    const isReady = Date.now() >= at
     return (
-      <>
-        <View style={styles.feedRow}>
-          <Text style={styles.cardTitle}>{latestFeed.amountMl}ml</Text>
-          <Text style={styles.cardDesc}>{timeSince(latestFeed.fedAt)}</Text>
-        </View>
-        <View style={styles.progressTrack}>
-          <View style={[
-            styles.progressFill,
-            { width: `${progress * 100}%` as any },
-            isReady && styles.progressFillReady,
-          ]} />
-        </View>
-        <Text style={[styles.cardDesc, isReady ? styles.nextFeedReady : styles.nextFeed]}>
-          {isReady ? '🍼 지금 수유 가능해요' : `다음 수유: ${timeUntil(nextFeedIso)}`}
-        </Text>
-        {todayStats?.avgFeedIntervalMinutes != null && todayStats.feedCount >= 2 && (
-          <Text style={styles.insightText}>
-            평균 간격 {Math.round(todayStats.avgFeedIntervalMinutes / 6) / 10}h
-          </Text>
-        )}
-      </>
-    )
-  }
-
-  const renderYesterdayCompare = (totalFeedMl: number) => {
-    if (yesterdayFeedMl == null || yesterdayFeedMl <= 0) return null
-    const diff = totalFeedMl - yesterdayFeedMl
-    const pct = Math.round(Math.abs(diff) / yesterdayFeedMl * 100)
-    return (
-      <Text style={[styles.statCompare, diff >= 0 ? styles.compareUp : styles.compareDown]}>
-        {diff >= 0 ? '▲' : '▼'}{pct}%
+      <Text style={[styles.nextFeedHint, isReady && styles.nextFeedReady]}>
+        {isReady ? '🍼 지금 수유 가능' : `다음 수유: ${timeUntil(nextFeedAt)}`}
       </Text>
     )
   }
@@ -213,134 +145,71 @@ export default function HomeScreen({ navigation }: any) {
 
   return (
     <View style={{ flex: 1 }}>
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={styles.content}
-      refreshControl={
-        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />
-      }
-    >
-      {/* 아기 정보 + 성장 단계 */}
-      <View style={styles.babyCard}>
-        <View style={styles.babyCardTop}>
-          <View>
-            <Text style={styles.babyCardName}>{babyName ?? '아기'}</Text>
-            {daysOld != null && (
-              <Text style={styles.babyCardAge}>
-                D+{daysOld}일 · {formatAge(daysOld)}
-              </Text>
-            )}
-          </View>
-          <Text style={styles.babyCardEmoji}>👶</Text>
-        </View>
-        {growthStage && (
-          <View style={styles.stageRow}>
-            <Text style={styles.stageTitle}>{growthStage.title}</Text>
-            <Text style={styles.stageDesc}>{growthStage.description}</Text>
-          </View>
-        )}
-      </View>
-
-      {/* 빠른 기록 */}
-      <ErrorBanner message={quickError} onDismiss={() => setQuickError(null)} />
-      <QuickActions
-        babyId={babyId}
-        babyName={babyName}
-        activeSleep={activeSleep}
-        onRecorded={onRecorded}
-        onError={setQuickError}
-        onUndoAvailable={setUndoAction}
-        onNavigateBreastTimer={() => navigation.navigate('Log')}
-      />
-
-      {/* 오늘 요약 */}
-      {todayStats && (
-        <View style={styles.card}>
-          <View style={styles.cardLabelRow}>
-            <Text style={styles.cardLabel}>오늘 요약</Text>
-            <TouchableOpacity onPress={handleShareReport}>
-              <Text style={styles.shareBtn}>공유 ↗</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.statsGrid}>
-            <View style={styles.statItem}>
-              <Text style={styles.statEmoji}>🍼</Text>
-              <Text style={styles.statValue}>{todayStats.feedCount}회</Text>
-              <Text style={styles.statSub}>{todayStats.totalFeedMl}ml</Text>
-              {renderYesterdayCompare(todayStats.totalFeedMl)}
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />
+        }
+      >
+        {/* 아기 정보 */}
+        <View style={styles.babyCard}>
+          <View style={styles.babyCardTop}>
+            <View>
+              <Text style={styles.babyCardName}>{babyName ?? '아기'}</Text>
+              {daysOld != null && (
+                <Text style={styles.babyCardAge}>
+                  D+{daysOld}일 · {formatAge(daysOld)}
+                </Text>
+              )}
             </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statEmoji}>🧷</Text>
-              <Text style={styles.statValue}>{todayStats.diaperCount}회</Text>
-              <Text style={styles.statSub}>소{todayStats.wetCount} 대{todayStats.dirtyCount}</Text>
-            </View>
-            <View style={styles.statItem}>
-              <Text style={styles.statEmoji}>😴</Text>
-              <Text style={styles.statValue}>{todayStats.sleepCount}회</Text>
-              <Text style={styles.statSub}>{formatSleep(todayStats.totalSleepMinutes)}</Text>
-            </View>
+            <Text style={styles.babyCardEmoji}>👶</Text>
           </View>
         </View>
-      )}
 
-      {/* 마지막 수유 */}
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>마지막 수유</Text>
-        {renderFeedProgress()}
-      </View>
+        {/* 빠른 기록 */}
+        <ErrorBanner message={quickError} onDismiss={() => setQuickError(null)} />
+        <QuickActions
+          babyId={babyId}
+          babyName={babyName}
+          activeSleep={activeSleep}
+          onRecorded={onRecorded}
+          onError={setQuickError}
+          onUndoAvailable={setUndoAction}
+          onNavigateBreastTimer={() => navigation.navigate('Log')}
+        />
 
-      {/* 마지막 기저귀 */}
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>마지막 기저귀</Text>
-        {latestDiaper ? (
-          <>
-            <Text style={styles.cardTitle}>{DIAPER_TYPE_LABEL[latestDiaper.diaperType] ?? latestDiaper.diaperType}</Text>
-            <Text style={styles.cardDesc}>{timeSince(latestDiaper.changedAt)}</Text>
-          </>
-        ) : (
-          <Text style={styles.cardDesc}>기록 없음</Text>
-        )}
-      </View>
-
-      {/* 수면 상태 */}
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>수면</Text>
-        {activeSleep ? (
-          <>
-            <Text style={[styles.cardTitle, styles.sleeping]}>😴 수면 중</Text>
-            <Text style={styles.cardDesc}>{timeSince(activeSleep.sleptAt)}부터</Text>
-          </>
-        ) : lastSleep ? (
-          <>
-            <Text style={styles.cardTitle}>
-              {lastSleep.durationMinutes != null ? formatSleep(lastSleep.durationMinutes) : '-'}
-            </Text>
-            <Text style={styles.cardDesc}>마지막 수면 · {timeSince(lastSleep.wokeAt ?? lastSleep.sleptAt)} 완료</Text>
-          </>
-        ) : (
-          <Text style={styles.cardDesc}>기록 없음</Text>
-        )}
-        {todayStats != null && todayStats.sleepCount > 0 && (
-          <View style={styles.sleepInsightRow}>
-            <Text style={styles.insightText}>오늘 {formatSleep(todayStats.totalSleepMinutes)}</Text>
-            {todayStats.longestSleepMinutes > 0 && (
-              <Text style={styles.insightText}>최장 {formatSleep(todayStats.longestSleepMinutes)}</Text>
-            )}
+        {/* 오늘 요약 */}
+        {todayStats && (
+          <View style={styles.card}>
+            <View style={styles.cardLabelRow}>
+              <Text style={styles.cardLabel}>오늘 요약</Text>
+              <TouchableOpacity onPress={handleShareReport}>
+                <Text style={styles.shareBtn}>공유 ↗</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.statsGrid}>
+              <View style={styles.statItem}>
+                <Text style={styles.statEmoji}>🍼</Text>
+                <Text style={styles.statValue}>{todayStats.feedCount}회</Text>
+                <Text style={styles.statSub}>{todayStats.totalFeedMl}ml</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statEmoji}>🧷</Text>
+                <Text style={styles.statValue}>{todayStats.diaperCount}회</Text>
+                <Text style={styles.statSub}>소{todayStats.wetCount} 대{todayStats.dirtyCount}</Text>
+              </View>
+              <View style={styles.statItem}>
+                <Text style={styles.statEmoji}>😴</Text>
+                <Text style={styles.statValue}>{todayStats.sleepCount}회</Text>
+                <Text style={styles.statSub}>{formatSleep(todayStats.totalSleepMinutes)}</Text>
+              </View>
+            </View>
+            {renderNextFeedHint()}
           </View>
         )}
-      </View>
-
-      {/* 성장 팁 */}
-      {growthStage && growthStage.tips.length > 0 && (
-        <View style={styles.card}>
-          <Text style={styles.cardLabel}>이 시기 팁</Text>
-          {growthStage.tips.map((tip, i) => (
-            <Text key={i} style={styles.tipItem}>• {tip}</Text>
-          ))}
-        </View>
-      )}
-    </ScrollView>
-    <UndoToast action={undoAction} onDismiss={() => setUndoAction(null)} />
+      </ScrollView>
+      <UndoToast action={undoAction} onDismiss={() => setUndoAction(null)} />
     </View>
   )
 }
@@ -375,42 +244,16 @@ const styles = StyleSheet.create({
   babyCardName: { fontSize: 22, fontWeight: '800', color: '#fff' },
   babyCardAge: { fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
   babyCardEmoji: { fontSize: 36 },
-  stageRow: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)', paddingTop: 10, gap: 4 },
-  stageTitle: { fontSize: 14, fontWeight: '700', color: '#fff' },
-  stageDesc: { fontSize: 12, color: 'rgba(255,255,255,0.8)', lineHeight: 18 },
-  feedRow: { flexDirection: 'row', alignItems: 'baseline', gap: 10 },
-  progressTrack: {
-    height: 6,
-    backgroundColor: '#f5f5f5',
-    borderRadius: 3,
-    overflow: 'hidden',
-    marginVertical: 2,
-  },
-  progressFill: {
-    height: 6,
-    backgroundColor: '#FF6B9D',
-    borderRadius: 3,
-  },
-  progressFillReady: { backgroundColor: '#4CAF50' },
-  nextFeedReady: { color: '#4CAF50', fontWeight: '700' },
   cardLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardLabel: { fontSize: 12, color: '#999', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   shareBtn: { fontSize: 12, color: '#FF6B9D', fontWeight: '600' },
-  cardTitle: { fontSize: 22, fontWeight: '700', color: '#1a1a1a' },
-  cardDesc: { fontSize: 14, color: '#666' },
-  nextFeed: { color: '#FF6B9D', fontWeight: '600' },
-  sleeping: { color: '#5C6BC0' },
-  tipItem: { fontSize: 13, color: '#555', lineHeight: 20 },
   statsGrid: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 4 },
   statItem: { alignItems: 'center', gap: 4 },
   statEmoji: { fontSize: 24 },
   statValue: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
   statSub: { fontSize: 12, color: '#aaa' },
-  statCompare: { fontSize: 11, fontWeight: '700' },
-  compareUp: { color: '#4CAF50' },
-  compareDown: { color: '#F44336' },
-  insightText: { fontSize: 12, color: '#FF8F00', fontWeight: '600', marginTop: 2 },
-  sleepInsightRow: { flexDirection: 'row', gap: 12, marginTop: 4 },
+  nextFeedHint: { marginTop: 10, color: '#FF6B9D', fontWeight: '700', textAlign: 'center' },
+  nextFeedReady: { color: '#4CAF50' },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: '#444' },
   primaryButton: {
     backgroundColor: '#FF6B9D',

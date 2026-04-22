@@ -30,7 +30,6 @@ function MainTabs() {
           const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
             Home: 'home',
             Log: 'journal',
-            Growth: 'trending-up',
             Stats: 'bar-chart',
             BabyProfile: 'person',
           }
@@ -40,7 +39,6 @@ function MainTabs() {
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: '홈' }} />
       <Tab.Screen name="Log" component={LogScreen} options={{ title: '기록' }} />
-      <Tab.Screen name="Growth" component={GrowthRecordScreen} options={{ title: '성장' }} />
       <Tab.Screen name="Stats" component={StatsScreen} options={{ title: '통계' }} />
       <Tab.Screen name="BabyProfile" component={BabyProfileScreen} options={{ title: '아기' }} />
     </Tab.Navigator>
@@ -82,6 +80,11 @@ export default function App() {
       <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
         <Stack.Screen name="FamilySetup" component={FamilySetupScreen} />
         <Stack.Screen name="Main" component={MainTabs} />
+        <Stack.Screen
+          name="GrowthRecord"
+          component={GrowthRecordScreen}
+          options={{ headerShown: true, title: '성장 기록', headerStyle: { backgroundColor: '#FFF9FB' }, headerShadowVisible: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   )
