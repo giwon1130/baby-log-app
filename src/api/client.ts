@@ -45,3 +45,11 @@ export async function storeFamilyAndBaby(familyId: string, babyId: string) {
   await AsyncStorage.setItem(STORAGE_KEYS.FAMILY_ID, familyId)
   await AsyncStorage.setItem(STORAGE_KEYS.BABY_ID, babyId)
 }
+
+export async function clearStoredBaby() {
+  await AsyncStorage.removeItem(STORAGE_KEYS.BABY_ID)
+}
+
+export async function setStoredBaby(babyId: string) {
+  await AsyncStorage.setItem(STORAGE_KEYS.BABY_ID, babyId)
+}

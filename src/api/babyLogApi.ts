@@ -26,6 +26,9 @@ export const updateBaby = (familyId: string, babyId: string, data: {
   birthHeightCm?: number
 }) => api.put<Baby>(`/api/v1/families/${familyId}/babies/${babyId}`, data)
 
+export const deleteBaby = (familyId: string, babyId: string) =>
+  api.delete<{ deleted: boolean; babyId: string }>(`/api/v1/families/${familyId}/babies/${babyId}`)
+
 // Feed
 export const recordFeed = (babyId: string, data: {
   fedAt?: string

@@ -12,8 +12,8 @@ import {
   View,
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
-import { getBabies, getFamily, getGrowthStage, updateBaby } from '../api/babyLogApi'
-import { getStoredBabyId, getStoredFamilyId, storeFamilyAndBaby } from '../api/client'
+import { deleteBaby, getBabies, getFamily, getGrowthStage, updateBaby } from '../api/babyLogApi'
+import { clearStoredBaby, getStoredBabyId, getStoredFamilyId, setStoredBaby, storeFamilyAndBaby } from '../api/client'
 import {
   getDiaperNotificationEnabled, setDiaperNotificationEnabled,
   getNotificationEnabled, setNotificationEnabled,
@@ -48,6 +48,7 @@ export default function BabyProfileScreen({ navigation }: any) {
   const [editWeightG, setEditWeightG] = useState('')
   const [editHeightCm, setEditHeightCm] = useState('')
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const loadAll = async (fid: string, bid: string | null) => {
     const [babyList, fam] = await Promise.all([
@@ -136,6 +137,46 @@ export default function BabyProfileScreen({ navigation }: any) {
     if (!family) return
     await Clipboard.setStringAsync(family.inviteCode)
     Alert.alert('복사됨', `초대 코드 ${family.inviteCode}가 클립보드에 복사됐어요.`)
+  }
+
+  const handleDeleteBaby = () => {
+    if (!familyId || !selectedBaby) return
+    const target = selectedBaby
+    Alert.alert(
+      `⚠️ ${target.name} 졸업`,
+      `정말 졸업하시겠어요?\n\n${target.name}의 모든 기록(수유·수면·기저귀·성장·건강)이 영구적으로 삭제돼요. 한번 졸업하면 되돌릴 수 없어요.\n\n그동안 정말 수고 많았어요 💛`,
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '졸업하기',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true)
+            try {
+              await deleteBaby(familyId, target.id)
+              const remaining = babies.filter(b => b.id !== target.id)
+              setBabies(remaining)
+              if (remaining.length > 0) {
+                const next = remaining[0]
+                setSelectedBaby(next)
+                await setStoredBaby(next.id)
+                const stage = await getGrowthStage(next.id, familyId).catch(() => null)
+                setGrowthStage(stage)
+              } else {
+                setSelectedBaby(null)
+                setGrowthStage(null)
+                await clearStoredBaby()
+              }
+              setEditing(false)
+            } catch (err) {
+              setError((err as Error).message || '삭제에 실패했어요')
+            } finally {
+              setDeleting(false)
+            }
+          },
+        },
+      ],
+    )
   }
 
   if (loading) {
@@ -396,6 +437,24 @@ export default function BabyProfileScreen({ navigation }: any) {
               <Text style={styles.inviteCopyHint}>탭해서 복사</Text>
             </TouchableOpacity>
           </View>
+
+          <View style={styles.card}>
+            <Text style={styles.sectionTitle}>신생아 졸업</Text>
+            <Text style={styles.dangerDesc}>
+              신생아 시기를 마치고 이 앱과 작별할 때, 모든 기록을 정리하고 졸업할 수 있어요.{'\n'}
+              한번 졸업하면 되돌릴 수 없으니 신중하게 결정해주세요.
+            </Text>
+            <TouchableOpacity
+              style={[styles.dangerBtn, deleting && styles.dangerBtnDisabled]}
+              onPress={handleDeleteBaby}
+              disabled={deleting}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.dangerBtnText}>
+                {deleting ? '졸업 처리 중...' : `🎓  ${selectedBaby.name} 졸업하기`}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </>
       ) : (
         <View style={styles.card}>
@@ -534,4 +593,15 @@ const styles = StyleSheet.create({
   hourChipActive: { backgroundColor: '#FF6B9D' },
   hourChipText: { fontSize: 12, color: '#666', fontWeight: '600' },
   hourChipTextActive: { color: '#fff' },
+  dangerDesc: { fontSize: 12, color: '#999', lineHeight: 18 },
+  dangerBtn: {
+    backgroundColor: '#fff5f5',
+    borderWidth: 1,
+    borderColor: '#ffcccc',
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  dangerBtnDisabled: { opacity: 0.6 },
+  dangerBtnText: { fontSize: 14, color: '#d04848', fontWeight: '700' },
 })

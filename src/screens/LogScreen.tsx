@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import FeedLogScreen from './FeedLogScreen'
 import DiaperLogScreen from './DiaperLogScreen'
 import SleepScreen from './SleepScreen'
@@ -17,19 +17,20 @@ export default function LogScreen() {
 
   return (
     <View style={styles.container}>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabBar} contentContainerStyle={styles.tabBarContent}>
+      <View style={styles.tabBar}>
         {TABS.map(tab => (
           <TouchableOpacity
             key={tab.key}
             style={[styles.tab, activeTab === tab.key && styles.tabActive]}
             onPress={() => setActiveTab(tab.key)}
+            activeOpacity={0.7}
           >
             <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>
               {tab.label}
             </Text>
           </TouchableOpacity>
         ))}
-      </ScrollView>
+      </View>
 
       <View style={styles.content}>
         {activeTab === 'feed' && <FeedLogScreen />}
@@ -43,23 +44,19 @@ export default function LogScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFF9FB' },
   tabBar: {
+    flexDirection: 'row',
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#f0f0f0',
-  },
-  tabBarContent: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingTop: 8,
+    paddingHorizontal: 8,
   },
   tab: {
-    paddingVertical: 10,
-    paddingHorizontal: 4,
+    flex: 1,
+    paddingVertical: 12,
     alignItems: 'center',
     borderBottomWidth: 2,
     borderBottomColor: 'transparent',
     marginBottom: -1,
-    marginRight: 16,
   },
   tabActive: { borderBottomColor: '#FF6B9D' },
   tabText: { fontSize: 14, color: '#aaa', fontWeight: '600' },
