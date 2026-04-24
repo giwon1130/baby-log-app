@@ -138,6 +138,12 @@ export const submitCrySample = (babyId: string, data: {
   cryConfidenceMax?: number | null
   avgVolumeDb?: number | null
   peakVolumeDb?: number | null
+  pitchMeanHz?: number | null
+  pitchStdHz?: number | null
+  pitchMaxHz?: number | null
+  voicedRatio?: number | null
+  zcrMean?: number | null
+  rhythmicity?: number | null
   note?: string
 }) => api.post<CrySample>(`/api/v1/babies/${babyId}/cry-samples`, data)
 

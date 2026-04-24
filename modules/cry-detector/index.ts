@@ -25,6 +25,13 @@ export type CryFeatureSummary = {
   avgVolumeDb: number | null
   peakVolumeDb: number | null
   sampleCount: number
+  // Acoustic features (may be null for silent recordings)
+  pitchMeanHz: number | null
+  pitchStdHz: number | null
+  pitchMaxHz: number | null
+  voicedRatio: number | null
+  zcrMean: number | null
+  rhythmicity: number | null
 }
 
 declare class CryDetectorNative extends NativeModule<CryDetectorEvents> {
@@ -79,6 +86,12 @@ export const CryDetector = {
           avgVolumeDb: null,
           peakVolumeDb: null,
           sampleCount: 0,
+          pitchMeanHz: null,
+          pitchStdHz: null,
+          pitchMaxHz: null,
+          voicedRatio: null,
+          zcrMean: null,
+          rhythmicity: null,
         }),
 
   addCryListener(listener: (event: CryDetectedEvent) => void) {

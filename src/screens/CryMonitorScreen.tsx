@@ -101,6 +101,12 @@ export default function CryMonitorScreen() {
         cryConfidenceMax: features.cryConfidenceMax,
         avgVolumeDb: features.avgVolumeDb,
         peakVolumeDb: features.peakVolumeDb,
+        pitchMeanHz: features.pitchMeanHz,
+        pitchStdHz: features.pitchStdHz,
+        pitchMaxHz: features.pitchMaxHz,
+        voicedRatio: features.voicedRatio,
+        zcrMean: features.zcrMean,
+        rhythmicity: features.rhythmicity,
       })
       setSample(result)
       setPhase('result')
