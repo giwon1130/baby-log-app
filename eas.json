@@ -32,7 +32,7 @@
       "ios": {
         "appleId": "giwon1130@gmail.com",
         "ascAppId": "",
-        "appleTeamId": ""
+        "appleTeamId": "776H9NV6HT"
       },
       "android": {
         "serviceAccountKeyPath": "./google-service-account.json",

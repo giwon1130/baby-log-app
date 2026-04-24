@@ -1,5 +1,5 @@
 import { api } from './client'
-import type { Baby, DiaperRecord, FeedRecord, Family, GrowthRecord, GrowthStage, SleepRecord, TodayStats, WeeklyStats } from '../types'
+import type { Baby, CryLabel, CrySample, DiaperRecord, FeedRecord, Family, GrowthRecord, GrowthStage, SleepRecord, TodayStats, WeeklyStats } from '../types'
 
 // Family
 export const createFamily = () => api.post<Family>('/api/v1/families', {})
@@ -130,3 +130,19 @@ export const getTodayStats = (babyId: string) =>
 
 export const getWeeklyStats = (babyId: string) =>
   api.get<WeeklyStats>(`/api/v1/babies/${babyId}/stats/weekly`)
+
+// Cry analysis
+export const submitCrySample = (babyId: string, data: {
+  durationSec: number
+  cryConfidenceAvg?: number | null
+  cryConfidenceMax?: number | null
+  avgVolumeDb?: number | null
+  peakVolumeDb?: number | null
+  note?: string
+}) => api.post<CrySample>(`/api/v1/babies/${babyId}/cry-samples`, data)
+
+export const confirmCrySample = (sampleId: string, confirmedLabel: CryLabel, note = '') =>
+  api.patch<CrySample>(`/api/v1/cry-samples/${sampleId}/confirm`, { confirmedLabel, note })
+
+export const getCryHistory = (babyId: string, limit = 50) =>
+  api.get<CrySample[]>(`/api/v1/babies/${babyId}/cry-samples?limit=${limit}`)

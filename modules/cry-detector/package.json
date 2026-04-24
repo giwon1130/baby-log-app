@@ -1,0 +1,8 @@
+{
+  "name": "cry-detector",
+  "version": "0.1.0",
+  "description": "On-device infant cry detection using Apple SoundAnalysis",
+  "main": "index.ts",
+  "types": "index.ts",
+  "private": true
+}

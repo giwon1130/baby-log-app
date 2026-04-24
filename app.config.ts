@@ -20,7 +20,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     buildNumber: '1',
     infoPlist: {
       NSUserNotificationsUsageDescription: '다음 수유 시간을 알려드립니다.',
-      UIBackgroundModes: ['fetch', 'remote-notification'],
+      NSMicrophoneUsageDescription: '아기 울음을 감지해서 수면·수유 기록에 도움을 드리기 위해 사용합니다. 녹음이나 업로드는 하지 않아요.',
     },
     config: {
       usesNonExemptEncryption: false,

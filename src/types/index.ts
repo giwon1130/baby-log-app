@@ -83,3 +83,33 @@ export type WeeklyStats = {
   feedStats: DailyFeedStat[]
   sleepStats: DailySleepStat[]
 }
+
+// Cry analysis — per-baby personalized classifier that improves with confirmed samples.
+export type CryLabel = 'HUNGER' | 'TIRED' | 'DISCOMFORT' | 'BURP' | 'PAIN' | 'UNKNOWN'
+
+export type CryPrediction = {
+  label: CryLabel
+  labelDisplay: string
+  confidence: number    // [0, 1]
+  reasons: string[]
+}
+
+export type CryLearningStage = {
+  confirmedCount: number
+  stage: 'HEURISTIC' | 'SIMILARITY' | 'PERSONAL'
+  stageDisplay: string
+  nextStageAt: number | null
+  nextStageDisplay: string | null
+}
+
+export type CrySample = {
+  id: string
+  babyId: string
+  recordedAt: string
+  durationSec: number
+  predictions: CryPrediction[]
+  confirmedLabel: CryLabel | null
+  confirmedLabelDisplay: string | null
+  learningStage: CryLearningStage
+  note: string
+}

@@ -11,6 +11,7 @@ import GrowthRecordScreen from './src/screens/GrowthRecordScreen'
 import StatsScreen from './src/screens/StatsScreen'
 import BabyProfileScreen from './src/screens/BabyProfileScreen'
 import FamilySetupScreen from './src/screens/FamilySetupScreen'
+import CryMonitorScreen from './src/screens/CryMonitorScreen'
 import { getStoredFamilyId } from './src/api/client'
 import { requestNotificationPermission } from './src/hooks/useFeedNotification'
 
@@ -30,6 +31,7 @@ function MainTabs() {
           const icons: Record<string, keyof typeof Ionicons.glyphMap> = {
             Home: 'home',
             Log: 'journal',
+            CryMonitor: 'mic',
             Stats: 'bar-chart',
             BabyProfile: 'person',
           }
@@ -39,6 +41,7 @@ function MainTabs() {
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ title: '홈' }} />
       <Tab.Screen name="Log" component={LogScreen} options={{ title: '기록' }} />
+      <Tab.Screen name="CryMonitor" component={CryMonitorScreen} options={{ title: '울음분석' }} />
       <Tab.Screen name="Stats" component={StatsScreen} options={{ title: '통계' }} />
       <Tab.Screen name="BabyProfile" component={BabyProfileScreen} options={{ title: '아기' }} />
     </Tab.Navigator>
