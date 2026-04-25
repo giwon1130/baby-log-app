@@ -10,6 +10,7 @@ import {
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
+import { useNavigation } from '@react-navigation/native'
 
 import { CryDetector, type CryFeatureSummary } from '../../modules/cry-detector'
 import { confirmCrySample, submitCrySample } from '../api/babyLogApi'
@@ -32,6 +33,7 @@ type Phase = 'idle' | 'recording' | 'analyzing' | 'result'
  * orchestration (state machine, recording flow, error handling).
  */
 export default function CryMonitorScreen() {
+  const navigation = useNavigation<any>()
   const [phase, setPhase] = useState<Phase>('idle')
   const [countdown, setCountdown] = useState(RECORD_SECONDS)
   const [babyId, setBabyId] = useState<string | null>(null)
@@ -208,13 +210,24 @@ export default function CryMonitorScreen() {
         )}
 
         {phase !== 'recording' && phase !== 'analyzing' && (
-          <TouchableOpacity
-            style={[styles.button, sample ? styles.secondaryButton : styles.primaryButton]}
-            onPress={beginRecording}
-          >
-            <Ionicons name="mic" size={22} color="#fff" />
-            <Text style={styles.buttonText}>{sample ? '다시 분석' : '분석 시작'}</Text>
-          </TouchableOpacity>
+          <>
+            <TouchableOpacity
+              style={[styles.button, sample ? styles.secondaryButton : styles.primaryButton]}
+              onPress={beginRecording}
+            >
+              <Ionicons name="mic" size={22} color="#fff" />
+              <Text style={styles.buttonText}>{sample ? '다시 분석' : '분석 시작'}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => navigation.navigate('CryHistory')}
+            >
+              <Ionicons name="time-outline" size={18} color="#FF6B9D" />
+              <Text style={styles.linkButtonText}>분석 기록 보기</Text>
+              <Ionicons name="chevron-forward" size={16} color="#FF6B9D" />
+            </TouchableOpacity>
+          </>
         )}
 
         <Text style={styles.footnote}>
@@ -282,6 +295,16 @@ const styles = StyleSheet.create({
   primaryButton: { backgroundColor: '#FF6B9D' },
   secondaryButton: { backgroundColor: '#555' },
   buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+
+  linkButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+    marginTop: 4,
+  },
+  linkButtonText: { color: '#FF6B9D', fontWeight: '600', fontSize: 14 },
 
   footnote: { color: '#888', fontSize: 11, textAlign: 'center', marginTop: 8, lineHeight: 16 },
 })

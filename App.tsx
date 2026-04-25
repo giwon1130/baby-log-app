@@ -12,6 +12,7 @@ import StatsScreen from './src/screens/StatsScreen'
 import BabyProfileScreen from './src/screens/BabyProfileScreen'
 import FamilySetupScreen from './src/screens/FamilySetupScreen'
 import CryMonitorScreen from './src/screens/CryMonitorScreen'
+import CryHistoryScreen from './src/screens/CryHistoryScreen'
 import { getStoredFamilyId } from './src/api/client'
 import { requestNotificationPermission } from './src/hooks/useFeedNotification'
 
@@ -87,6 +88,11 @@ export default function App() {
           name="GrowthRecord"
           component={GrowthRecordScreen}
           options={{ headerShown: true, title: '성장 기록', headerStyle: { backgroundColor: '#FFF9FB' }, headerShadowVisible: false }}
+        />
+        <Stack.Screen
+          name="CryHistory"
+          component={CryHistoryScreen}
+          options={{ headerShown: true, title: '울음 분석 기록', headerStyle: { backgroundColor: '#FFF9FB' }, headerShadowVisible: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>
