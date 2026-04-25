@@ -35,6 +35,7 @@ export default function CryMonitorScreen() {
   const [countdown, setCountdown] = useState(RECORD_SECONDS)
   const [babyId, setBabyId] = useState<string | null>(null)
   const [sample, setSample] = useState<CrySample | null>(null)
+  const [lastFeatures, setLastFeatures] = useState<CryFeatureSummary | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirmModal, setConfirmModal] = useState(false)
   const [correctionModal, setCorrectionModal] = useState(false)
@@ -87,6 +88,7 @@ export default function CryMonitorScreen() {
     let features: CryFeatureSummary
     try {
       features = await CryDetector.recordAndAnalyze(RECORD_SECONDS)
+      setLastFeatures(features)
     } catch (e: any) {
       setError(e?.message ?? '녹음에 실패했어요')
       setPhase('idle')
@@ -194,7 +196,12 @@ export default function CryMonitorScreen() {
         )}
 
         {sample && phase === 'result' && (
-          <ResultView sample={sample} onCorrect={() => setCorrectionModal(true)} onConfirm={handleConfirmCorrect} />
+          <ResultView
+            sample={sample}
+            features={lastFeatures}
+            onCorrect={() => setCorrectionModal(true)}
+            onConfirm={handleConfirmCorrect}
+          />
         )}
 
         {error && (
@@ -232,10 +239,12 @@ export default function CryMonitorScreen() {
 
 function ResultView({
   sample,
+  features,
   onCorrect,
   onConfirm,
 }: {
   sample: CrySample
+  features: CryFeatureSummary | null
   onCorrect: () => void
   onConfirm: () => void
 }) {
@@ -259,6 +268,8 @@ function ResultView({
           </View>
         )}
       </View>
+
+      {features && <AcousticDetails features={features} />}
 
       {rest.length > 0 && (
         <View style={styles.altCard}>
@@ -294,6 +305,104 @@ function ResultView({
           </TouchableOpacity>
         </View>
       )}
+    </View>
+  )
+}
+
+// ── Acoustic feature details ────────────────────────────────────────────────
+//
+// Shows the raw audio features the classifier saw, with friendly interpretation.
+// Helps the user understand "왜 이렇게 판단했는지" — and makes correction more
+// confident when they disagree.
+
+type FeatureRow = {
+  icon: keyof typeof Ionicons.glyphMap
+  label: string
+  value: string
+  hint: string
+  emphasis?: boolean   // highlight when the value is informative (not just baseline)
+}
+
+function buildFeatureRows(f: CryFeatureSummary): FeatureRow[] {
+  const rows: FeatureRow[] = []
+
+  // Pitch — the most expressive baby-cry feature
+  if (f.pitchMeanHz != null && f.pitchMeanHz > 0) {
+    const hz = Math.round(f.pitchMeanHz)
+    let hint: string
+    let emphasis = false
+    if (hz >= 600) { hint = '높은 음 — 통증/짜증 신호'; emphasis = true }
+    else if (hz >= 400) hint = '중간 음 — 보통 울음'
+    else if (hz >= 250) hint = '낮은 음 — 칭얼/지친 소리'
+    else { hint = '아주 낮은 음 — 졸림 가능성'; emphasis = true }
+    rows.push({ icon: 'musical-note', label: '음 높이', value: `${hz} Hz`, hint, emphasis })
+  }
+
+  if (f.pitchStdHz != null && f.pitchMeanHz != null && f.pitchMeanHz > 0) {
+    const std = Math.round(f.pitchStdHz)
+    let hint: string
+    let emphasis = false
+    if (std >= 120) { hint = '음정 변화 큼'; emphasis = true }
+    else if (std >= 60) hint = '약간 흔들림'
+    else hint = '안정적'
+    rows.push({ icon: 'pulse', label: '음 변동', value: `±${std} Hz`, hint, emphasis })
+  }
+
+  // Rhythmicity — periodic envelope = hunger/sucking-rest pattern
+  if (f.rhythmicity != null) {
+    const r = f.rhythmicity
+    let hint: string
+    let emphasis = false
+    if (r >= 0.45) { hint = '규칙적 — 배고픔 패턴 가능성'; emphasis = true }
+    else if (r >= 0.2) hint = '약간 주기적'
+    else hint = '연속적/불규칙'
+    rows.push({ icon: 'trending-up', label: '리듬성', value: r.toFixed(2), hint, emphasis })
+  }
+
+  // Volume
+  if (f.avgVolumeDb != null) {
+    const db = Math.round(f.avgVolumeDb)
+    let hint: string
+    if (db > -25) hint = '큰 울음'
+    else if (db > -40) hint = '보통'
+    else hint = '작은 칭얼'
+    rows.push({ icon: 'volume-high', label: '평균 음량', value: `${db} dB`, hint })
+  }
+
+  // Cry confidence — Apple SoundAnalysis "infant_cry" probability
+  if (f.cryConfidenceAvg != null) {
+    const pct = Math.round(f.cryConfidenceAvg * 100)
+    let hint: string
+    if (pct >= 70) hint = '확실한 울음으로 인식'
+    else if (pct >= 40) hint = '울음 같음'
+    else hint = '울음이 약하거나 짧음'
+    rows.push({ icon: 'happy', label: '울음 강도', value: `${pct}%`, hint })
+  }
+
+  return rows
+}
+
+function AcousticDetails({ features }: { features: CryFeatureSummary }) {
+  const rows = buildFeatureRows(features)
+  if (rows.length === 0) return null
+
+  return (
+    <View style={styles.featureCard}>
+      <Text style={styles.altTitle}>분석 디테일</Text>
+      {rows.map((row, i) => (
+        <View key={i} style={[styles.featureRow, row.emphasis && styles.featureRowEmphasis]}>
+          <Ionicons name={row.icon} size={18} color={row.emphasis ? '#FF6B9D' : '#888'} />
+          <View style={{ flex: 1 }}>
+            <View style={styles.featureLine}>
+              <Text style={styles.featureLabel}>{row.label}</Text>
+              <Text style={[styles.featureValue, row.emphasis && styles.featureValueEmphasis]}>
+                {row.value}
+              </Text>
+            </View>
+            <Text style={styles.featureHint}>{row.hint}</Text>
+          </View>
+        </View>
+      ))}
     </View>
   )
 }
@@ -417,6 +526,20 @@ const styles = StyleSheet.create({
   altCard: {
     backgroundColor: '#fff', borderRadius: 14, padding: 16, marginTop: 8, gap: 8,
   },
+  featureCard: {
+    backgroundColor: '#fff', borderRadius: 14, padding: 16, marginTop: 8, gap: 10,
+  },
+  featureRow: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 4,
+  },
+  featureRowEmphasis: {
+    backgroundColor: '#FFF4F8', borderRadius: 8, paddingHorizontal: 8, marginHorizontal: -8,
+  },
+  featureLine: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
+  featureLabel: { fontSize: 13, color: '#444', fontWeight: '600' },
+  featureValue: { fontSize: 13, color: '#666', fontWeight: '600' },
+  featureValueEmphasis: { color: '#FF6B9D', fontWeight: '700' },
+  featureHint: { fontSize: 11, color: '#888', marginTop: 2 },
   altTitle: { fontSize: 12, color: '#888', fontWeight: '600' },
   altRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   altLabel: { width: 72, fontSize: 13, color: '#444' },
