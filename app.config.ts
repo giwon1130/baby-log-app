@@ -58,7 +58,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     apiBaseUrl: process.env.BABY_LOG_API_URL ?? 'https://baby-log-api-production.up.railway.app',
     eas: {
-      projectId: '',
+      projectId: '8c7b0f38-259b-4760-b10d-e9a9833e63bf',
     },
   },
 })
