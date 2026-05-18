@@ -13,6 +13,7 @@ import {
 import { getActiveSleep, getBabies, getLatestFeed, getTodayStats } from '../api/babyLogApi'
 import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import { scheduleFeedNotification } from '../hooks/useFeedNotification'
+import { useFamilyStream } from '../hooks/useFamilyStream'
 import QuickActions from '../components/QuickActions'
 import ErrorBanner from '../components/ErrorBanner'
 import UndoToast, { type UndoAction } from '../components/UndoToast'
@@ -91,6 +92,10 @@ export default function HomeScreen({ navigation }: any) {
   const onRecorded = useCallback(() => {
     if (babyId && familyId) loadData(babyId, familyId)
   }, [babyId, familyId, loadData])
+
+  useFamilyStream(familyId, useCallback(() => {
+    if (babyId && familyId) loadData(babyId, familyId)
+  }, [babyId, familyId, loadData]))
 
   const handleShareReport = useCallback(async () => {
     if (!todayStats) return

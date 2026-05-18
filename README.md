@@ -43,8 +43,27 @@ iOS 시뮬레이터: `i` / Android: `a` / 실기기: Expo Go 앱으로 QR 스캔
 npx expo start
 
 # 배포된 API 사용
-BABY_LOG_API_URL=https://baby-log-api.fly.dev npx expo start
+BABY_LOG_API_URL=https://baby-log-api-production.up.railway.app npx expo start
 ```
+
+## iOS TestFlight 배포
+
+```bash
+# 빌드 + TestFlight 업로드 한 번에
+npx eas build --profile production --platform ios --auto-submit
+```
+
+식별자/자격증명/Gotcha는 `.claude/context.md` 참조. 요약:
+
+- ASC 앱: `베이비로그-ai` (App ID `6764563994`)
+- Bundle ID: `com.giwon.babylog`
+- 자격증명은 EAS 서버에 저장돼 추가 입력 없음
+- 첫 빌드는 ASC에서 수출 규정(암호화 사용 안 함) 한 번 답변 필요
+
+테스터 추가는 https://appstoreconnect.apple.com/apps/6764563994/testflight/ios :
+
+- **Internal Testing** (≤100명, 리뷰 없음): 부부/가까운 사람 — ASC 사용자 이메일 초대
+- **External Testing** (≤10000명, Public Link 가능): 친구 공유 — 첫 빌드만 Beta App Review 1회
 
 ## 알림
 
