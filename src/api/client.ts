@@ -3,11 +3,38 @@ import Constants from 'expo-constants'
 
 const BASE_URL: string = Constants.expoConfig?.extra?.apiBaseUrl ?? 'http://localhost:8092'
 
+const DEVICE_ID_KEY = 'baby_log_device_id'
+let cachedDeviceId: string | null = null
+
+function newUuid(): string {
+  const g = globalThis as { crypto?: { randomUUID?: () => string } }
+  if (g.crypto?.randomUUID) return g.crypto.randomUUID()
+  return Array.from({ length: 32 }, () => Math.floor(Math.random() * 16).toString(16)).join('')
+}
+
+export async function getOrCreateDeviceId(): Promise<string> {
+  if (cachedDeviceId) return cachedDeviceId
+  const existing = await AsyncStorage.getItem(DEVICE_ID_KEY)
+  if (existing) {
+    cachedDeviceId = existing
+    return existing
+  }
+  const fresh = newUuid()
+  await AsyncStorage.setItem(DEVICE_ID_KEY, fresh)
+  cachedDeviceId = fresh
+  return fresh
+}
+
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
+  const deviceId = await getOrCreateDeviceId()
   let response: Response
   try {
     response = await fetch(`${BASE_URL}${path}`, {
-      headers: { 'Content-Type': 'application/json', ...options?.headers },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Device-Id': deviceId,
+        ...options?.headers,
+      },
       ...options,
     })
   } catch {

@@ -14,6 +14,7 @@ import { getActiveSleep, getBabies, getLatestFeed, getTodayStats } from '../api/
 import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import { scheduleFeedNotification } from '../hooks/useFeedNotification'
 import { useFamilyStream } from '../hooks/useFamilyStream'
+import { registerPushTokenForFamily } from '../api/pushRegistration'
 import QuickActions from '../components/QuickActions'
 import ErrorBanner from '../components/ErrorBanner'
 import UndoToast, { type UndoAction } from '../components/UndoToast'
@@ -63,7 +64,10 @@ export default function HomeScreen({ navigation }: any) {
       const fid = await getStoredFamilyId()
       setBabyId(bid)
       setFamilyId(fid)
-      if (bid && fid) await loadData(bid, fid)
+      if (bid && fid) {
+        await loadData(bid, fid)
+        registerPushTokenForFamily(fid).catch(() => {})
+      }
       setLoading(false)
     }
     init()
