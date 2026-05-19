@@ -19,6 +19,7 @@ import ErrorBanner from '../components/ErrorBanner'
 import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
 import EditDiaperModal from '../components/EditDiaperModal'
+import EmptyState from '../components/EmptyState'
 import { formatTime, timeSince } from '../utils/dateUtils'
 import { extractErrorMessage } from '../utils/errors'
 import { DIAPER_TYPE_LABEL, COLORS, NEUTRALS, FONT } from '../utils/constants'
@@ -170,7 +171,7 @@ export default function DiaperLogScreen() {
             </TouchableOpacity>
           </SwipeToDelete>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>기저귀 기록이 없어요</Text>}
+        ListEmptyComponent={<EmptyState icon="water-outline" title="기저귀 기록이 없어요" hint="첫 기저귀 교환을 기록해보세요" />}
       />
     </View>
   )
@@ -205,5 +206,4 @@ const styles = StyleSheet.create({
   recordTime: { fontSize: FONT.bodySm, color: NEUTRALS.gray750 },
   recordAgo: { fontSize: FONT.label, color: NEUTRALS.gray450 },
   recordNote: { fontSize: FONT.caption, color: NEUTRALS.gray400, marginTop: 2 },
-  empty: { textAlign: 'center', color: NEUTRALS.gray400, marginTop: 40 },
 })

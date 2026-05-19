@@ -14,6 +14,7 @@ import { useStoredBaby } from '../hooks/useStoredBaby'
 import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'
 import EditGrowthModal from '../components/EditGrowthModal'
+import EmptyState from '../components/EmptyState'
 import { GrowthChart } from '../components/GrowthChart'
 import { formatTime } from '../utils/dateUtils'
 import { ageInMonths, calcPercentile, formatPercentile, percentileColor } from '../utils/whoGrowth'
@@ -276,7 +277,7 @@ export default function GrowthRecordScreen() {
           </SwipeToDelete>
           )
         }}
-        ListEmptyComponent={<Text style={styles.empty}>성장 기록이 없어요</Text>}
+        ListEmptyComponent={<EmptyState icon="trending-up-outline" title="성장 기록이 없어요" hint="체중·키를 처음 기록해보세요" />}
       />
     </View>
   )
@@ -327,7 +328,6 @@ const styles = StyleSheet.create({
   metricLabel: { fontSize: FONT.caption, color: NEUTRALS.gray450, fontWeight: '600' },
   metricValue: { fontSize: FONT.body, fontWeight: '700', color: NEUTRALS.ink, marginTop: 2 },
   recordTime: { fontSize: FONT.label, color: NEUTRALS.gray450 },
-  empty: { textAlign: 'center', color: NEUTRALS.gray400, marginTop: 40 },
   percentileCard: {
     marginHorizontal: 16,
     marginTop: 12,

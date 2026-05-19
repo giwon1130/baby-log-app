@@ -8,6 +8,7 @@ import { useStoredBaby } from '../hooks/useStoredBaby'
 import type { CryLabel, CrySample } from '../types'
 import { CorrectionModal } from '../components/cry/CorrectionModal'
 import { LearningStageBanner } from '../components/cry/LearningStageBanner'
+import EmptyState from '../components/EmptyState'
 import { extractErrorMessage } from '../utils/errors'
 
 import { COLORS, NEUTRALS, FONT } from '../utils/constants'
@@ -92,10 +93,7 @@ export default function CryHistoryScreen() {
         </View>
 
         {items.length === 0 ? (
-          <View style={styles.emptyCard}>
-            <Ionicons name="time-outline" size={40} color="#FFB7CE" />
-            <Text style={styles.emptyText}>아직 분석한 울음이 없어요</Text>
-          </View>
+          <EmptyState variant="card" icon="time-outline" title="아직 분석한 울음이 없어요" />
         ) : (
           items.map((sample) => (
             <SampleCard key={sample.id} sample={sample} onEdit={() => setEditing(sample)} />
@@ -222,15 +220,6 @@ const styles = StyleSheet.create({
   statValue: { fontSize: FONT.hero, fontWeight: '700', color: NEUTRALS.gray850 },
   statLabel: { fontSize: FONT.caption, color: NEUTRALS.gray600 },
   statDivider: { width: StyleSheet.hairlineWidth, height: 28, backgroundColor: NEUTRALS.gray150 },
-
-  emptyCard: {
-    backgroundColor: NEUTRALS.white,
-    borderRadius: 14,
-    padding: 32,
-    alignItems: 'center',
-    gap: 8,
-  },
-  emptyText: { fontSize: FONT.bodyMd, color: NEUTRALS.gray600 },
 
   card: {
     backgroundColor: NEUTRALS.white,

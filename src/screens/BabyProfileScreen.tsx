@@ -15,6 +15,7 @@ import { deleteBaby, getBabies, getFamily, getGrowthStage, updateBaby } from '..
 import { clearStoredBaby, setStoredBaby, storeFamilyAndBaby } from '../api/client'
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import ErrorBanner from '../components/ErrorBanner'
+import EmptyState from '../components/EmptyState'
 import { NotificationSettingsCard } from '../components/NotificationSettingsCard'
 import type { Baby, Family, GrowthStage } from '../types'
 import type { MainTabScreenProps } from '../navigation/types'
@@ -344,7 +345,7 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
         </>
       ) : (
         <View style={styles.card}>
-          <Text style={styles.emptyTitle}>아기 정보가 없어요</Text>
+          <EmptyState icon="person-add-outline" title="아기 정보가 없어요" />
           <TouchableOpacity
             style={styles.primaryButton}
             onPress={() => navigation.navigate('FamilySetup')}

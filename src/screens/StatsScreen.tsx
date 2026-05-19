@@ -13,6 +13,7 @@ import { BarChart, LineChart } from 'react-native-chart-kit'
 import { getWeeklyStats } from '../api/babyLogApi'
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import { formatDuration } from '../utils/dateUtils'
+import EmptyState from '../components/EmptyState'
 import type { WeeklyStats } from '../types'
 
 import { COLORS, NEUTRALS, FONT } from '../utils/constants'
@@ -102,7 +103,7 @@ export default function StatsScreen() {
   }, [stats])
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>
-  if (!stats || !chartData) return <View style={styles.center}><Text style={styles.emptyText}>데이터가 없어요</Text></View>
+  if (!stats || !chartData) return <View style={styles.center}><EmptyState icon="bar-chart-outline" title="데이터가 없어요" hint="기록이 쌓이면 통계가 보여요" /></View>
 
   const { feedLabels, feedMlData, feedCountData, sleepLabels, sleepData, totalFeedThisWeek, avgFeedPerDay, totalSleepHours, avgSleepPerDay, feedTrend, sleepTrend } = chartData
 
@@ -218,7 +219,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primaryBg },
   content: { padding: 16, gap: 12, paddingBottom: 32 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { color: NEUTRALS.gray400, fontSize: FONT.body },
   summaryCard: {
     backgroundColor: NEUTRALS.white,
     borderRadius: 16,

@@ -17,6 +17,7 @@ import ErrorBanner from '../components/ErrorBanner'
 import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
 import EditSleepModal from '../components/EditSleepModal'
+import EmptyState from '../components/EmptyState'
 import { formatTime, formatDuration } from '../utils/dateUtils'
 import { extractErrorMessage } from '../utils/errors'
 import type { SleepRecord } from '../types'
@@ -216,7 +217,7 @@ export default function SleepScreen() {
             </TouchableOpacity>
           </SwipeToDelete>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>수면 기록이 없어요</Text>}
+        ListEmptyComponent={<EmptyState icon="moon-outline" title="수면 기록이 없어요" hint="재우기 버튼으로 시작해보세요" />}
       />
     </View>
   )
@@ -265,5 +266,4 @@ const styles = StyleSheet.create({
   recordRight: { alignItems: 'flex-end' },
   duration: { fontSize: FONT.h4, fontWeight: '700', color: COLORS.sleep },
   ongoing: { fontSize: FONT.bodySm, color: COLORS.amber, fontWeight: '600' },
-  empty: { textAlign: 'center', color: NEUTRALS.gray400, marginTop: 40 },
 })

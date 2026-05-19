@@ -20,6 +20,7 @@ import ErrorBanner from '../components/ErrorBanner'
 import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
 import BreastfeedingTimer from '../components/BreastfeedingTimer'
+import EmptyState from '../components/EmptyState'
 import { formatTime } from '../utils/dateUtils'
 import { extractErrorMessage } from '../utils/errors'
 import { FEED_TYPE_LABEL, COLORS, NEUTRALS, FONT } from '../utils/constants'
@@ -242,7 +243,7 @@ export default function FeedLogScreen() {
             </TouchableOpacity>
           </SwipeToDelete>
         )}
-        ListEmptyComponent={<Text style={styles.empty}>수유 기록이 없어요</Text>}
+        ListEmptyComponent={<EmptyState icon="restaurant-outline" title="수유 기록이 없어요" hint="첫 수유를 기록해보세요" />}
       />
     </View>
   )
@@ -301,5 +302,4 @@ const styles = StyleSheet.create({
   recordTime: { fontSize: FONT.bodySm, color: NEUTRALS.gray750 },
   recordNext: { fontSize: FONT.label, color: COLORS.primary },
   editHint: { fontSize: FONT.micro, color: NEUTRALS.gray300, marginTop: 2 },
-  empty: { textAlign: 'center', color: NEUTRALS.gray400, marginTop: 40 },
 })

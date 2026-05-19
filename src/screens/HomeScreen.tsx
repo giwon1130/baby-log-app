@@ -17,6 +17,7 @@ import { useStoredBaby } from '../hooks/useStoredBaby'
 import { registerPushTokenForFamily } from '../api/pushRegistration'
 import QuickActions from '../components/QuickActions'
 import ErrorBanner from '../components/ErrorBanner'
+import EmptyState from '../components/EmptyState'
 import UndoToast, { type UndoAction } from '../components/UndoToast'
 import { parseApiTimestamp, timeUntil, formatDuration as formatSleep, formatAge } from '../utils/dateUtils'
 import type { SleepRecord, TodayStats } from '../types'
@@ -130,7 +131,7 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   if (!babyId) {
     return (
       <View style={styles.center}>
-        <Text style={styles.emptyTitle}>아직 아기가 없어요</Text>
+        <EmptyState icon="happy-outline" title="아직 아기가 없어요" />
         <TouchableOpacity
           style={styles.primaryButton}
           onPress={() => navigation.navigate('FamilySetup')}
@@ -252,7 +253,6 @@ const styles = StyleSheet.create({
   statSub: { fontSize: FONT.label, color: NEUTRALS.gray450 },
   nextFeedHint: { marginTop: 10, color: COLORS.primary, fontWeight: '700', textAlign: 'center' },
   nextFeedReady: { color: COLORS.success },
-  emptyTitle: { fontSize: FONT.h2, fontWeight: '600', color: NEUTRALS.gray750 },
   primaryButton: {
     backgroundColor: COLORS.primary,
     borderRadius: 12,
