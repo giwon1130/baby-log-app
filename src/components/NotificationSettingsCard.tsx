@@ -7,7 +7,7 @@ import {
   getDiaperReminderHours, setDiaperReminderHours,
   getNapReminderHours, setNapReminderHours,
   getFeedIntervalOverride, setFeedIntervalOverride,
-} from '../hooks/useFeedNotification'
+} from '../utils/notifications'
 import { COLORS } from '../utils/constants'
 
 /**

@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native'
 import { getActiveSleep, getBabies, getLatestFeed, getTodayStats } from '../api/babyLogApi'
-import { scheduleFeedNotification } from '../hooks/useFeedNotification'
+import { scheduleFeedNotification } from '../utils/notifications'
 import { useFamilyStream } from '../hooks/useFamilyStream'
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import { registerPushTokenForFamily } from '../api/pushRegistration'

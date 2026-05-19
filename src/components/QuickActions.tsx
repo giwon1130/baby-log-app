@@ -20,7 +20,7 @@ import {
   recordFeed,
   startSleep,
 } from '../api/babyLogApi'
-import { scheduleDiaperReminder, scheduleFeedNotification } from '../hooks/useFeedNotification'
+import { scheduleDiaperReminder, scheduleFeedNotification } from '../utils/notifications'
 import type { SleepRecord } from '../types'
 import type { UndoAction } from './UndoToast'
 import { extractErrorMessage } from '../utils/errors'

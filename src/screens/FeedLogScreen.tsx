@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native'
 import { deleteFeed, getFeeds, recordFeed, updateFeed } from '../api/babyLogApi'
-import { scheduleFeedNotification } from '../hooks/useFeedNotification'
+import { scheduleFeedNotification } from '../utils/notifications'
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import DateFilter, { DateFilterValue, toDateParam } from '../components/DateFilter'
 import SwipeToDelete from '../components/SwipeToDelete'

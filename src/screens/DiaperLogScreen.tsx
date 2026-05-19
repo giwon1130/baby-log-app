@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native'
 import { deleteDiaper, getDiapers, recordDiaper, updateDiaper } from '../api/babyLogApi'
-import { scheduleDiaperReminder } from '../hooks/useFeedNotification'
+import { scheduleDiaperReminder } from '../utils/notifications'
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import DateFilter, { DateFilterValue, toDateParam } from '../components/DateFilter'
 import SwipeToDelete from '../components/SwipeToDelete'

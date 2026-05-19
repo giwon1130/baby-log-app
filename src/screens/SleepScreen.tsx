@@ -10,7 +10,7 @@ import {
   View,
 } from 'react-native'
 import { deleteSleep, endSleep, getActiveSleep, getSleepRecords, startSleep, updateSleep } from '../api/babyLogApi'
-import { scheduleNapReminder } from '../hooks/useFeedNotification'
+import { scheduleNapReminder } from '../utils/notifications'
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'

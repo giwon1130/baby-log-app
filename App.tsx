@@ -14,7 +14,7 @@ import FamilySetupScreen from './src/screens/FamilySetupScreen'
 import CryMonitorScreen from './src/screens/CryMonitorScreen'
 import CryHistoryScreen from './src/screens/CryHistoryScreen'
 import { getStoredFamilyId } from './src/api/client'
-import { requestNotificationPermission } from './src/hooks/useFeedNotification'
+import { requestNotificationPermission, setupNotificationHandler } from './src/utils/notifications'
 import type { MainTabParamList, RootStackParamList } from './src/navigation/types'
 
 const Tab = createBottomTabNavigator<MainTabParamList>()
@@ -57,6 +57,8 @@ export default function App() {
   const responseListenerRef = useRef<Notifications.EventSubscription | null>(null)
 
   useEffect(() => {
+    // 모듈 top-level side-effect 였던 NotificationHandler 세팅을 명시적 호출로
+    setupNotificationHandler()
     const init = async () => {
       const familyId = await getStoredFamilyId()
       setInitialRoute(familyId ? 'Main' : 'FamilySetup')
