@@ -20,7 +20,7 @@ import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
 import EditDiaperModal from '../components/EditDiaperModal'
 import { formatTime, timeSince } from '../utils/dateUtils'
-import { DIAPER_TYPE_LABEL } from '../utils/constants'
+import { DIAPER_TYPE_LABEL, COLORS } from '../utils/constants'
 import type { DiaperRecord } from '../types'
 
 const DIAPER_TYPES = ['WET', 'DIRTY', 'MIXED', 'DRY'] as const
@@ -108,7 +108,7 @@ export default function DiaperLogScreen() {
     }
   }
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
+  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>
 
   return (
     <View style={styles.container}>
@@ -152,7 +152,7 @@ export default function DiaperLogScreen() {
         data={diapers}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         renderItem={({ item }) => (
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 기저귀 기록을 삭제할까요?">
             <TouchableOpacity onLongPress={() => setEditingRecord(item)} activeOpacity={0.85}>
@@ -176,19 +176,19 @@ export default function DiaperLogScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF9FB' },
+  container: { flex: 1, backgroundColor: COLORS.primaryBg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   form: { backgroundColor: '#fff', padding: 20, gap: 10, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
   formTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
   label: { fontSize: 12, color: '#888', fontWeight: '600' },
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   typeChip: { flex: 1, minWidth: '45%', paddingVertical: 12, borderRadius: 12, backgroundColor: '#f5f5f5', alignItems: 'center' },
-  typeChipActive: { backgroundColor: '#FF6B9D' },
+  typeChipActive: { backgroundColor: COLORS.primary },
   typeChipText: { fontSize: 14, color: '#555', fontWeight: '600' },
   typeChipTextActive: { color: '#fff' },
   input: { borderWidth: 1, borderColor: '#e8e8e8', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14 },
-  submitButton: { backgroundColor: '#FF6B9D', borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  submitButtonDisabled: { backgroundColor: '#ffb3cc' },
+  submitButton: { backgroundColor: COLORS.primary, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
+  submitButtonDisabled: { backgroundColor: COLORS.primaryDisabled },
   submitButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   listContent: { padding: 16, gap: 10 },
   recordItem: {

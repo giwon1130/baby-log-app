@@ -20,6 +20,7 @@ import { CorrectionModal } from '../components/cry/CorrectionModal'
 import { LearningStageBanner } from '../components/cry/LearningStageBanner'
 import { ResultView } from '../components/cry/ResultView'
 
+import { COLORS } from '../utils/constants'
 const RECORD_SECONDS = 5
 
 type Phase = 'idle' | 'recording' | 'analyzing' | 'result'
@@ -150,7 +151,7 @@ export default function CryMonitorScreen() {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.centerBox}>
-          <Ionicons name="information-circle" size={48} color="#FF6B9D" />
+          <Ionicons name="information-circle" size={48} color={COLORS.primary} />
           <Text style={styles.unsupported}>울음 분석은 iOS에서만 지원돼요</Text>
         </View>
       </SafeAreaView>
@@ -164,7 +165,7 @@ export default function CryMonitorScreen() {
 
         {phase === 'idle' && !sample && (
           <View style={styles.heroCard}>
-            <Ionicons name="mic-circle" size={72} color="#FF6B9D" />
+            <Ionicons name="mic-circle" size={72} color={COLORS.primary} />
             <Text style={styles.heroTitle}>울음 분석</Text>
             <Text style={styles.heroSub}>
               애기가 울 때 버튼을 누르면 {RECORD_SECONDS}초 녹음해서{'\n'}
@@ -187,7 +188,7 @@ export default function CryMonitorScreen() {
 
         {phase === 'analyzing' && (
           <View style={styles.heroCard}>
-            <Ionicons name="analytics" size={64} color="#FF6B9D" />
+            <Ionicons name="analytics" size={64} color={COLORS.primary} />
             <Text style={styles.heroTitle}>분석 중...</Text>
           </View>
         )}
@@ -222,9 +223,9 @@ export default function CryMonitorScreen() {
               style={styles.linkButton}
               onPress={() => navigation.navigate('CryHistory')}
             >
-              <Ionicons name="time-outline" size={18} color="#FF6B9D" />
+              <Ionicons name="time-outline" size={18} color={COLORS.primary} />
               <Text style={styles.linkButtonText}>분석 기록 보기</Text>
-              <Ionicons name="chevron-forward" size={16} color="#FF6B9D" />
+              <Ionicons name="chevron-forward" size={16} color={COLORS.primary} />
             </TouchableOpacity>
           </>
         )}
@@ -244,7 +245,7 @@ export default function CryMonitorScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF9FB' },
+  container: { flex: 1, backgroundColor: COLORS.primaryBg },
   content: { padding: 16, gap: 12, paddingBottom: 32 },
   centerBox: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
   unsupported: { fontSize: 16, color: '#666' },
@@ -268,9 +269,9 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     backgroundColor: '#FF6B9D22',
     borderWidth: 3,
-    borderColor: '#FF6B9D',
+    borderColor: COLORS.primary,
   },
-  countdown: { fontSize: 40, fontWeight: '700', color: '#FF6B9D' },
+  countdown: { fontSize: 40, fontWeight: '700', color: COLORS.primary },
 
   errorCard: {
     flexDirection: 'row',
@@ -291,7 +292,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     marginTop: 4,
   },
-  primaryButton: { backgroundColor: '#FF6B9D' },
+  primaryButton: { backgroundColor: COLORS.primary },
   secondaryButton: { backgroundColor: '#555' },
   buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
 
@@ -303,7 +304,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginTop: 4,
   },
-  linkButtonText: { color: '#FF6B9D', fontWeight: '600', fontSize: 14 },
+  linkButtonText: { color: COLORS.primary, fontWeight: '600', fontSize: 14 },
 
   footnote: { color: '#888', fontSize: 11, textAlign: 'center', marginTop: 8, lineHeight: 16 },
 })

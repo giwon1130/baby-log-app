@@ -24,6 +24,7 @@ import { scheduleDiaperReminder, scheduleFeedNotification } from '../hooks/useFe
 import type { SleepRecord } from '../types'
 import type { UndoAction } from './UndoToast'
 
+import { COLORS } from '../utils/constants'
 type FeedType = 'FORMULA' | 'BREAST' | 'MIXED' // MIXED 는 유축(Expressed)으로 재사용
 
 const FEED_TYPE_TABS: { type: FeedType; label: string }[] = [
@@ -288,7 +289,7 @@ export default function QuickActions({
             disabled={busy}
           >
             {loadingKey === `diaper-${type}`
-              ? <ActivityIndicator size="small" color="#FF6B9D" />
+              ? <ActivityIndicator size="small" color={COLORS.primary} />
               : <Text style={styles.diaperBtnText}>{label}</Text>
             }
           </TouchableOpacity>
@@ -398,17 +399,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: '#FFF0F5',
+    backgroundColor: COLORS.primarySurface,
   },
-  typeTabActive: { backgroundColor: '#FF6B9D' },
-  typeTabText: { fontSize: 12, fontWeight: '700', color: '#FF6B9D' },
+  typeTabActive: { backgroundColor: COLORS.primary },
+  typeTabText: { fontSize: 12, fontWeight: '700', color: COLORS.primary },
   typeTabTextActive: { color: '#fff' },
   row: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   feedBtn: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#FF6B9D',
+    backgroundColor: COLORS.primary,
     minWidth: 52,
     alignItems: 'center',
   },
@@ -418,17 +419,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#FFF0F5',
+    backgroundColor: COLORS.primarySurface,
     borderWidth: 1,
-    borderColor: '#FF6B9D',
+    borderColor: COLORS.primary,
     alignItems: 'center',
   },
-  customBtnText: { color: '#FF6B9D', fontSize: 12, fontWeight: '700' },
+  customBtnText: { color: COLORS.primary, fontSize: 12, fontWeight: '700' },
   diaperBtn: {
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#FFF0F5',
+    backgroundColor: COLORS.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -438,7 +439,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
   },
-  sleepBtnIdle: { backgroundColor: '#5C6BC0' },
+  sleepBtnIdle: { backgroundColor: COLORS.sleep },
   sleepBtnActive: { backgroundColor: '#FF9800' },
   sleepBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
   btnLoading: { opacity: 0.6 },
@@ -471,6 +472,6 @@ const styles = StyleSheet.create({
   modalBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10 },
   modalBtnGhost: { backgroundColor: '#f5f5f5' },
   modalBtnGhostText: { color: '#666', fontWeight: '600' },
-  modalBtnPrimary: { backgroundColor: '#FF6B9D' },
+  modalBtnPrimary: { backgroundColor: COLORS.primary },
   modalBtnPrimaryText: { color: '#fff', fontWeight: '700' },
 })

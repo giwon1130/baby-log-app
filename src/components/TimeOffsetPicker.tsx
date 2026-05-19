@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { COLORS } from '../utils/constants'
 import {
   StyleSheet,
   Text,
@@ -104,7 +105,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     backgroundColor: '#f5f5f5',
   },
-  chipActive: { backgroundColor: '#FF6B9D' },
+  chipActive: { backgroundColor: COLORS.primary },
   chipText: { fontSize: 12, color: '#555', fontWeight: '600' },
   chipTextActive: { color: '#fff' },
   customRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
@@ -118,11 +119,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   customBtn: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: COLORS.primary,
     borderRadius: 8,
     paddingHorizontal: 14,
     paddingVertical: 7,
   },
   customBtnText: { color: '#fff', fontWeight: '600', fontSize: 13 },
-  preview: { fontSize: 11, color: '#FF6B9D', fontWeight: '600' },
+  preview: { fontSize: 11, color: COLORS.primary, fontWeight: '600' },
 })

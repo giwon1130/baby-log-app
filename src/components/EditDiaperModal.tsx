@@ -4,7 +4,7 @@ import {
   Text, TextInput, TouchableOpacity, View,
 } from 'react-native'
 import TimeOffsetPicker from './TimeOffsetPicker'
-import { DIAPER_TYPE_LABEL } from '../utils/constants'
+import { DIAPER_TYPE_LABEL, COLORS } from '../utils/constants'
 import type { DiaperRecord } from '../types'
 
 const DIAPER_TYPES = ['WET', 'DIRTY', 'MIXED', 'DRY'] as const
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     flex: 1, minWidth: '45%', paddingVertical: 12,
     borderRadius: 12, backgroundColor: '#f5f5f5', alignItems: 'center',
   },
-  typeChipActive: { backgroundColor: '#FF6B9D' },
+  typeChipActive: { backgroundColor: COLORS.primary },
   typeChipText: { fontSize: 14, color: '#555', fontWeight: '600' },
   typeChipTextActive: { color: '#fff' },
   input: {
@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: '#e0e0e0', alignItems: 'center',
   },
   cancelButtonText: { color: '#888', fontWeight: '600', fontSize: 15 },
-  saveButton: { flex: 2, paddingVertical: 13, borderRadius: 12, backgroundColor: '#FF6B9D', alignItems: 'center' },
-  saveButtonDisabled: { backgroundColor: '#ffb3cc' },
+  saveButton: { flex: 2, paddingVertical: 13, borderRadius: 12, backgroundColor: COLORS.primary, alignItems: 'center' },
+  saveButtonDisabled: { backgroundColor: COLORS.primaryDisabled },
   saveButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 })

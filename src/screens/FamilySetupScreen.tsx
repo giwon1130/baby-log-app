@@ -17,6 +17,7 @@ import ErrorBanner from '../components/ErrorBanner'
 import BirthDatePicker from '../components/BirthDatePicker'
 import type { Baby } from '../types'
 
+import { COLORS } from '../utils/constants'
 type Step = 'choice' | 'create' | 'join' | 'baby' | 'selectBaby'
 
 export default function FamilySetupScreen({ navigation, route }: any) {
@@ -268,7 +269,7 @@ export default function FamilySetupScreen({ navigation, route }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF9FB' },
+  container: { flex: 1, backgroundColor: COLORS.primaryBg },
   content: {
     flexGrow: 1,
     padding: 32,
@@ -288,16 +289,16 @@ const styles = StyleSheet.create({
     fontSize: 15,
     backgroundColor: '#fff',
   },
-  inputValid: { borderColor: '#FF6B9D' },
+  inputValid: { borderColor: COLORS.primary },
   codeInput: {
     borderWidth: 2,
-    borderColor: '#FF6B9D',
+    borderColor: COLORS.primary,
     borderRadius: 16,
     paddingVertical: 16,
     fontSize: 28,
     fontWeight: '800',
     letterSpacing: 6,
-    color: '#FF6B9D',
+    color: COLORS.primary,
     backgroundColor: '#fff',
   },
   genderRow: { flexDirection: 'row', gap: 12 },
@@ -308,26 +309,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     alignItems: 'center',
   },
-  genderChipActive: { backgroundColor: '#FF6B9D' },
+  genderChipActive: { backgroundColor: COLORS.primary },
   genderChipText: { fontSize: 15, fontWeight: '600', color: '#555' },
   genderChipTextActive: { color: '#fff' },
   primaryButton: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: COLORS.primary,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
     marginTop: 8,
   },
-  buttonDisabled: { backgroundColor: '#ffb3cc' },
+  buttonDisabled: { backgroundColor: COLORS.primaryDisabled },
   primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
   secondaryButton: {
     borderWidth: 1.5,
-    borderColor: '#FF6B9D',
+    borderColor: COLORS.primary,
     borderRadius: 14,
     paddingVertical: 15,
     alignItems: 'center',
   },
-  secondaryButtonText: { color: '#FF6B9D', fontWeight: '600', fontSize: 15 },
+  secondaryButtonText: { color: COLORS.primary, fontWeight: '600', fontSize: 15 },
   backText: { color: '#aaa', textAlign: 'center', marginTop: 8, fontSize: 14 },
   babyOption: {
     flexDirection: 'row',

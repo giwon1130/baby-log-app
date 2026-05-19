@@ -15,6 +15,7 @@ import { useStoredBaby } from '../hooks/useStoredBaby'
 import { formatDuration } from '../utils/dateUtils'
 import type { WeeklyStats } from '../types'
 
+import { COLORS } from '../utils/constants'
 const SCREEN_WIDTH = Dimensions.get('window').width
 const CHART_WIDTH = SCREEN_WIDTH - 32
 
@@ -26,13 +27,13 @@ const CHART_CONFIG = {
   strokeWidth: 2,
   barPercentage: 0.6,
   decimalPlaces: 0,
-  propsForDots: { r: '4', strokeWidth: '2', stroke: '#FF6B9D' },
+  propsForDots: { r: '4', strokeWidth: '2', stroke: COLORS.primary },
 }
 
 const SLEEP_CHART_CONFIG = {
   ...CHART_CONFIG,
   color: (opacity = 1) => `rgba(92, 107, 192, ${opacity})`,
-  propsForDots: { r: '4', strokeWidth: '2', stroke: '#5C6BC0' },
+  propsForDots: { r: '4', strokeWidth: '2', stroke: COLORS.sleep },
 }
 
 function shortDate(iso: string): string {
@@ -100,7 +101,7 @@ export default function StatsScreen() {
     return { feedLabels, feedMlData, feedCountData, sleepLabels, sleepData, totalFeedThisWeek, avgFeedPerDay, totalSleepHours, avgSleepPerDay, feedTrend, sleepTrend }
   }, [stats])
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
+  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>
   if (!stats || !chartData) return <View style={styles.center}><Text style={styles.emptyText}>데이터가 없어요</Text></View>
 
   const { feedLabels, feedMlData, feedCountData, sleepLabels, sleepData, totalFeedThisWeek, avgFeedPerDay, totalSleepHours, avgSleepPerDay, feedTrend, sleepTrend } = chartData
@@ -109,7 +110,7 @@ export default function StatsScreen() {
     <ScrollView
       style={styles.container}
       contentContainerStyle={styles.content}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
     >
       {/* 주간 요약 */}
       <View style={styles.summaryCard}>
@@ -214,7 +215,7 @@ export default function StatsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF9FB' },
+  container: { flex: 1, backgroundColor: COLORS.primaryBg },
   content: { padding: 16, gap: 12, paddingBottom: 32 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   emptyText: { color: '#bbb', fontSize: 15 },
@@ -250,11 +251,11 @@ const styles = StyleSheet.create({
   sleepDetail: { gap: 6, marginTop: 4 },
   sleepDetailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 },
   sleepDetailDate: { fontSize: 13, color: '#888' },
-  sleepDetailValue: { fontSize: 13, color: '#5C6BC0', fontWeight: '600' },
+  sleepDetailValue: { fontSize: 13, color: COLORS.sleep, fontWeight: '600' },
   trendRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   trendChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   trendUp: { backgroundColor: '#E8F5E9' },
   trendDown: { backgroundColor: '#FFF3E0' },
   trendChipText: { fontSize: 13, fontWeight: '600', color: '#333' },
-  trendStable: { fontSize: 13, color: '#4CAF50', fontWeight: '600' },
+  trendStable: { fontSize: 13, color: COLORS.success, fontWeight: '600' },
 })

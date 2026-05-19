@@ -21,7 +21,7 @@ import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
 import BreastfeedingTimer from '../components/BreastfeedingTimer'
 import { formatTime } from '../utils/dateUtils'
-import { FEED_TYPE_LABEL } from '../utils/constants'
+import { FEED_TYPE_LABEL, COLORS } from '../utils/constants'
 import type { FeedRecord } from '../types'
 
 const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
@@ -133,7 +133,7 @@ export default function FeedLogScreen() {
     }
   }
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
+  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>
 
   return (
     <View style={styles.container}>
@@ -213,7 +213,7 @@ export default function FeedLogScreen() {
         data={feeds}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         renderItem={({ item }) => (
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 수유 기록을 삭제할까요?">
             <TouchableOpacity
@@ -248,7 +248,7 @@ export default function FeedLogScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF9FB' },
+  container: { flex: 1, backgroundColor: COLORS.primaryBg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   form: {
     backgroundColor: '#fff',
@@ -261,17 +261,17 @@ const styles = StyleSheet.create({
   label: { fontSize: 12, color: '#888', fontWeight: '600', marginTop: 4 },
   quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   quickChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: '#f5f5f5' },
-  quickChipActive: { backgroundColor: '#FF6B9D' },
+  quickChipActive: { backgroundColor: COLORS.primary },
   quickChipText: { fontSize: 13, color: '#555', fontWeight: '600' },
   quickChipTextActive: { color: '#fff' },
   typeRow: { flexDirection: 'row', gap: 8 },
   typeChip: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: '#f5f5f5', alignItems: 'center' },
-  typeChipActive: { backgroundColor: '#FF6B9D' },
+  typeChipActive: { backgroundColor: COLORS.primary },
   typeChipText: { fontSize: 13, color: '#555', fontWeight: '600' },
   typeChipTextActive: { color: '#fff' },
   input: { borderWidth: 1, borderColor: '#e8e8e8', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14 },
-  submitButton: { backgroundColor: '#FF6B9D', borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 4 },
-  submitButtonDisabled: { backgroundColor: '#ffb3cc' },
+  submitButton: { backgroundColor: COLORS.primary, borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 4 },
+  submitButtonDisabled: { backgroundColor: COLORS.primaryDisabled },
   submitButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   listContent: { padding: 16, gap: 10 },
   recordItem: {
@@ -287,18 +287,18 @@ const styles = StyleSheet.create({
   recordAmount: { fontSize: 18, fontWeight: '700', color: '#1a1a1a' },
   recordType: { fontSize: 12, color: '#999' },
   recordNote: { fontSize: 11, color: '#bbb', marginTop: 2, maxWidth: 140 },
-  recordBreast: { fontSize: 12, color: '#FF6B9D', fontWeight: '600' },
+  recordBreast: { fontSize: 12, color: COLORS.primary, fontWeight: '600' },
   timerButton: {
     borderWidth: 1.5,
-    borderColor: '#FF6B9D',
+    borderColor: COLORS.primary,
     borderStyle: 'dashed',
     borderRadius: 10,
     paddingVertical: 10,
     alignItems: 'center',
   },
-  timerButtonText: { fontSize: 13, color: '#FF6B9D', fontWeight: '600' },
+  timerButtonText: { fontSize: 13, color: COLORS.primary, fontWeight: '600' },
   recordTime: { fontSize: 13, color: '#444' },
-  recordNext: { fontSize: 12, color: '#FF6B9D' },
+  recordNext: { fontSize: 12, color: COLORS.primary },
   editHint: { fontSize: 10, color: '#ccc', marginTop: 2 },
   empty: { textAlign: 'center', color: '#bbb', marginTop: 40 },
 })

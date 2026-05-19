@@ -21,6 +21,7 @@ import UndoToast, { type UndoAction } from '../components/UndoToast'
 import { parseApiTimestamp, timeUntil, formatDuration as formatSleep, formatAge } from '../utils/dateUtils'
 import type { SleepRecord, TodayStats } from '../types'
 
+import { COLORS } from '../utils/constants'
 export default function HomeScreen({ navigation }: any) {
   const { babyId, familyId, babyName, daysOld, initialized, loadBaby } = useStoredBaby()
   const [loading, setLoading] = useState(true)
@@ -120,7 +121,7 @@ export default function HomeScreen({ navigation }: any) {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#FF6B9D" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     )
   }
@@ -145,7 +146,7 @@ export default function HomeScreen({ navigation }: any) {
         style={styles.container}
         contentContainerStyle={styles.content}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
         }
       >
         {/* 아기 정보 */}
@@ -211,7 +212,7 @@ export default function HomeScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF9FB' },
+  container: { flex: 1, backgroundColor: COLORS.primaryBg },
   content: { padding: 16, gap: 12, paddingBottom: 32 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
   card: {
@@ -226,11 +227,11 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   babyCard: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: COLORS.primary,
     borderRadius: 20,
     padding: 20,
     gap: 12,
-    shadowColor: '#FF6B9D',
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 12,
@@ -242,17 +243,17 @@ const styles = StyleSheet.create({
   babyCardEmoji: { fontSize: 36 },
   cardLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardLabel: { fontSize: 12, color: '#999', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  shareBtn: { fontSize: 12, color: '#FF6B9D', fontWeight: '600' },
+  shareBtn: { fontSize: 12, color: COLORS.primary, fontWeight: '600' },
   statsGrid: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 4 },
   statItem: { alignItems: 'center', gap: 4 },
   statEmoji: { fontSize: 24 },
   statValue: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
   statSub: { fontSize: 12, color: '#aaa' },
-  nextFeedHint: { marginTop: 10, color: '#FF6B9D', fontWeight: '700', textAlign: 'center' },
-  nextFeedReady: { color: '#4CAF50' },
+  nextFeedHint: { marginTop: 10, color: COLORS.primary, fontWeight: '700', textAlign: 'center' },
+  nextFeedReady: { color: COLORS.success },
   emptyTitle: { fontSize: 18, fontWeight: '600', color: '#444' },
   primaryButton: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: COLORS.primary,
     borderRadius: 12,
     paddingHorizontal: 32,
     paddingVertical: 14,

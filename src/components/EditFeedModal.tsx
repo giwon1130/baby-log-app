@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native'
 import TimeOffsetPicker from './TimeOffsetPicker'
-import { FEED_TYPE_LABEL } from '../utils/constants'
+import { FEED_TYPE_LABEL, COLORS } from '../utils/constants'
 import type { FeedRecord } from '../types'
 
 const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
@@ -152,12 +152,12 @@ const styles = StyleSheet.create({
   label: { fontSize: 12, color: '#888', fontWeight: '600' },
   quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   quickChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: '#f5f5f5' },
-  quickChipActive: { backgroundColor: '#FF6B9D' },
+  quickChipActive: { backgroundColor: COLORS.primary },
   quickChipText: { fontSize: 13, color: '#555', fontWeight: '600' },
   quickChipTextActive: { color: '#fff' },
   typeRow: { flexDirection: 'row', gap: 8 },
   typeChip: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: '#f5f5f5', alignItems: 'center' },
-  typeChipActive: { backgroundColor: '#FF6B9D' },
+  typeChipActive: { backgroundColor: COLORS.primary },
   typeChipText: { fontSize: 13, color: '#555', fontWeight: '600' },
   typeChipTextActive: { color: '#fff' },
   input: { borderWidth: 1, borderColor: '#e8e8e8', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14 },
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: { color: '#888', fontWeight: '600', fontSize: 15 },
-  saveButton: { flex: 2, paddingVertical: 13, borderRadius: 12, backgroundColor: '#FF6B9D', alignItems: 'center' },
-  saveButtonDisabled: { backgroundColor: '#ffb3cc' },
+  saveButton: { flex: 2, paddingVertical: 13, borderRadius: 12, backgroundColor: COLORS.primary, alignItems: 'center' },
+  saveButtonDisabled: { backgroundColor: COLORS.primaryDisabled },
   saveButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 })

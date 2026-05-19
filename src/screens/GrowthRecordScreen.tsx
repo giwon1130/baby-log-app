@@ -20,6 +20,7 @@ import { formatTime } from '../utils/dateUtils'
 import { ageInMonths, calcPercentile, formatPercentile, percentileColor } from '../utils/whoGrowth'
 import type { Baby, GrowthRecord } from '../types'
 
+import { COLORS } from '../utils/constants'
 const SCREEN_WIDTH = Dimensions.get('window').width
 const CHART_WIDTH = SCREEN_WIDTH - 64
 
@@ -30,13 +31,13 @@ const WEIGHT_CHART_CONFIG = {
   labelColor: () => '#aaa',
   strokeWidth: 2,
   decimalPlaces: 1,
-  propsForDots: { r: '4', strokeWidth: '2', stroke: '#FF6B9D' },
+  propsForDots: { r: '4', strokeWidth: '2', stroke: COLORS.primary },
 }
 
 const HEIGHT_CHART_CONFIG = {
   ...WEIGHT_CHART_CONFIG,
   color: (opacity = 1) => `rgba(92, 107, 192, ${opacity})`,
-  propsForDots: { r: '4', strokeWidth: '2', stroke: '#5C6BC0' },
+  propsForDots: { r: '4', strokeWidth: '2', stroke: COLORS.sleep },
 }
 
 export default function GrowthRecordScreen() {
@@ -150,7 +151,7 @@ export default function GrowthRecordScreen() {
     return `${d.getMonth() + 1}/${d.getDate()}`
   }, [])
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
+  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>
 
   return (
     <View style={styles.container}>
@@ -282,7 +283,7 @@ export default function GrowthRecordScreen() {
         data={records}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         renderItem={({ item }) => {
           const months = baby ? ageInMonths(baby.birthDate, item.measuredAt) : null
           const weightP = (baby && item.weightG != null && months != null)
@@ -338,7 +339,7 @@ export default function GrowthRecordScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF9FB' },
+  container: { flex: 1, backgroundColor: COLORS.primaryBg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   form: {
     backgroundColor: '#fff',
@@ -360,13 +361,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   submitButton: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: COLORS.primary,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
     marginTop: 4,
   },
-  submitButtonDisabled: { backgroundColor: '#ffb3cc' },
+  submitButtonDisabled: { backgroundColor: COLORS.primaryDisabled },
   submitButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
   listContent: { padding: 16, gap: 10 },
   recordItem: {

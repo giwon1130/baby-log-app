@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { COLORS } from '../utils/constants'
 import {
   Modal,
   StyleSheet,
@@ -147,7 +148,7 @@ const styles = StyleSheet.create({
     gap: 8,
     position: 'relative',
   },
-  sideBtnActive: { backgroundColor: '#FF6B9D' },
+  sideBtnActive: { backgroundColor: COLORS.primary },
   sideLabel: { fontSize: 14, fontWeight: '600', color: '#888' },
   sideLabelActive: { color: 'rgba(255,255,255,0.85)' },
   sideTime: { fontSize: 32, fontWeight: '800', color: '#1a1a1a', fontVariant: ['tabular-nums'] },
@@ -177,9 +178,9 @@ const styles = StyleSheet.create({
     flex: 2,
     paddingVertical: 14,
     borderRadius: 14,
-    backgroundColor: '#FF6B9D',
+    backgroundColor: COLORS.primary,
     alignItems: 'center',
   },
-  completeBtnDisabled: { backgroundColor: '#ffb3cc' },
+  completeBtnDisabled: { backgroundColor: COLORS.primaryDisabled },
   completeBtnText: { fontSize: 15, color: '#fff', fontWeight: '700' },
 })

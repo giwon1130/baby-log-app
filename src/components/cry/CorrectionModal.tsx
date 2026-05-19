@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons'
 import type { CryLabel } from '../../types'
 import { LABEL_OPTIONS } from '../../utils/cryFeatures'
 
+import { COLORS } from '../../utils/constants'
 /** Bottom-sheet modal where the parent picks the actual cry reason. */
 export function CorrectionModal({
   visible,
@@ -27,7 +28,7 @@ export function CorrectionModal({
               style={styles.option}
               onPress={() => onPick(opt.value)}
             >
-              <Ionicons name={opt.icon} size={20} color="#FF6B9D" />
+              <Ionicons name={opt.icon} size={20} color={COLORS.primary} />
               <Text style={styles.optionText}>{opt.display}</Text>
               <Ionicons name="chevron-forward" size={18} color="#ccc" />
             </TouchableOpacity>

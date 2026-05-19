@@ -9,6 +9,7 @@ import type { CryLabel, CrySample } from '../types'
 import { CorrectionModal } from '../components/cry/CorrectionModal'
 import { LearningStageBanner } from '../components/cry/LearningStageBanner'
 
+import { COLORS } from '../utils/constants'
 /**
  * Browse past cry analyses for the current baby.
  *
@@ -65,7 +66,7 @@ export default function CryHistoryScreen() {
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
-        <ActivityIndicator size="large" color="#FF6B9D" style={{ marginTop: 32 }} />
+        <ActivityIndicator size="large" color={COLORS.primary} style={{ marginTop: 32 }} />
       </SafeAreaView>
     )
   }
@@ -74,7 +75,7 @@ export default function CryHistoryScreen() {
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
       >
         {latestStage && <LearningStageBanner stage={latestStage} />}
 
@@ -206,7 +207,7 @@ function pad(n: number) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF9FB' },
+  container: { flex: 1, backgroundColor: COLORS.primaryBg },
   content: { padding: 16, gap: 12, paddingBottom: 32 },
 
   statsCard: {

@@ -5,6 +5,7 @@ import {
 } from 'react-native'
 import type { GrowthRecord } from '../types'
 
+import { COLORS } from '../utils/constants'
 type Props = {
   record: GrowthRecord | null
   onClose: () => void
@@ -140,7 +141,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: '#e0e0e0', alignItems: 'center',
   },
   cancelButtonText: { color: '#888', fontWeight: '600', fontSize: 15 },
-  saveButton: { flex: 2, paddingVertical: 13, borderRadius: 12, backgroundColor: '#FF6B9D', alignItems: 'center' },
-  saveButtonDisabled: { backgroundColor: '#ffb3cc' },
+  saveButton: { flex: 2, paddingVertical: 13, borderRadius: 12, backgroundColor: COLORS.primary, alignItems: 'center' },
+  saveButtonDisabled: { backgroundColor: COLORS.primaryDisabled },
   saveButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 })

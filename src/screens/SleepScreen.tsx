@@ -20,6 +20,7 @@ import EditSleepModal from '../components/EditSleepModal'
 import { formatTime, formatDuration } from '../utils/dateUtils'
 import type { SleepRecord } from '../types'
 
+import { COLORS } from '../utils/constants'
 function calcElapsed(iso: string, now: number): string {
   const totalSecs = Math.floor((now - new Date(iso).getTime()) / 1000)
   const h = Math.floor(totalSecs / 3600)
@@ -142,7 +143,7 @@ export default function SleepScreen() {
     }
   }
 
-  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color="#FF6B9D" /></View>
+  if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>
 
   return (
     <View style={styles.container}>
@@ -192,7 +193,7 @@ export default function SleepScreen() {
         data={records}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#FF6B9D" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         renderItem={({ item }) => (
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 수면 기록을 삭제할까요?">
             <TouchableOpacity onLongPress={() => setEditingRecord(item)} activeOpacity={0.85}>
@@ -221,7 +222,7 @@ export default function SleepScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF9FB' },
+  container: { flex: 1, backgroundColor: COLORS.primaryBg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   statusCard: {
     backgroundColor: '#fff',
@@ -246,8 +247,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     alignItems: 'center',
   },
-  sleepButton: { backgroundColor: '#5C6BC0' },
-  wakeButton: { backgroundColor: '#FF8F00' },
+  sleepButton: { backgroundColor: COLORS.sleep },
+  wakeButton: { backgroundColor: COLORS.amber },
   actionButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
   listContent: { paddingHorizontal: 16, gap: 10, paddingBottom: 16 },
   recordItem: {
@@ -261,7 +262,7 @@ const styles = StyleSheet.create({
   recordSlept: { fontSize: 13, color: '#444' },
   recordWoke: { fontSize: 13, color: '#888', marginTop: 2 },
   recordRight: { alignItems: 'flex-end' },
-  duration: { fontSize: 16, fontWeight: '700', color: '#5C6BC0' },
-  ongoing: { fontSize: 13, color: '#FF8F00', fontWeight: '600' },
+  duration: { fontSize: 16, fontWeight: '700', color: COLORS.sleep },
+  ongoing: { fontSize: 13, color: COLORS.amber, fontWeight: '600' },
   empty: { textAlign: 'center', color: '#bbb', marginTop: 40 },
 })

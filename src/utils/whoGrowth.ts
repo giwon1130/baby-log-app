@@ -1,3 +1,4 @@
+import { COLORS } from './constants'
 /**
  * WHO Child Growth Standards – simplified percentile reference
  * Source: WHO Child Growth Standards (2006), boys & girls 0-24 months
@@ -195,7 +196,7 @@ export function formatPercentile(p: number): string {
 
 /** Background color band based on percentile */
 export function percentileColor(p: number): string {
-  if (p < 3 || p > 97) return '#F44336'   // 저체중/고체중 경고
-  if (p < 15 || p > 85) return '#FF8F00'  // 주의
-  return '#4CAF50'                          // 정상
+  if (p < 3 || p > 97) return COLORS.error   // 저체중/고체중 경고
+  if (p < 15 || p > 85) return COLORS.amber  // 주의
+  return COLORS.success                          // 정상
 }

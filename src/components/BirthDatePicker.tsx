@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 
+import { COLORS } from '../utils/constants'
 type Props = {
   value: Date
   onChange: (date: Date) => void
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: '#FF6B9D',
+    borderColor: COLORS.primary,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -123,6 +124,6 @@ const styles = StyleSheet.create({
   },
   sheetTitle: { fontSize: 15, fontWeight: '700', color: '#1a1a1a' },
   cancelText: { fontSize: 15, color: '#aaa' },
-  doneText: { fontSize: 15, fontWeight: '700', color: '#FF6B9D' },
+  doneText: { fontSize: 15, fontWeight: '700', color: COLORS.primary },
   picker: { height: 200 },
 })

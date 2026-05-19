@@ -6,6 +6,7 @@ import {
 import TimeOffsetPicker from './TimeOffsetPicker'
 import type { SleepRecord } from '../types'
 
+import { COLORS } from '../utils/constants'
 type Props = {
   record: SleepRecord | null
   onClose: () => void
@@ -112,7 +113,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5, borderColor: '#e0e0e0', alignItems: 'center',
   },
   cancelButtonText: { color: '#888', fontWeight: '600', fontSize: 15 },
-  saveButton: { flex: 2, paddingVertical: 13, borderRadius: 12, backgroundColor: '#5C6BC0', alignItems: 'center' },
+  saveButton: { flex: 2, paddingVertical: 13, borderRadius: 12, backgroundColor: COLORS.sleep, alignItems: 'center' },
   saveButtonDisabled: { backgroundColor: '#9fa8da' },
   saveButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
 })

@@ -26,6 +26,7 @@ import {
 import ErrorBanner from '../components/ErrorBanner'
 import type { Baby, Family, GrowthStage } from '../types'
 
+import { COLORS } from '../utils/constants'
 const GENDER_LABEL: Record<string, string> = { MALE: '남아', FEMALE: '여아' }
 
 export default function BabyProfileScreen({ navigation }: any) {
@@ -182,7 +183,7 @@ export default function BabyProfileScreen({ navigation }: any) {
   if (loading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" color="#FF6B9D" />
+        <ActivityIndicator size="large" color={COLORS.primary} />
       </View>
     )
   }
@@ -371,7 +372,7 @@ export default function BabyProfileScreen({ navigation }: any) {
                   setNotifEnabled(v)
                   await setNotificationEnabled(v)
                 }}
-                trackColor={{ false: '#e0e0e0', true: '#FF6B9D' }}
+                trackColor={{ false: '#e0e0e0', true: COLORS.primary }}
                 thumbColor="#fff"
               />
             </View>
@@ -396,7 +397,7 @@ export default function BabyProfileScreen({ navigation }: any) {
               <Switch
                 value={diaperNotifEnabled}
                 onValueChange={async (v) => { setDiaperNotifEnabled(v); await setDiaperNotificationEnabled(v) }}
-                trackColor={{ false: '#e0e0e0', true: '#FF6B9D' }}
+                trackColor={{ false: '#e0e0e0', true: COLORS.primary }}
                 thumbColor="#fff"
               />
             </View>
@@ -421,7 +422,7 @@ export default function BabyProfileScreen({ navigation }: any) {
               <Switch
                 value={sleepNotifEnabled}
                 onValueChange={async (v) => { setSleepNotifEnabled(v); await setSleepNotificationEnabled(v) }}
-                trackColor={{ false: '#e0e0e0', true: '#FF6B9D' }}
+                trackColor={{ false: '#e0e0e0', true: COLORS.primary }}
                 thumbColor="#fff"
               />
             </View>
@@ -472,7 +473,7 @@ export default function BabyProfileScreen({ navigation }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF9FB' },
+  container: { flex: 1, backgroundColor: COLORS.primaryBg },
   content: { padding: 16, gap: 12 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
   babyTabRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
@@ -482,17 +483,17 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1.5,
-    borderColor: '#FF6B9D',
+    borderColor: COLORS.primary,
     borderStyle: 'dashed',
   },
-  addBabyBtnText: { fontSize: 12, color: '#FF6B9D', fontWeight: '600' },
+  addBabyBtnText: { fontSize: 12, color: COLORS.primary, fontWeight: '600' },
   babyTab: {
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: '#f5f5f5',
   },
-  babyTabActive: { backgroundColor: '#FF6B9D' },
+  babyTabActive: { backgroundColor: COLORS.primary },
   babyTabText: { fontSize: 13, color: '#555', fontWeight: '600' },
   babyTabTextActive: { color: '#fff' },
   card: {
@@ -512,7 +513,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: '#FFF0F5',
+    backgroundColor: COLORS.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -524,9 +525,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#FF6B9D',
+    borderColor: COLORS.primary,
   },
-  editBtnText: { fontSize: 12, color: '#FF6B9D', fontWeight: '600' },
+  editBtnText: { fontSize: 12, color: COLORS.primary, fontWeight: '600' },
   editForm: { gap: 8 },
   editLabel: { fontSize: 11, color: '#888', fontWeight: '600' },
   editInput: {
@@ -550,10 +551,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderRadius: 10,
-    backgroundColor: '#FF6B9D',
+    backgroundColor: COLORS.primary,
     alignItems: 'center',
   },
-  saveBtnDisabled: { backgroundColor: '#ffb3cc' },
+  saveBtnDisabled: { backgroundColor: COLORS.primaryDisabled },
   saveBtnText: { fontSize: 14, color: '#fff', fontWeight: '700' },
   statRow: { flexDirection: 'row', gap: 16 },
   stat: { flex: 1 },
@@ -566,17 +567,17 @@ const styles = StyleSheet.create({
   notifTitle: { fontSize: 13, fontWeight: '600', color: '#333' },
   notifDesc: { fontSize: 12, color: '#aaa', marginTop: 2 },
   inviteCodeBox: {
-    backgroundColor: '#FFF0F5',
+    backgroundColor: COLORS.primarySurface,
     borderRadius: 10,
     paddingVertical: 14,
     alignItems: 'center',
     gap: 4,
   },
-  inviteCode: { fontSize: 24, fontWeight: '800', color: '#FF6B9D', letterSpacing: 4 },
+  inviteCode: { fontSize: 24, fontWeight: '800', color: COLORS.primary, letterSpacing: 4 },
   inviteCopyHint: { fontSize: 11, color: '#FFAAC8' },
   emptyTitle: { fontSize: 16, fontWeight: '600', color: '#666' },
   primaryButton: {
-    backgroundColor: '#FF6B9D',
+    backgroundColor: COLORS.primary,
     borderRadius: 12,
     paddingHorizontal: 24,
     paddingVertical: 12,
@@ -590,7 +591,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     backgroundColor: '#f5f5f5',
   },
-  hourChipActive: { backgroundColor: '#FF6B9D' },
+  hourChipActive: { backgroundColor: COLORS.primary },
   hourChipText: { fontSize: 12, color: '#666', fontWeight: '600' },
   hourChipTextActive: { color: '#fff' },
   dangerDesc: { fontSize: 12, color: '#999', lineHeight: 18 },
