@@ -15,9 +15,10 @@ import CryMonitorScreen from './src/screens/CryMonitorScreen'
 import CryHistoryScreen from './src/screens/CryHistoryScreen'
 import { getStoredFamilyId } from './src/api/client'
 import { requestNotificationPermission } from './src/hooks/useFeedNotification'
+import type { MainTabParamList, RootStackParamList } from './src/navigation/types'
 
-const Tab = createBottomTabNavigator()
-const Stack = createNativeStackNavigator()
+const Tab = createBottomTabNavigator<MainTabParamList>()
+const Stack = createNativeStackNavigator<RootStackParamList>()
 
 function MainTabs() {
   return (
@@ -50,7 +51,7 @@ function MainTabs() {
 }
 
 export default function App() {
-  const [initialRoute, setInitialRoute] = useState<string | null>(null)
+  const [initialRoute, setInitialRoute] = useState<keyof RootStackParamList | null>(null)
   const navigationRef = useRef<NavigationContainerRef<any>>(null)
   const notificationListenerRef = useRef<Notifications.EventSubscription | null>(null)
   const responseListenerRef = useRef<Notifications.EventSubscription | null>(null)

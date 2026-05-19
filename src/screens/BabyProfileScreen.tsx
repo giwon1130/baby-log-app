@@ -25,11 +25,13 @@ import {
 } from '../hooks/useFeedNotification'
 import ErrorBanner from '../components/ErrorBanner'
 import type { Baby, Family, GrowthStage } from '../types'
+import type { MainTabScreenProps } from '../navigation/types'
+import { extractErrorMessage } from '../utils/errors'
 
 import { COLORS } from '../utils/constants'
 const GENDER_LABEL: Record<string, string> = { MALE: '남아', FEMALE: '여아' }
 
-export default function BabyProfileScreen({ navigation }: any) {
+export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'BabyProfile'>) {
   const { babyId: storedBabyId, familyId, initialized, loadBaby } = useStoredBaby()
   const [loading, setLoading] = useState(true)
   const [babies, setBabies] = useState<Baby[]>([])
@@ -128,7 +130,7 @@ export default function BabyProfileScreen({ navigation }: any) {
       setBabies(prev => prev.map(b => b.id === updated.id ? updated : b))
       setEditing(false)
     } catch (err) {
-      setError((err as Error).message || '저장에 실패했어요')
+      setError(extractErrorMessage(err, '저장에 실패했어요'))
     } finally {
       setSaving(false)
     }
@@ -170,7 +172,7 @@ export default function BabyProfileScreen({ navigation }: any) {
               }
               setEditing(false)
             } catch (err) {
-              setError((err as Error).message || '삭제에 실패했어요')
+              setError(extractErrorMessage(err, '삭제에 실패했어요'))
             } finally {
               setDeleting(false)
             }

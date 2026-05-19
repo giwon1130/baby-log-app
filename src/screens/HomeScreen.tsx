@@ -20,9 +20,10 @@ import ErrorBanner from '../components/ErrorBanner'
 import UndoToast, { type UndoAction } from '../components/UndoToast'
 import { parseApiTimestamp, timeUntil, formatDuration as formatSleep, formatAge } from '../utils/dateUtils'
 import type { SleepRecord, TodayStats } from '../types'
+import type { MainTabScreenProps } from '../navigation/types'
 
 import { COLORS } from '../utils/constants'
-export default function HomeScreen({ navigation }: any) {
+export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { babyId, familyId, babyName, daysOld, initialized, loadBaby } = useStoredBaby()
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)

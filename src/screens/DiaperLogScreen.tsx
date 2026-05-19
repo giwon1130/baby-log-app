@@ -20,6 +20,7 @@ import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
 import EditDiaperModal from '../components/EditDiaperModal'
 import { formatTime, timeSince } from '../utils/dateUtils'
+import { extractErrorMessage } from '../utils/errors'
 import { DIAPER_TYPE_LABEL, COLORS } from '../utils/constants'
 import type { DiaperRecord } from '../types'
 
@@ -81,7 +82,7 @@ export default function DiaperLogScreen() {
       setSuccess(`기저귀 교환 기록 완료 (${typeLabel[diaperType] ?? diaperType})`)
       await scheduleDiaperReminder(changedAtIso, babyName)
     } catch (err) {
-      setError((err as Error).message || '기저귀 기록 저장에 실패했어요')
+      setError(extractErrorMessage(err, '기저귀 기록 저장에 실패했어요'))
     } finally {
       setSubmitting(false)
     }
@@ -94,7 +95,7 @@ export default function DiaperLogScreen() {
       setDiapers(prev => prev.map(d => d.id === id ? updated : d))
       setSuccess('기저귀 기록이 수정됐어요')
     } catch (err) {
-      setError((err as Error).message || '수정에 실패했어요')
+      setError(extractErrorMessage(err, '수정에 실패했어요'))
     }
   }
 
@@ -104,7 +105,7 @@ export default function DiaperLogScreen() {
       await deleteDiaper(babyId, diaperId)
       setDiapers(prev => prev.filter(d => d.id !== diaperId))
     } catch (err) {
-      setError((err as Error).message || '삭제에 실패했어요')
+      setError(extractErrorMessage(err, '삭제에 실패했어요'))
     }
   }
 

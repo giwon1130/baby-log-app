@@ -8,6 +8,7 @@ import { useStoredBaby } from '../hooks/useStoredBaby'
 import type { CryLabel, CrySample } from '../types'
 import { CorrectionModal } from '../components/cry/CorrectionModal'
 import { LearningStageBanner } from '../components/cry/LearningStageBanner'
+import { extractErrorMessage } from '../utils/errors'
 
 import { COLORS } from '../utils/constants'
 /**
@@ -28,8 +29,8 @@ export default function CryHistoryScreen() {
     try {
       const data = await getCryHistory(bId, 100)
       setItems(data)
-    } catch (e: any) {
-      Alert.alert('불러오기 실패', e?.message ?? '잠시 후 다시 시도해주세요')
+    } catch (e: unknown) {
+      Alert.alert('불러오기 실패', extractErrorMessage(e, '잠시 후 다시 시도해주세요'))
     }
   }, [])
 
@@ -53,8 +54,8 @@ export default function CryHistoryScreen() {
         const updated = await confirmCrySample(editing.id, label)
         setItems((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
         setEditing(null)
-      } catch (e: any) {
-        Alert.alert('저장 실패', e?.message ?? '다시 시도해주세요')
+      } catch (e: unknown) {
+        Alert.alert('저장 실패', extractErrorMessage(e, '다시 시도해주세요'))
       }
     },
     [editing],

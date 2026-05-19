@@ -19,6 +19,8 @@ import type { CryLabel, CrySample } from '../types'
 import { CorrectionModal } from '../components/cry/CorrectionModal'
 import { LearningStageBanner } from '../components/cry/LearningStageBanner'
 import { ResultView } from '../components/cry/ResultView'
+import type { MainTabScreenProps } from '../navigation/types'
+import { extractErrorMessage } from '../utils/errors'
 
 import { COLORS } from '../utils/constants'
 const RECORD_SECONDS = 5
@@ -34,7 +36,7 @@ type Phase = 'idle' | 'recording' | 'analyzing' | 'result'
  * orchestration (state machine, recording flow, error handling).
  */
 export default function CryMonitorScreen() {
-  const navigation = useNavigation<any>()
+  const navigation = useNavigation<MainTabScreenProps<'CryMonitor'>['navigation']>()
   const { babyId } = useStoredBaby()
   const [phase, setPhase] = useState<Phase>('idle')
   const [countdown, setCountdown] = useState(RECORD_SECONDS)
@@ -91,8 +93,8 @@ export default function CryMonitorScreen() {
     try {
       features = await CryDetector.recordAndAnalyze(RECORD_SECONDS)
       setLastFeatures(features)
-    } catch (e: any) {
-      setError(e?.message ?? '녹음에 실패했어요')
+    } catch (e: unknown) {
+      setError(extractErrorMessage(e, '녹음에 실패했어요'))
       setPhase('idle')
       return
     }
@@ -114,8 +116,8 @@ export default function CryMonitorScreen() {
       })
       setSample(result)
       setPhase('result')
-    } catch (e: any) {
-      setError(e?.message ?? '분석에 실패했어요')
+    } catch (e: unknown) {
+      setError(extractErrorMessage(e, '분석에 실패했어요'))
       setPhase('idle')
     }
   }, [babyId])
@@ -128,8 +130,8 @@ export default function CryMonitorScreen() {
       const updated = await confirmCrySample(sample.id, topLabel)
       setSample(updated)
       Alert.alert('저장됐어요', '다음부터 더 정확해질 거예요 👶')
-    } catch (e: any) {
-      Alert.alert('저장 실패', e?.message ?? '다시 시도해주세요')
+    } catch (e: unknown) {
+      Alert.alert('저장 실패', extractErrorMessage(e, '다시 시도해주세요'))
     }
   }, [sample])
 
@@ -140,8 +142,8 @@ export default function CryMonitorScreen() {
         const updated = await confirmCrySample(sample.id, label)
         setSample(updated)
         setCorrectionModal(false)
-      } catch (e: any) {
-        Alert.alert('저장 실패', e?.message ?? '다시 시도해주세요')
+      } catch (e: unknown) {
+        Alert.alert('저장 실패', extractErrorMessage(e, '다시 시도해주세요'))
       }
     },
     [sample],

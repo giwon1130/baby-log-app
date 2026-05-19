@@ -23,6 +23,7 @@ import {
 import { scheduleDiaperReminder, scheduleFeedNotification } from '../hooks/useFeedNotification'
 import type { SleepRecord } from '../types'
 import type { UndoAction } from './UndoToast'
+import { extractErrorMessage } from '../utils/errors'
 
 import { COLORS } from '../utils/constants'
 type FeedType = 'FORMULA' | 'BREAST' | 'MIXED' // MIXED 는 유축(Expressed)으로 재사용
@@ -101,12 +102,12 @@ export default function QuickActions({
             await deleteFeed(babyId, record.id)
             onRecorded()
           } catch (err) {
-            onError?.((err as Error).message || '되돌리기 실패')
+            onError?.(extractErrorMessage(err, '되돌리기 실패'))
           }
         },
       })
     } catch (err) {
-      onError?.((err as Error).message || '수유 기록에 실패했어요')
+      onError?.(extractErrorMessage(err, '수유 기록에 실패했어요'))
     } finally {
       setLoadingKey(null)
     }
@@ -145,12 +146,12 @@ export default function QuickActions({
             await deleteDiaper(babyId, record.id)
             onRecorded()
           } catch (err) {
-            onError?.((err as Error).message || '되돌리기 실패')
+            onError?.(extractErrorMessage(err, '되돌리기 실패'))
           }
         },
       })
     } catch (err) {
-      onError?.((err as Error).message || '기저귀 기록에 실패했어요')
+      onError?.(extractErrorMessage(err, '기저귀 기록에 실패했어요'))
     } finally {
       setLoadingKey(null)
     }
@@ -163,7 +164,7 @@ export default function QuickActions({
         await endSleep(babyId, activeSleep.id, {})
         onRecorded()
       } catch (err) {
-        onError?.((err as Error).message || '깨우기 실패')
+        onError?.(extractErrorMessage(err, '깨우기 실패'))
       } finally {
         setLoadingKey(null)
       }
@@ -179,12 +180,12 @@ export default function QuickActions({
               await deleteSleep(babyId, record.id)
               onRecorded()
             } catch (err) {
-              onError?.((err as Error).message || '되돌리기 실패')
+              onError?.(extractErrorMessage(err, '되돌리기 실패'))
             }
           },
         })
       } catch (err) {
-        onError?.((err as Error).message || '재우기 실패')
+        onError?.(extractErrorMessage(err, '재우기 실패'))
       } finally {
         setLoadingKey(null)
       }

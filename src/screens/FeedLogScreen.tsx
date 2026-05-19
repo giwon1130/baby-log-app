@@ -21,6 +21,7 @@ import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
 import BreastfeedingTimer from '../components/BreastfeedingTimer'
 import { formatTime } from '../utils/dateUtils'
+import { extractErrorMessage } from '../utils/errors'
 import { FEED_TYPE_LABEL, COLORS } from '../utils/constants'
 import type { FeedRecord } from '../types'
 
@@ -107,7 +108,7 @@ export default function FeedLogScreen() {
       setSuccess(label)
       if (record.nextFeedAt) await scheduleFeedNotification(record.nextFeedAt, babyName, record.fedAt)
     } catch (err) {
-      setError((err as Error).message || '수유 기록 저장에 실패했어요')
+      setError(extractErrorMessage(err, '수유 기록 저장에 실패했어요'))
     } finally {
       setSubmitting(false)
     }
@@ -119,7 +120,7 @@ export default function FeedLogScreen() {
       await deleteFeed(babyId, feedId)
       setFeeds(prev => prev.filter(f => f.id !== feedId))
     } catch (err) {
-      setError((err as Error).message || '삭제에 실패했어요')
+      setError(extractErrorMessage(err, '삭제에 실패했어요'))
     }
   }
 
@@ -129,7 +130,7 @@ export default function FeedLogScreen() {
       const updated = await updateFeed(babyId, feedId, { amountMl, feedType, note, fedAt })
       setFeeds(prev => prev.map(f => f.id === feedId ? updated : f))
     } catch (err) {
-      setError((err as Error).message || '수정에 실패했어요')
+      setError(extractErrorMessage(err, '수정에 실패했어요'))
     }
   }
 

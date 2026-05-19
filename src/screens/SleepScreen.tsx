@@ -18,6 +18,7 @@ import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
 import EditSleepModal from '../components/EditSleepModal'
 import { formatTime, formatDuration } from '../utils/dateUtils'
+import { extractErrorMessage } from '../utils/errors'
 import type { SleepRecord } from '../types'
 
 import { COLORS } from '../utils/constants'
@@ -100,7 +101,7 @@ export default function SleepScreen() {
       setSuccess('수면 기록 시작')
       await reload(babyId)
     } catch (err) {
-      setError((err as Error).message || '수면 시작 기록에 실패했어요')
+      setError(extractErrorMessage(err, '수면 시작 기록에 실패했어요'))
     } finally {
       setSubmitting(false)
     }
@@ -114,7 +115,7 @@ export default function SleepScreen() {
       await reload(babyId)
       if (ended.wokeAt) await scheduleNapReminder(ended.wokeAt, babyName)
     } catch (err) {
-      setError((err as Error).message || '수면 종료 기록에 실패했어요')
+      setError(extractErrorMessage(err, '수면 종료 기록에 실패했어요'))
     } finally {
       setSubmitting(false)
     }
@@ -128,7 +129,7 @@ export default function SleepScreen() {
       if (activeSleep?.id === id) setActiveSleep(updated)
       setSuccess('수면 기록이 수정됐어요')
     } catch (err) {
-      setError((err as Error).message || '수정에 실패했어요')
+      setError(extractErrorMessage(err, '수정에 실패했어요'))
     }
   }
 
@@ -139,7 +140,7 @@ export default function SleepScreen() {
       setRecords(prev => prev.filter(r => r.id !== sleepId))
       if (activeSleep?.id === sleepId) setActiveSleep(null)
     } catch (err) {
-      setError((err as Error).message || '삭제에 실패했어요')
+      setError(extractErrorMessage(err, '삭제에 실패했어요'))
     }
   }
 

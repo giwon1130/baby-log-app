@@ -16,12 +16,14 @@ import { storeFamilyAndBaby } from '../api/client'
 import ErrorBanner from '../components/ErrorBanner'
 import BirthDatePicker from '../components/BirthDatePicker'
 import type { Baby } from '../types'
+import type { RootStackScreenProps } from '../navigation/types'
+import { extractErrorMessage } from '../utils/errors'
 
 import { COLORS } from '../utils/constants'
 type Step = 'choice' | 'create' | 'join' | 'baby' | 'selectBaby'
 
-export default function FamilySetupScreen({ navigation, route }: any) {
-  const params = route?.params as { mode?: 'addBaby'; familyId?: string } | undefined
+export default function FamilySetupScreen({ navigation, route }: RootStackScreenProps<'FamilySetup'>) {
+  const params = route.params
   const [step, setStep] = useState<Step>(params?.mode === 'addBaby' ? 'baby' : 'choice')
   const [inviteCode, setInviteCode] = useState('')
   const [familyId, setFamilyId] = useState(params?.familyId ?? '')
@@ -48,7 +50,7 @@ export default function FamilySetupScreen({ navigation, route }: any) {
       setFamilyId(family.id)
       setStep('baby')
     } catch (err) {
-      setError((err as Error).message || '가족 생성에 실패했어요. 다시 시도해주세요.')
+      setError(extractErrorMessage(err, '가족 생성에 실패했어요. 다시 시도해주세요.'))
     } finally {
       setSubmitting(false)
     }
@@ -73,7 +75,7 @@ export default function FamilySetupScreen({ navigation, route }: any) {
         setStep('baby')
       }
     } catch (err) {
-      setError((err as Error).message || '초대 코드를 찾을 수 없어요. 다시 확인해주세요.')
+      setError(extractErrorMessage(err, '초대 코드를 찾을 수 없어요. 다시 확인해주세요.'))
     } finally {
       setSubmitting(false)
     }
@@ -102,7 +104,7 @@ export default function FamilySetupScreen({ navigation, route }: any) {
         navigation.replace('Main')
       }
     } catch (err) {
-      setError((err as Error).message || '아기 등록에 실패했어요. 다시 시도해주세요.')
+      setError(extractErrorMessage(err, '아기 등록에 실패했어요. 다시 시도해주세요.'))
     } finally {
       setSubmitting(false)
     }

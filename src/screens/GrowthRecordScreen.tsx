@@ -18,6 +18,7 @@ import ErrorBanner from '../components/ErrorBanner'
 import EditGrowthModal from '../components/EditGrowthModal'
 import { formatTime } from '../utils/dateUtils'
 import { ageInMonths, calcPercentile, formatPercentile, percentileColor } from '../utils/whoGrowth'
+import { extractErrorMessage } from '../utils/errors'
 import type { Baby, GrowthRecord } from '../types'
 
 import { COLORS } from '../utils/constants'
@@ -98,7 +99,7 @@ export default function GrowthRecordScreen() {
       setHeadCm('')
       setNote('')
     } catch (err) {
-      setError((err as Error).message || '성장 기록 저장에 실패했어요')
+      setError(extractErrorMessage(err, '성장 기록 저장에 실패했어요'))
     } finally {
       setSubmitting(false)
     }
@@ -110,7 +111,7 @@ export default function GrowthRecordScreen() {
       const updated = await updateGrowthRecord(babyId, id, data)
       setRecords(prev => prev.map(r => r.id === id ? updated : r))
     } catch (err) {
-      setError((err as Error).message || '수정에 실패했어요')
+      setError(extractErrorMessage(err, '수정에 실패했어요'))
     }
   }
 
@@ -120,7 +121,7 @@ export default function GrowthRecordScreen() {
       await deleteGrowthRecord(babyId, recordId)
       setRecords(prev => prev.filter(r => r.id !== recordId))
     } catch (err) {
-      setError((err as Error).message || '삭제에 실패했어요')
+      setError(extractErrorMessage(err, '삭제에 실패했어요'))
     }
   }
 
