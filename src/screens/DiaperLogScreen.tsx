@@ -21,7 +21,7 @@ import SuccessToast from '../components/SuccessToast'
 import EditDiaperModal from '../components/EditDiaperModal'
 import { formatTime, timeSince } from '../utils/dateUtils'
 import { extractErrorMessage } from '../utils/errors'
-import { DIAPER_TYPE_LABEL, COLORS, NEUTRALS } from '../utils/constants'
+import { DIAPER_TYPE_LABEL, COLORS, NEUTRALS, FONT } from '../utils/constants'
 import type { DiaperRecord } from '../types'
 
 const DIAPER_TYPES = ['WET', 'DIRTY', 'MIXED', 'DRY'] as const
@@ -180,17 +180,17 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primaryBg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   form: { backgroundColor: NEUTRALS.white, padding: 20, gap: 10, borderBottomWidth: 1, borderBottomColor: NEUTRALS.gray100 },
-  formTitle: { fontSize: 16, fontWeight: '700', color: NEUTRALS.ink },
-  label: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600' },
+  formTitle: { fontSize: FONT.h4, fontWeight: '700', color: NEUTRALS.ink },
+  label: { fontSize: FONT.label, color: NEUTRALS.gray600, fontWeight: '600' },
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   typeChip: { flex: 1, minWidth: '45%', paddingVertical: 12, borderRadius: 12, backgroundColor: NEUTRALS.gray50, alignItems: 'center' },
   typeChipActive: { backgroundColor: COLORS.primary },
-  typeChipText: { fontSize: 14, color: NEUTRALS.gray700, fontWeight: '600' },
+  typeChipText: { fontSize: FONT.bodyMd, color: NEUTRALS.gray700, fontWeight: '600' },
   typeChipTextActive: { color: NEUTRALS.white },
-  input: { borderWidth: 1, borderColor: NEUTRALS.gray200, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14 },
+  input: { borderWidth: 1, borderColor: NEUTRALS.gray200, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: FONT.bodyMd },
   submitButton: { backgroundColor: COLORS.primary, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
   submitButtonDisabled: { backgroundColor: COLORS.primaryDisabled },
-  submitButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 15 },
+  submitButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: FONT.body },
   listContent: { padding: 16, gap: 10 },
   recordItem: {
     flex: 1,
@@ -200,10 +200,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  recordType: { fontSize: 16, fontWeight: '700', color: NEUTRALS.ink },
+  recordType: { fontSize: FONT.h4, fontWeight: '700', color: NEUTRALS.ink },
   recordRight: { alignItems: 'flex-end', gap: 2 },
-  recordTime: { fontSize: 13, color: NEUTRALS.gray750 },
-  recordAgo: { fontSize: 12, color: NEUTRALS.gray450 },
-  recordNote: { fontSize: 11, color: NEUTRALS.gray400, marginTop: 2 },
+  recordTime: { fontSize: FONT.bodySm, color: NEUTRALS.gray750 },
+  recordAgo: { fontSize: FONT.label, color: NEUTRALS.gray450 },
+  recordNote: { fontSize: FONT.caption, color: NEUTRALS.gray400, marginTop: 2 },
   empty: { textAlign: 'center', color: NEUTRALS.gray400, marginTop: 40 },
 })

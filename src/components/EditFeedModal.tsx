@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native'
 import TimeOffsetPicker from './TimeOffsetPicker'
-import { FEED_TYPE_LABEL, COLORS, NEUTRALS } from '../utils/constants'
+import { FEED_TYPE_LABEL, COLORS, NEUTRALS, FONT } from '../utils/constants'
 import type { FeedRecord } from '../types'
 
 const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
@@ -148,19 +148,19 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 8,
   },
-  title: { fontSize: 17, fontWeight: '700', color: NEUTRALS.ink, marginBottom: 4 },
-  label: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600' },
+  title: { fontSize: FONT.h3, fontWeight: '700', color: NEUTRALS.ink, marginBottom: 4 },
+  label: { fontSize: FONT.label, color: NEUTRALS.gray600, fontWeight: '600' },
   quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   quickChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: NEUTRALS.gray50 },
   quickChipActive: { backgroundColor: COLORS.primary },
-  quickChipText: { fontSize: 13, color: NEUTRALS.gray700, fontWeight: '600' },
+  quickChipText: { fontSize: FONT.bodySm, color: NEUTRALS.gray700, fontWeight: '600' },
   quickChipTextActive: { color: NEUTRALS.white },
   typeRow: { flexDirection: 'row', gap: 8 },
   typeChip: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: NEUTRALS.gray50, alignItems: 'center' },
   typeChipActive: { backgroundColor: COLORS.primary },
-  typeChipText: { fontSize: 13, color: NEUTRALS.gray700, fontWeight: '600' },
+  typeChipText: { fontSize: FONT.bodySm, color: NEUTRALS.gray700, fontWeight: '600' },
   typeChipTextActive: { color: NEUTRALS.white },
-  input: { borderWidth: 1, borderColor: NEUTRALS.gray200, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14 },
+  input: { borderWidth: 1, borderColor: NEUTRALS.gray200, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: FONT.bodyMd },
   buttons: { flexDirection: 'row', gap: 12, marginTop: 4 },
   cancelButton: {
     flex: 1,
@@ -170,8 +170,8 @@ const styles = StyleSheet.create({
     borderColor: NEUTRALS.gray250,
     alignItems: 'center',
   },
-  cancelButtonText: { color: NEUTRALS.gray600, fontWeight: '600', fontSize: 15 },
+  cancelButtonText: { color: NEUTRALS.gray600, fontWeight: '600', fontSize: FONT.body },
   saveButton: { flex: 2, paddingVertical: 13, borderRadius: 12, backgroundColor: COLORS.primary, alignItems: 'center' },
   saveButtonDisabled: { backgroundColor: COLORS.primaryDisabled },
-  saveButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 15 },
+  saveButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: FONT.body },
 })

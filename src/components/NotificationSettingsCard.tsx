@@ -8,7 +8,7 @@ import {
   getNapReminderHours, setNapReminderHours,
   getFeedIntervalOverride, setFeedIntervalOverride,
 } from '../utils/notifications'
-import { COLORS, NEUTRALS } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 
 /**
  * 알림 설정 카드 — 수유 / 기저귀 / 낮잠 3가지.
@@ -154,10 +154,10 @@ const styles = StyleSheet.create({
     elevation: 2,
     gap: 12,
   },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: NEUTRALS.ink },
+  sectionTitle: { fontSize: FONT.bodyMd, fontWeight: '700', color: NEUTRALS.ink },
   notifRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  notifTitle: { fontSize: 13, fontWeight: '600', color: NEUTRALS.gray800 },
-  notifDesc: { fontSize: 12, color: NEUTRALS.gray450, marginTop: 2 },
+  notifTitle: { fontSize: FONT.bodySm, fontWeight: '600', color: NEUTRALS.gray800 },
+  notifDesc: { fontSize: FONT.label, color: NEUTRALS.gray450, marginTop: 2 },
   hourPicker: { flexDirection: 'row', gap: 6, marginTop: 8 },
   hourChip: {
     paddingHorizontal: 10,
@@ -166,6 +166,6 @@ const styles = StyleSheet.create({
     backgroundColor: NEUTRALS.gray50,
   },
   hourChipActive: { backgroundColor: COLORS.primary },
-  hourChipText: { fontSize: 12, color: NEUTRALS.gray650, fontWeight: '600' },
+  hourChipText: { fontSize: FONT.label, color: NEUTRALS.gray650, fontWeight: '600' },
   hourChipTextActive: { color: NEUTRALS.white },
 })

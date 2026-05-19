@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { COLORS, NEUTRALS } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 import {
   Modal,
   StyleSheet,
@@ -136,8 +136,8 @@ const styles = StyleSheet.create({
     gap: 16,
     paddingBottom: 40,
   },
-  title: { fontSize: 18, fontWeight: '700', color: NEUTRALS.ink, textAlign: 'center' },
-  subtitle: { fontSize: 13, color: NEUTRALS.gray450, textAlign: 'center', marginTop: -8 },
+  title: { fontSize: FONT.h2, fontWeight: '700', color: NEUTRALS.ink, textAlign: 'center' },
+  subtitle: { fontSize: FONT.bodySm, color: NEUTRALS.gray450, textAlign: 'center', marginTop: -8 },
   sides: { flexDirection: 'row', gap: 16 },
   sideBtn: {
     flex: 1,
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   sideBtnActive: { backgroundColor: COLORS.primary },
-  sideLabel: { fontSize: 14, fontWeight: '600', color: NEUTRALS.gray600 },
+  sideLabel: { fontSize: FONT.bodyMd, fontWeight: '600', color: NEUTRALS.gray600 },
   sideLabelActive: { color: 'rgba(255,255,255,0.85)' },
   sideTime: { fontSize: 32, fontWeight: '800', color: NEUTRALS.ink, fontVariant: ['tabular-nums'] },
   sideTimeActive: { color: NEUTRALS.white },
@@ -160,7 +160,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.7)',
   },
   totalTime: {
-    fontSize: 15,
+    fontSize: FONT.body,
     color: NEUTRALS.gray650,
     textAlign: 'center',
     fontWeight: '600',
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     backgroundColor: NEUTRALS.gray50,
     alignItems: 'center',
   },
-  cancelBtnText: { fontSize: 15, color: NEUTRALS.gray700, fontWeight: '600' },
+  cancelBtnText: { fontSize: FONT.body, color: NEUTRALS.gray700, fontWeight: '600' },
   completeBtn: {
     flex: 2,
     paddingVertical: 14,
@@ -182,5 +182,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   completeBtnDisabled: { backgroundColor: COLORS.primaryDisabled },
-  completeBtnText: { fontSize: 15, color: NEUTRALS.white, fontWeight: '700' },
+  completeBtnText: { fontSize: FONT.body, color: NEUTRALS.white, fontWeight: '700' },
 })

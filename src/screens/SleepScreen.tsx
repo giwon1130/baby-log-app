@@ -21,7 +21,7 @@ import { formatTime, formatDuration } from '../utils/dateUtils'
 import { extractErrorMessage } from '../utils/errors'
 import type { SleepRecord } from '../types'
 
-import { COLORS, NEUTRALS } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 function calcElapsed(iso: string, now: number): string {
   const totalSecs = Math.floor((now - new Date(iso).getTime()) / 1000)
   const h = Math.floor(totalSecs / 3600)
@@ -239,10 +239,10 @@ const styles = StyleSheet.create({
   },
   sleepingIndicator: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   sleepingEmoji: { fontSize: 40 },
-  sleepingTitle: { fontSize: 20, fontWeight: '700', color: NEUTRALS.ink },
-  sleepingTime: { fontSize: 14, color: NEUTRALS.gray600, marginTop: 2 },
-  awakeTitle: { fontSize: 20, fontWeight: '700', color: NEUTRALS.ink },
-  awakeDesc: { fontSize: 14, color: NEUTRALS.gray450 },
+  sleepingTitle: { fontSize: FONT.h1, fontWeight: '700', color: NEUTRALS.ink },
+  sleepingTime: { fontSize: FONT.bodyMd, color: NEUTRALS.gray600, marginTop: 2 },
+  awakeTitle: { fontSize: FONT.h1, fontWeight: '700', color: NEUTRALS.ink },
+  awakeDesc: { fontSize: FONT.bodyMd, color: NEUTRALS.gray450 },
   actionButton: {
     borderRadius: 14,
     paddingVertical: 14,
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   },
   sleepButton: { backgroundColor: COLORS.sleep },
   wakeButton: { backgroundColor: COLORS.amber },
-  actionButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 16 },
+  actionButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: FONT.h4 },
   listContent: { paddingHorizontal: 16, gap: 10, paddingBottom: 16 },
   recordItem: {
     flex: 1,
@@ -260,10 +260,10 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  recordSlept: { fontSize: 13, color: NEUTRALS.gray750 },
-  recordWoke: { fontSize: 13, color: NEUTRALS.gray600, marginTop: 2 },
+  recordSlept: { fontSize: FONT.bodySm, color: NEUTRALS.gray750 },
+  recordWoke: { fontSize: FONT.bodySm, color: NEUTRALS.gray600, marginTop: 2 },
   recordRight: { alignItems: 'flex-end' },
-  duration: { fontSize: 16, fontWeight: '700', color: COLORS.sleep },
-  ongoing: { fontSize: 13, color: COLORS.amber, fontWeight: '600' },
+  duration: { fontSize: FONT.h4, fontWeight: '700', color: COLORS.sleep },
+  ongoing: { fontSize: FONT.bodySm, color: COLORS.amber, fontWeight: '600' },
   empty: { textAlign: 'center', color: NEUTRALS.gray400, marginTop: 40 },
 })

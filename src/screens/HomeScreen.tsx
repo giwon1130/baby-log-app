@@ -22,7 +22,7 @@ import { parseApiTimestamp, timeUntil, formatDuration as formatSleep, formatAge 
 import type { SleepRecord, TodayStats } from '../types'
 import type { MainTabScreenProps } from '../navigation/types'
 
-import { COLORS, NEUTRALS } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { babyId, familyId, babyName, daysOld, initialized, loadBaby } = useStoredBaby()
   const [loading, setLoading] = useState(true)
@@ -239,25 +239,25 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   babyCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  babyCardName: { fontSize: 22, fontWeight: '800', color: NEUTRALS.white },
-  babyCardAge: { fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
+  babyCardName: { fontSize: FONT.hero, fontWeight: '800', color: NEUTRALS.white },
+  babyCardAge: { fontSize: FONT.bodyMd, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
   babyCardEmoji: { fontSize: 36 },
   cardLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardLabel: { fontSize: 12, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  shareBtn: { fontSize: 12, color: COLORS.primary, fontWeight: '600' },
+  cardLabel: { fontSize: FONT.label, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  shareBtn: { fontSize: FONT.label, color: COLORS.primary, fontWeight: '600' },
   statsGrid: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 4 },
   statItem: { alignItems: 'center', gap: 4 },
   statEmoji: { fontSize: 24 },
-  statValue: { fontSize: 16, fontWeight: '700', color: NEUTRALS.ink },
-  statSub: { fontSize: 12, color: NEUTRALS.gray450 },
+  statValue: { fontSize: FONT.h4, fontWeight: '700', color: NEUTRALS.ink },
+  statSub: { fontSize: FONT.label, color: NEUTRALS.gray450 },
   nextFeedHint: { marginTop: 10, color: COLORS.primary, fontWeight: '700', textAlign: 'center' },
   nextFeedReady: { color: COLORS.success },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: NEUTRALS.gray750 },
+  emptyTitle: { fontSize: FONT.h2, fontWeight: '600', color: NEUTRALS.gray750 },
   primaryButton: {
     backgroundColor: COLORS.primary,
     borderRadius: 12,
     paddingHorizontal: 32,
     paddingVertical: 14,
   },
-  primaryButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 16 },
+  primaryButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: FONT.h4 },
 })

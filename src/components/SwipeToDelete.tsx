@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { NEUTRALS } from '../utils/constants'
+import { NEUTRALS, FONT } from '../utils/constants'
 
 type Props = {
   children: React.ReactNode
@@ -46,5 +46,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minWidth: 56,
   },
-  deleteText: { color: NEUTRALS.white, fontSize: 12, fontWeight: '700' },
+  deleteText: { color: NEUTRALS.white, fontSize: FONT.label, fontWeight: '700' },
 })

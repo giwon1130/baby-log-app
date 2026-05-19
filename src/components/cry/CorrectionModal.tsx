@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons'
 import type { CryLabel } from '../../types'
 import { LABEL_OPTIONS } from '../../utils/cryFeatures'
 
-import { COLORS, NEUTRALS } from '../../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../../utils/constants'
 /** Bottom-sheet modal where the parent picks the actual cry reason. */
 export function CorrectionModal({
   visible,
@@ -49,8 +49,8 @@ const styles = StyleSheet.create({
     gap: 4,
     paddingBottom: 36,
   },
-  title: { fontSize: 18, fontWeight: '700', color: NEUTRALS.gray850 },
-  sub: { fontSize: 13, color: NEUTRALS.gray600, marginBottom: 12 },
+  title: { fontSize: FONT.h2, fontWeight: '700', color: NEUTRALS.gray850 },
+  sub: { fontSize: FONT.bodySm, color: NEUTRALS.gray600, marginBottom: 12 },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -59,5 +59,5 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: NEUTRALS.gray150,
   },
-  optionText: { flex: 1, fontSize: 16, color: NEUTRALS.gray850 },
+  optionText: { flex: 1, fontSize: FONT.h4, color: NEUTRALS.gray850 },
 })

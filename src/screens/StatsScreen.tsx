@@ -15,7 +15,7 @@ import { useStoredBaby } from '../hooks/useStoredBaby'
 import { formatDuration } from '../utils/dateUtils'
 import type { WeeklyStats } from '../types'
 
-import { COLORS, NEUTRALS } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 const SCREEN_WIDTH = Dimensions.get('window').width
 const CHART_WIDTH = SCREEN_WIDTH - 32
 
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primaryBg },
   content: { padding: 16, gap: 12, paddingBottom: 32 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { color: NEUTRALS.gray400, fontSize: 15 },
+  emptyText: { color: NEUTRALS.gray400, fontSize: FONT.body },
   summaryCard: {
     backgroundColor: NEUTRALS.white,
     borderRadius: 16,
@@ -241,21 +241,21 @@ const styles = StyleSheet.create({
     elevation: 2,
     gap: 8,
   },
-  cardLabel: { fontSize: 13, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  cardLabel: { fontSize: FONT.bodySm, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   summaryRow: { flexDirection: 'row', alignItems: 'center' },
   summaryItem: { flex: 1, alignItems: 'center', gap: 4 },
-  summaryValue: { fontSize: 18, fontWeight: '700', color: NEUTRALS.ink },
-  summaryLabel: { fontSize: 11, color: NEUTRALS.gray450 },
+  summaryValue: { fontSize: FONT.h2, fontWeight: '700', color: NEUTRALS.ink },
+  summaryLabel: { fontSize: FONT.caption, color: NEUTRALS.gray450 },
   summaryDivider: { width: 1, height: 36, backgroundColor: NEUTRALS.gray100 },
   chart: { borderRadius: 8, marginTop: 4 },
   sleepDetail: { gap: 6, marginTop: 4 },
   sleepDetailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 },
-  sleepDetailDate: { fontSize: 13, color: NEUTRALS.gray600 },
-  sleepDetailValue: { fontSize: 13, color: COLORS.sleep, fontWeight: '600' },
+  sleepDetailDate: { fontSize: FONT.bodySm, color: NEUTRALS.gray600 },
+  sleepDetailValue: { fontSize: FONT.bodySm, color: COLORS.sleep, fontWeight: '600' },
   trendRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   trendChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   trendUp: { backgroundColor: '#E8F5E9' },
   trendDown: { backgroundColor: '#FFF3E0' },
-  trendChipText: { fontSize: 13, fontWeight: '600', color: NEUTRALS.gray800 },
-  trendStable: { fontSize: 13, color: COLORS.success, fontWeight: '600' },
+  trendChipText: { fontSize: FONT.bodySm, fontWeight: '600', color: NEUTRALS.gray800 },
+  trendStable: { fontSize: FONT.bodySm, color: COLORS.success, fontWeight: '600' },
 })

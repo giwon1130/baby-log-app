@@ -19,7 +19,7 @@ import type { Baby } from '../types'
 import type { RootStackScreenProps } from '../navigation/types'
 import { extractErrorMessage } from '../utils/errors'
 
-import { COLORS, NEUTRALS } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 type Step = 'choice' | 'create' | 'join' | 'baby' | 'selectBaby'
 
 export default function FamilySetupScreen({ navigation, route }: RootStackScreenProps<'FamilySetup'>) {
@@ -279,16 +279,16 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   logo: { fontSize: 56, textAlign: 'center' },
-  title: { fontSize: 28, fontWeight: '800', color: NEUTRALS.ink, textAlign: 'center' },
-  subtitle: { fontSize: 15, color: NEUTRALS.gray600, textAlign: 'center', marginBottom: 12 },
-  label: { fontSize: 13, fontWeight: '600', color: NEUTRALS.gray700, marginTop: 4 },
+  title: { fontSize: FONT.display, fontWeight: '800', color: NEUTRALS.ink, textAlign: 'center' },
+  subtitle: { fontSize: FONT.body, color: NEUTRALS.gray600, textAlign: 'center', marginBottom: 12 },
+  label: { fontSize: FONT.bodySm, fontWeight: '600', color: NEUTRALS.gray700, marginTop: 4 },
   input: {
     borderWidth: 1,
     borderColor: NEUTRALS.gray200,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    fontSize: 15,
+    fontSize: FONT.body,
     backgroundColor: NEUTRALS.white,
   },
   inputValid: { borderColor: COLORS.primary },
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     borderRadius: 16,
     paddingVertical: 16,
-    fontSize: 28,
+    fontSize: FONT.display,
     fontWeight: '800',
     letterSpacing: 6,
     color: COLORS.primary,
@@ -312,7 +312,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   genderChipActive: { backgroundColor: COLORS.primary },
-  genderChipText: { fontSize: 15, fontWeight: '600', color: NEUTRALS.gray700 },
+  genderChipText: { fontSize: FONT.body, fontWeight: '600', color: NEUTRALS.gray700 },
   genderChipTextActive: { color: NEUTRALS.white },
   primaryButton: {
     backgroundColor: COLORS.primary,
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   buttonDisabled: { backgroundColor: COLORS.primaryDisabled },
-  primaryButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 16 },
+  primaryButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: FONT.h4 },
   secondaryButton: {
     borderWidth: 1.5,
     borderColor: COLORS.primary,
@@ -330,8 +330,8 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
   },
-  secondaryButtonText: { color: COLORS.primary, fontWeight: '600', fontSize: 15 },
-  backText: { color: NEUTRALS.gray450, textAlign: 'center', marginTop: 8, fontSize: 14 },
+  secondaryButtonText: { color: COLORS.primary, fontWeight: '600', fontSize: FONT.body },
+  backText: { color: NEUTRALS.gray450, textAlign: 'center', marginTop: 8, fontSize: FONT.bodyMd },
   babyOption: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -343,6 +343,6 @@ const styles = StyleSheet.create({
     borderColor: NEUTRALS.gray100,
   },
   babyOptionEmoji: { fontSize: 32 },
-  babyOptionName: { fontSize: 16, fontWeight: '700', color: NEUTRALS.ink },
-  babyOptionMeta: { fontSize: 12, color: NEUTRALS.gray450, marginTop: 2 },
+  babyOptionName: { fontSize: FONT.h4, fontWeight: '700', color: NEUTRALS.ink },
+  babyOptionMeta: { fontSize: FONT.label, color: NEUTRALS.gray450, marginTop: 2 },
 })

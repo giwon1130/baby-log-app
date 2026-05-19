@@ -1,7 +1,7 @@
 import React from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
-import { COLORS, NEUTRALS } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 export type DateFilterValue = 'today' | 'yesterday' | 'all'
 
 const OPTIONS: { label: string; value: DateFilterValue }[] = [
@@ -63,6 +63,6 @@ const styles = StyleSheet.create({
     backgroundColor: NEUTRALS.gray50,
   },
   chipActive: { backgroundColor: COLORS.primary },
-  chipText: { fontSize: 13, color: NEUTRALS.gray650, fontWeight: '600' },
+  chipText: { fontSize: FONT.bodySm, color: NEUTRALS.gray650, fontWeight: '600' },
   chipTextActive: { color: NEUTRALS.white },
 })

@@ -1,7 +1,7 @@
 import React from 'react'
 import { Dimensions, StyleSheet, Text, View } from 'react-native'
 import { LineChart } from 'react-native-chart-kit'
-import { COLORS, NEUTRALS } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 import type { GrowthRecord } from '../types'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
@@ -92,6 +92,6 @@ const styles = StyleSheet.create({
     elevation: 2,
     gap: 6,
   },
-  chartLabel: { fontSize: 12, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  chartLabel: { fontSize: FONT.label, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   chart: { borderRadius: 8 },
 })

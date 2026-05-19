@@ -6,7 +6,7 @@ import {
 import TimeOffsetPicker from './TimeOffsetPicker'
 import type { SleepRecord } from '../types'
 
-import { COLORS, NEUTRALS } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 type Props = {
   record: SleepRecord | null
   onClose: () => void
@@ -101,19 +101,19 @@ const styles = StyleSheet.create({
     width: 40, height: 4, borderRadius: 2,
     backgroundColor: NEUTRALS.gray250, alignSelf: 'center', marginBottom: 8,
   },
-  title: { fontSize: 17, fontWeight: '700', color: NEUTRALS.ink, marginBottom: 12 },
-  label: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600', marginBottom: 4 },
+  title: { fontSize: FONT.h3, fontWeight: '700', color: NEUTRALS.ink, marginBottom: 12 },
+  label: { fontSize: FONT.label, color: NEUTRALS.gray600, fontWeight: '600', marginBottom: 4 },
   input: {
     borderWidth: 1, borderColor: NEUTRALS.gray200, borderRadius: 10,
-    paddingHorizontal: 14, paddingVertical: 10, fontSize: 14,
+    paddingHorizontal: 14, paddingVertical: 10, fontSize: FONT.bodyMd,
   },
   buttons: { flexDirection: 'row', gap: 12, marginTop: 12 },
   cancelButton: {
     flex: 1, paddingVertical: 13, borderRadius: 12,
     borderWidth: 1.5, borderColor: NEUTRALS.gray250, alignItems: 'center',
   },
-  cancelButtonText: { color: NEUTRALS.gray600, fontWeight: '600', fontSize: 15 },
+  cancelButtonText: { color: NEUTRALS.gray600, fontWeight: '600', fontSize: FONT.body },
   saveButton: { flex: 2, paddingVertical: 13, borderRadius: 12, backgroundColor: COLORS.sleep, alignItems: 'center' },
   saveButtonDisabled: { backgroundColor: '#9fa8da' },
-  saveButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 15 },
+  saveButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: FONT.body },
 })

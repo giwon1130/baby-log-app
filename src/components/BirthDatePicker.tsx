@@ -9,7 +9,7 @@ import {
 } from 'react-native'
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker'
 
-import { COLORS, NEUTRALS } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 type Props = {
   value: Date
   onChange: (date: Date) => void
@@ -103,8 +103,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     backgroundColor: '#fff8fb',
   },
-  triggerText: { fontSize: 16, fontWeight: '600', color: NEUTRALS.ink },
-  triggerIcon: { fontSize: 18 },
+  triggerText: { fontSize: FONT.h4, fontWeight: '600', color: NEUTRALS.ink },
+  triggerIcon: { fontSize: FONT.h2 },
   overlay: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.35)' },
   sheet: {
@@ -122,8 +122,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: NEUTRALS.gray100,
   },
-  sheetTitle: { fontSize: 15, fontWeight: '700', color: NEUTRALS.ink },
-  cancelText: { fontSize: 15, color: NEUTRALS.gray450 },
-  doneText: { fontSize: 15, fontWeight: '700', color: COLORS.primary },
+  sheetTitle: { fontSize: FONT.body, fontWeight: '700', color: NEUTRALS.ink },
+  cancelText: { fontSize: FONT.body, color: NEUTRALS.gray450 },
+  doneText: { fontSize: FONT.body, fontWeight: '700', color: COLORS.primary },
   picker: { height: 200 },
 })

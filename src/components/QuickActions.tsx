@@ -17,7 +17,7 @@ import { scheduleDiaperReminder } from '../utils/notifications'
 import type { SleepRecord } from '../types'
 import type { UndoAction } from './UndoToast'
 import { extractErrorMessage } from '../utils/errors'
-import { COLORS, NEUTRALS } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 import QuickFeed from './QuickFeed'
 
 const QUICK_DIAPERS: { type: string; label: string }[] = [
@@ -183,13 +183,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionLabel: {
-    fontSize: 12,
+    fontSize: FONT.label,
     color: NEUTRALS.gray500,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  subLabel: { fontSize: 11, color: NEUTRALS.gray400, fontWeight: '600', marginTop: 4 },
+  subLabel: { fontSize: FONT.caption, color: NEUTRALS.gray400, fontWeight: '600', marginTop: 4 },
   row: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   diaperBtn: {
     width: 48,
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  diaperBtnText: { fontSize: 22 },
+  diaperBtnText: { fontSize: FONT.hero },
   sleepBtn: {
     paddingVertical: 12,
     borderRadius: 12,
@@ -207,6 +207,6 @@ const styles = StyleSheet.create({
   },
   sleepBtnIdle: { backgroundColor: COLORS.sleep },
   sleepBtnActive: { backgroundColor: '#FF9800' },
-  sleepBtnText: { color: NEUTRALS.white, fontSize: 15, fontWeight: '700' },
+  sleepBtnText: { color: NEUTRALS.white, fontSize: FONT.body, fontWeight: '700' },
   btnLoading: { opacity: 0.6 },
 })

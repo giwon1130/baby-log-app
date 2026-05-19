@@ -4,7 +4,7 @@ import FeedLogScreen from './FeedLogScreen'
 import DiaperLogScreen from './DiaperLogScreen'
 import SleepScreen from './SleepScreen'
 
-import { COLORS, NEUTRALS } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 type LogTab = 'feed' | 'diaper' | 'sleep'
 
 const TABS: { key: LogTab; label: string }[] = [
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     marginBottom: -1,
   },
   tabActive: { borderBottomColor: COLORS.primary },
-  tabText: { fontSize: 14, color: NEUTRALS.gray450, fontWeight: '600' },
+  tabText: { fontSize: FONT.bodyMd, color: NEUTRALS.gray450, fontWeight: '600' },
   tabTextActive: { color: COLORS.primary },
   content: { flex: 1 },
 })

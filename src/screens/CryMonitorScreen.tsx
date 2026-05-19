@@ -22,7 +22,7 @@ import { ResultView } from '../components/cry/ResultView'
 import type { MainTabScreenProps } from '../navigation/types'
 import { extractErrorMessage } from '../utils/errors'
 
-import { COLORS, NEUTRALS } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 const RECORD_SECONDS = 5
 
 type Phase = 'idle' | 'recording' | 'analyzing' | 'result'
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primaryBg },
   content: { padding: 16, gap: 12, paddingBottom: 32 },
   centerBox: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
-  unsupported: { fontSize: 16, color: NEUTRALS.gray650 },
+  unsupported: { fontSize: FONT.h4, color: NEUTRALS.gray650 },
 
   heroCard: {
     backgroundColor: NEUTRALS.white,
@@ -261,9 +261,9 @@ const styles = StyleSheet.create({
     minHeight: 220,
     justifyContent: 'center',
   },
-  heroTitle: { fontSize: 22, fontWeight: '700', color: NEUTRALS.gray850 },
-  heroSub: { fontSize: 14, color: NEUTRALS.gray650, textAlign: 'center', lineHeight: 20 },
-  heroHint: { fontSize: 12, color: NEUTRALS.gray600, textAlign: 'center', lineHeight: 18, marginTop: 4 },
+  heroTitle: { fontSize: FONT.hero, fontWeight: '700', color: NEUTRALS.gray850 },
+  heroSub: { fontSize: FONT.bodyMd, color: NEUTRALS.gray650, textAlign: 'center', lineHeight: 20 },
+  heroHint: { fontSize: FONT.label, color: NEUTRALS.gray600, textAlign: 'center', lineHeight: 18, marginTop: 4 },
 
   pulseRing: {
     width: 80,
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
   },
-  errorText: { color: '#D64545', flex: 1, fontSize: 13 },
+  errorText: { color: '#D64545', flex: 1, fontSize: FONT.bodySm },
 
   button: {
     flexDirection: 'row',
@@ -296,7 +296,7 @@ const styles = StyleSheet.create({
   },
   primaryButton: { backgroundColor: COLORS.primary },
   secondaryButton: { backgroundColor: NEUTRALS.gray700 },
-  buttonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 16 },
+  buttonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: FONT.h4 },
 
   linkButton: {
     flexDirection: 'row',
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     marginTop: 4,
   },
-  linkButtonText: { color: COLORS.primary, fontWeight: '600', fontSize: 14 },
+  linkButtonText: { color: COLORS.primary, fontWeight: '600', fontSize: FONT.bodyMd },
 
-  footnote: { color: NEUTRALS.gray600, fontSize: 11, textAlign: 'center', marginTop: 8, lineHeight: 16 },
+  footnote: { color: NEUTRALS.gray600, fontSize: FONT.caption, textAlign: 'center', marginTop: 8, lineHeight: 16 },
 })

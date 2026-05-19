@@ -10,6 +10,25 @@ export const COLORS = {
 } as const
 
 /**
+ * Typography scale. fontSize 만 토큰화(fontWeight/lineHeight 은 기존 그대로).
+ * 추후 lineHeight 등 typography 시스템 확장 시 객체로 키울 수 있음.
+ */
+export const FONT = {
+  display: 28,    // 아바타·큰 강조 (4회)
+  hero: 22,       // 화면 hero (4회)
+  h1: 20,         // 헤딩 큰 (4회)
+  h2: 18,         // 헤딩 (8회)
+  h3: 17,         // 헤딩 작은 (4회)
+  h4: 16,         // 섹션 헤딩 (17회)
+  body: 15,       // 본문 큰 / 버튼 (26회)
+  bodyMd: 14,     // 본문 (30회)
+  bodySm: 13,     // 본문 작은 (34회)
+  label: 12,      // 라벨 — 가장 흔함 (36회)
+  caption: 11,    // caption (17회)
+  micro: 10,      // 매우 작음 / uppercase 라벨 (3회)
+} as const
+
+/**
  * Neutral gray scale. hex 값을 그대로 보존(1:1 매핑)하면서 의미적 이름 부여.
  * 다크모드 도입 시 이 한 곳만 바꾸면 됨.
  * 스케일은 hex 가 어두워질수록 숫자 증가.

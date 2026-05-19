@@ -13,7 +13,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { deleteFeed, recordFeed } from '../api/babyLogApi'
 import { scheduleFeedNotification } from '../utils/notifications'
-import { COLORS, NEUTRALS } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 import { extractErrorMessage } from '../utils/errors'
 import type { UndoAction } from './UndoToast'
 
@@ -248,7 +248,7 @@ function labelForType(t: FeedType): string {
 }
 
 const styles = StyleSheet.create({
-  subLabel: { fontSize: 11, color: NEUTRALS.gray400, fontWeight: '600', marginTop: 4 },
+  subLabel: { fontSize: FONT.caption, color: NEUTRALS.gray400, fontWeight: '600', marginTop: 4 },
   typeTabs: { flexDirection: 'row', gap: 6 },
   typeTab: {
     paddingHorizontal: 12,
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primarySurface,
   },
   typeTabActive: { backgroundColor: COLORS.primary },
-  typeTabText: { fontSize: 12, fontWeight: '700', color: COLORS.primary },
+  typeTabText: { fontSize: FONT.label, fontWeight: '700', color: COLORS.primary },
   typeTabTextActive: { color: NEUTRALS.white },
   row: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   feedBtn: {
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     minWidth: 52,
     alignItems: 'center',
   },
-  feedBtnText: { color: NEUTRALS.white, fontSize: 13, fontWeight: '700' },
+  feedBtnText: { color: NEUTRALS.white, fontSize: FONT.bodySm, fontWeight: '700' },
   feedBtnRecent: { borderWidth: 2, borderColor: '#FFC107' },
   customBtn: {
     paddingHorizontal: 14,
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
     alignItems: 'center',
   },
-  customBtnText: { color: COLORS.primary, fontSize: 12, fontWeight: '700' },
+  customBtnText: { color: COLORS.primary, fontSize: FONT.label, fontWeight: '700' },
   btnLoading: { opacity: 0.6 },
   modalBackdrop: {
     flex: 1,
@@ -296,14 +296,14 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 12,
   },
-  modalTitle: { fontSize: 16, fontWeight: '700', color: NEUTRALS.ink },
+  modalTitle: { fontSize: FONT.h4, fontWeight: '700', color: NEUTRALS.ink },
   modalInput: {
     borderWidth: 1,
     borderColor: NEUTRALS.gray150,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    fontSize: 18,
+    fontSize: FONT.h2,
     color: NEUTRALS.ink,
   },
   modalBtnRow: { flexDirection: 'row', gap: 8, justifyContent: 'flex-end' },

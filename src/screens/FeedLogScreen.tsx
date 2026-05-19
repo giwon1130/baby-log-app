@@ -22,7 +22,7 @@ import SuccessToast from '../components/SuccessToast'
 import BreastfeedingTimer from '../components/BreastfeedingTimer'
 import { formatTime } from '../utils/dateUtils'
 import { extractErrorMessage } from '../utils/errors'
-import { FEED_TYPE_LABEL, COLORS, NEUTRALS } from '../utils/constants'
+import { FEED_TYPE_LABEL, COLORS, NEUTRALS, FONT } from '../utils/constants'
 import type { FeedRecord } from '../types'
 
 const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
@@ -258,22 +258,22 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: NEUTRALS.gray100,
   },
-  formTitle: { fontSize: 16, fontWeight: '700', color: NEUTRALS.ink, marginBottom: 4 },
-  label: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600', marginTop: 4 },
+  formTitle: { fontSize: FONT.h4, fontWeight: '700', color: NEUTRALS.ink, marginBottom: 4 },
+  label: { fontSize: FONT.label, color: NEUTRALS.gray600, fontWeight: '600', marginTop: 4 },
   quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   quickChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: NEUTRALS.gray50 },
   quickChipActive: { backgroundColor: COLORS.primary },
-  quickChipText: { fontSize: 13, color: NEUTRALS.gray700, fontWeight: '600' },
+  quickChipText: { fontSize: FONT.bodySm, color: NEUTRALS.gray700, fontWeight: '600' },
   quickChipTextActive: { color: NEUTRALS.white },
   typeRow: { flexDirection: 'row', gap: 8 },
   typeChip: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: NEUTRALS.gray50, alignItems: 'center' },
   typeChipActive: { backgroundColor: COLORS.primary },
-  typeChipText: { fontSize: 13, color: NEUTRALS.gray700, fontWeight: '600' },
+  typeChipText: { fontSize: FONT.bodySm, color: NEUTRALS.gray700, fontWeight: '600' },
   typeChipTextActive: { color: NEUTRALS.white },
-  input: { borderWidth: 1, borderColor: NEUTRALS.gray200, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14 },
+  input: { borderWidth: 1, borderColor: NEUTRALS.gray200, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: FONT.bodyMd },
   submitButton: { backgroundColor: COLORS.primary, borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 4 },
   submitButtonDisabled: { backgroundColor: COLORS.primaryDisabled },
-  submitButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 15 },
+  submitButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: FONT.body },
   listContent: { padding: 16, gap: 10 },
   recordItem: {
     flex: 1,
@@ -285,10 +285,10 @@ const styles = StyleSheet.create({
   },
   recordLeft: { gap: 4 },
   recordRight: { alignItems: 'flex-end', gap: 4 },
-  recordAmount: { fontSize: 18, fontWeight: '700', color: NEUTRALS.ink },
-  recordType: { fontSize: 12, color: NEUTRALS.gray500 },
-  recordNote: { fontSize: 11, color: NEUTRALS.gray400, marginTop: 2, maxWidth: 140 },
-  recordBreast: { fontSize: 12, color: COLORS.primary, fontWeight: '600' },
+  recordAmount: { fontSize: FONT.h2, fontWeight: '700', color: NEUTRALS.ink },
+  recordType: { fontSize: FONT.label, color: NEUTRALS.gray500 },
+  recordNote: { fontSize: FONT.caption, color: NEUTRALS.gray400, marginTop: 2, maxWidth: 140 },
+  recordBreast: { fontSize: FONT.label, color: COLORS.primary, fontWeight: '600' },
   timerButton: {
     borderWidth: 1.5,
     borderColor: COLORS.primary,
@@ -297,9 +297,9 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     alignItems: 'center',
   },
-  timerButtonText: { fontSize: 13, color: COLORS.primary, fontWeight: '600' },
-  recordTime: { fontSize: 13, color: NEUTRALS.gray750 },
-  recordNext: { fontSize: 12, color: COLORS.primary },
-  editHint: { fontSize: 10, color: NEUTRALS.gray300, marginTop: 2 },
+  timerButtonText: { fontSize: FONT.bodySm, color: COLORS.primary, fontWeight: '600' },
+  recordTime: { fontSize: FONT.bodySm, color: NEUTRALS.gray750 },
+  recordNext: { fontSize: FONT.label, color: COLORS.primary },
+  editHint: { fontSize: FONT.micro, color: NEUTRALS.gray300, marginTop: 2 },
   empty: { textAlign: 'center', color: NEUTRALS.gray400, marginTop: 40 },
 })

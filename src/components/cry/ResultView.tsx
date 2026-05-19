@@ -6,7 +6,7 @@ import type { CryFeatureSummary } from '../../../modules/cry-detector'
 import type { CrySample } from '../../types'
 import { AcousticDetails } from './AcousticDetails'
 import { ConfidenceBar } from './ConfidenceBar'
-import { NEUTRALS } from '../../utils/constants'
+import { NEUTRALS, FONT } from '../../utils/constants'
 
 /**
  * Renders a complete cry-analysis result: top prediction, acoustic details,
@@ -87,18 +87,18 @@ export function ResultView({
 
 const styles = StyleSheet.create({
   resultCard: { backgroundColor: NEUTRALS.white, borderRadius: 16, padding: 20, gap: 10 },
-  resultSmall: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600' },
-  resultLabel: { fontSize: 28, fontWeight: '700', color: NEUTRALS.gray850 },
+  resultSmall: { fontSize: FONT.label, color: NEUTRALS.gray600, fontWeight: '600' },
+  resultLabel: { fontSize: FONT.display, fontWeight: '700', color: NEUTRALS.gray850 },
   reasonList: { marginTop: 8, gap: 4 },
-  reasonText: { fontSize: 13, color: NEUTRALS.gray650, lineHeight: 18 },
+  reasonText: { fontSize: FONT.bodySm, color: NEUTRALS.gray650, lineHeight: 18 },
 
   altCard: { backgroundColor: NEUTRALS.white, borderRadius: 14, padding: 16, marginTop: 8, gap: 8 },
-  altTitle: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600' },
+  altTitle: { fontSize: FONT.label, color: NEUTRALS.gray600, fontWeight: '600' },
   altRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  altLabel: { width: 72, fontSize: 13, color: NEUTRALS.gray750 },
+  altLabel: { width: 72, fontSize: FONT.bodySm, color: NEUTRALS.gray750 },
   altBar: { flex: 1, height: 8, backgroundColor: NEUTRALS.gray100, borderRadius: 4, overflow: 'hidden' },
   altBarFill: { height: '100%', backgroundColor: '#FFB7CE' },
-  altPct: { width: 40, textAlign: 'right', fontSize: 12, color: NEUTRALS.gray600 },
+  altPct: { width: 40, textAlign: 'right', fontSize: FONT.label, color: NEUTRALS.gray600 },
 
   feedbackRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
   feedbackButton: {
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
   },
   correctButton: { backgroundColor: '#36C26A' },
   wrongButton: { backgroundColor: NEUTRALS.gray600 },
-  feedbackButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 14 },
+  feedbackButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: FONT.bodyMd },
 
   confirmedCard: {
     flexDirection: 'row',
@@ -123,5 +123,5 @@ const styles = StyleSheet.create({
     padding: 12,
     marginTop: 12,
   },
-  confirmedText: { flex: 1, fontSize: 13, color: '#2A7F4A' },
+  confirmedText: { flex: 1, fontSize: FONT.bodySm, color: '#2A7F4A' },
 })

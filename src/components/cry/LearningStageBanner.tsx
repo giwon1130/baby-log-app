@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons'
 
 import type { CrySample } from '../../types'
 
-import { COLORS, NEUTRALS } from '../../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../../utils/constants'
 /** Top banner showing current learning stage and progress to next stage. */
 export function LearningStageBanner({ stage }: { stage: CrySample['learningStage'] }) {
   const remaining = stage.nextStageAt != null ? stage.nextStageAt - stage.confirmedCount : null
@@ -34,6 +34,6 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     borderLeftColor: COLORS.primary,
   },
-  title: { fontSize: 13, fontWeight: '600', color: NEUTRALS.gray850 },
-  sub: { fontSize: 11, color: NEUTRALS.gray600, marginTop: 2 },
+  title: { fontSize: FONT.bodySm, fontWeight: '600', color: NEUTRALS.gray850 },
+  sub: { fontSize: FONT.caption, color: NEUTRALS.gray600, marginTop: 2 },
 })

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import { Animated, Pressable, StyleSheet, Text } from 'react-native'
-import { NEUTRALS } from '../utils/constants'
+import { NEUTRALS, FONT } from '../utils/constants'
 
 export type UndoAction = {
   message: string
@@ -68,6 +68,6 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  text: { color: NEUTRALS.white, fontWeight: '600', fontSize: 14, flex: 1 },
-  undoText: { color: '#FFB3C9', fontWeight: '700', fontSize: 14 },
+  text: { color: NEUTRALS.white, fontWeight: '600', fontSize: FONT.bodyMd, flex: 1 },
+  undoText: { color: '#FFB3C9', fontWeight: '700', fontSize: FONT.bodyMd },
 })

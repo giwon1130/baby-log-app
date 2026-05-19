@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons'
 import type { CryFeatureSummary } from '../../../modules/cry-detector'
 import { buildFeatureRows } from '../../utils/cryFeatures'
 
-import { COLORS, NEUTRALS } from '../../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../../utils/constants'
 /**
  * "분석 디테일" card — shows the raw audio features the classifier saw, with a
  * friendly interpretation. Helps the user understand why a label was chosen and
@@ -38,7 +38,7 @@ export function AcousticDetails({ features }: { features: CryFeatureSummary }) {
 
 const styles = StyleSheet.create({
   card: { backgroundColor: NEUTRALS.white, borderRadius: 14, padding: 16, marginTop: 8, gap: 10 },
-  title: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600' },
+  title: { fontSize: FONT.label, color: NEUTRALS.gray600, fontWeight: '600' },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 4 },
   rowEmphasis: {
     backgroundColor: '#FFF4F8',
@@ -47,8 +47,8 @@ const styles = StyleSheet.create({
     marginHorizontal: -8,
   },
   line: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
-  label: { fontSize: 13, color: NEUTRALS.gray750, fontWeight: '600' },
-  value: { fontSize: 13, color: NEUTRALS.gray650, fontWeight: '600' },
+  label: { fontSize: FONT.bodySm, color: NEUTRALS.gray750, fontWeight: '600' },
+  value: { fontSize: FONT.bodySm, color: NEUTRALS.gray650, fontWeight: '600' },
   valueEmphasis: { color: COLORS.primary, fontWeight: '700' },
-  hint: { fontSize: 11, color: NEUTRALS.gray600, marginTop: 2 },
+  hint: { fontSize: FONT.caption, color: NEUTRALS.gray600, marginTop: 2 },
 })

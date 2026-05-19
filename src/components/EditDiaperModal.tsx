@@ -4,7 +4,7 @@ import {
   Text, TextInput, TouchableOpacity, View,
 } from 'react-native'
 import TimeOffsetPicker from './TimeOffsetPicker'
-import { DIAPER_TYPE_LABEL, COLORS, NEUTRALS } from '../utils/constants'
+import { DIAPER_TYPE_LABEL, COLORS, NEUTRALS, FONT } from '../utils/constants'
 import type { DiaperRecord } from '../types'
 
 const DIAPER_TYPES = ['WET', 'DIRTY', 'MIXED', 'DRY'] as const
@@ -109,27 +109,27 @@ const styles = StyleSheet.create({
     width: 40, height: 4, borderRadius: 2,
     backgroundColor: NEUTRALS.gray250, alignSelf: 'center', marginBottom: 8,
   },
-  title: { fontSize: 17, fontWeight: '700', color: NEUTRALS.ink, marginBottom: 4 },
-  label: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600' },
+  title: { fontSize: FONT.h3, fontWeight: '700', color: NEUTRALS.ink, marginBottom: 4 },
+  label: { fontSize: FONT.label, color: NEUTRALS.gray600, fontWeight: '600' },
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   typeChip: {
     flex: 1, minWidth: '45%', paddingVertical: 12,
     borderRadius: 12, backgroundColor: NEUTRALS.gray50, alignItems: 'center',
   },
   typeChipActive: { backgroundColor: COLORS.primary },
-  typeChipText: { fontSize: 14, color: NEUTRALS.gray700, fontWeight: '600' },
+  typeChipText: { fontSize: FONT.bodyMd, color: NEUTRALS.gray700, fontWeight: '600' },
   typeChipTextActive: { color: NEUTRALS.white },
   input: {
     borderWidth: 1, borderColor: NEUTRALS.gray200, borderRadius: 10,
-    paddingHorizontal: 14, paddingVertical: 10, fontSize: 14,
+    paddingHorizontal: 14, paddingVertical: 10, fontSize: FONT.bodyMd,
   },
   buttons: { flexDirection: 'row', gap: 12, marginTop: 4 },
   cancelButton: {
     flex: 1, paddingVertical: 13, borderRadius: 12,
     borderWidth: 1.5, borderColor: NEUTRALS.gray250, alignItems: 'center',
   },
-  cancelButtonText: { color: NEUTRALS.gray600, fontWeight: '600', fontSize: 15 },
+  cancelButtonText: { color: NEUTRALS.gray600, fontWeight: '600', fontSize: FONT.body },
   saveButton: { flex: 2, paddingVertical: 13, borderRadius: 12, backgroundColor: COLORS.primary, alignItems: 'center' },
   saveButtonDisabled: { backgroundColor: COLORS.primaryDisabled },
-  saveButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 15 },
+  saveButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: FONT.body },
 })

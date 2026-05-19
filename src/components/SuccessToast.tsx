@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import { Animated, StyleSheet, Text } from 'react-native'
-import { NEUTRALS } from '../utils/constants'
+import { NEUTRALS, FONT } from '../utils/constants'
 
 type Props = {
   message: string | null
@@ -50,5 +50,5 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
-  text: { color: NEUTRALS.white, fontWeight: '600', fontSize: 14 },
+  text: { color: NEUTRALS.white, fontWeight: '600', fontSize: FONT.bodyMd },
 })

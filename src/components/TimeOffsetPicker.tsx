@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { COLORS, NEUTRALS } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 import {
   StyleSheet,
   Text,
@@ -97,7 +97,7 @@ export default function TimeOffsetPicker({ value, onChange }: Props) {
 
 const styles = StyleSheet.create({
   container: { gap: 6 },
-  label: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600' },
+  label: { fontSize: FONT.label, color: NEUTRALS.gray600, fontWeight: '600' },
   row: { flexDirection: 'row', gap: 6, flexWrap: 'wrap' },
   chip: {
     paddingHorizontal: 10,
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     backgroundColor: NEUTRALS.gray50,
   },
   chipActive: { backgroundColor: COLORS.primary },
-  chipText: { fontSize: 12, color: NEUTRALS.gray700, fontWeight: '600' },
+  chipText: { fontSize: FONT.label, color: NEUTRALS.gray700, fontWeight: '600' },
   chipTextActive: { color: NEUTRALS.white },
   customRow: { flexDirection: 'row', gap: 8, alignItems: 'center' },
   customInput: {
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 7,
-    fontSize: 14,
+    fontSize: FONT.bodyMd,
   },
   customBtn: {
     backgroundColor: COLORS.primary,
@@ -124,6 +124,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 7,
   },
-  customBtnText: { color: NEUTRALS.white, fontWeight: '600', fontSize: 13 },
-  preview: { fontSize: 11, color: COLORS.primary, fontWeight: '600' },
+  customBtnText: { color: NEUTRALS.white, fontWeight: '600', fontSize: FONT.bodySm },
+  preview: { fontSize: FONT.caption, color: COLORS.primary, fontWeight: '600' },
 })
