@@ -60,6 +60,7 @@ export function NotificationSettingsCard() {
               {([null, 2, 2.5, 3, 3.5, 4] as (number | null)[]).map(h => (
                 <TouchableOpacity
                   key={String(h)}
+                  hitSlop={8}
                   style={[styles.hourChip, feedInterval === h && styles.hourChipActive]}
                   onPress={async () => {
                     setFeedIntervalLocal(h)
@@ -95,6 +96,7 @@ export function NotificationSettingsCard() {
               {[1, 2, 3, 4, 5, 6].map(h => (
                 <TouchableOpacity
                   key={h}
+                  hitSlop={8}
                   style={[styles.hourChip, diaperHours === h && styles.hourChipActive]}
                   onPress={async () => { setDiaperHoursLocal(h); await setDiaperReminderHours(h) }}
                 >
@@ -122,6 +124,7 @@ export function NotificationSettingsCard() {
               {[1, 2, 3, 4].map(h => (
                 <TouchableOpacity
                   key={h}
+                  hitSlop={8}
                   style={[styles.hourChip, napHours === h && styles.hourChipActive]}
                   onPress={async () => { setNapHoursLocal(h); await setNapReminderHours(h) }}
                 >

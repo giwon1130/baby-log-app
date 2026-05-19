@@ -131,6 +131,7 @@ export default function QuickFeed({
         {FEED_TYPE_TABS.map(({ type, label }) => (
           <TouchableOpacity
             key={type}
+            hitSlop={8}
             onPress={() => setFeedType(type)}
             style={[styles.typeTab, feedType === type && styles.typeTabActive]}
             disabled={busy}
