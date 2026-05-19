@@ -22,7 +22,7 @@ import { parseApiTimestamp, timeUntil, formatDuration as formatSleep, formatAge 
 import type { SleepRecord, TodayStats } from '../types'
 import type { MainTabScreenProps } from '../navigation/types'
 
-import { COLORS } from '../utils/constants'
+import { COLORS, NEUTRALS } from '../utils/constants'
 export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { babyId, familyId, babyName, daysOld, initialized, loadBaby } = useStoredBaby()
   const [loading, setLoading] = useState(true)
@@ -217,10 +217,10 @@ const styles = StyleSheet.create({
   content: { padding: 16, gap: 12, paddingBottom: 32 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: NEUTRALS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -239,25 +239,25 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   babyCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  babyCardName: { fontSize: 22, fontWeight: '800', color: '#fff' },
+  babyCardName: { fontSize: 22, fontWeight: '800', color: NEUTRALS.white },
   babyCardAge: { fontSize: 14, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
   babyCardEmoji: { fontSize: 36 },
   cardLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  cardLabel: { fontSize: 12, color: '#999', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  cardLabel: { fontSize: 12, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   shareBtn: { fontSize: 12, color: COLORS.primary, fontWeight: '600' },
   statsGrid: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 4 },
   statItem: { alignItems: 'center', gap: 4 },
   statEmoji: { fontSize: 24 },
-  statValue: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
-  statSub: { fontSize: 12, color: '#aaa' },
+  statValue: { fontSize: 16, fontWeight: '700', color: NEUTRALS.ink },
+  statSub: { fontSize: 12, color: NEUTRALS.gray450 },
   nextFeedHint: { marginTop: 10, color: COLORS.primary, fontWeight: '700', textAlign: 'center' },
   nextFeedReady: { color: COLORS.success },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: '#444' },
+  emptyTitle: { fontSize: 18, fontWeight: '600', color: NEUTRALS.gray750 },
   primaryButton: {
     backgroundColor: COLORS.primary,
     borderRadius: 12,
     paddingHorizontal: 32,
     paddingVertical: 14,
   },
-  primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  primaryButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 16 },
 })

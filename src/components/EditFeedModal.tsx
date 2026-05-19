@@ -11,7 +11,7 @@ import {
   View,
 } from 'react-native'
 import TimeOffsetPicker from './TimeOffsetPicker'
-import { FEED_TYPE_LABEL, COLORS } from '../utils/constants'
+import { FEED_TYPE_LABEL, COLORS, NEUTRALS } from '../utils/constants'
 import type { FeedRecord } from '../types'
 
 const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' },
   sheet: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -144,34 +144,34 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: NEUTRALS.gray250,
     alignSelf: 'center',
     marginBottom: 8,
   },
-  title: { fontSize: 17, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
-  label: { fontSize: 12, color: '#888', fontWeight: '600' },
+  title: { fontSize: 17, fontWeight: '700', color: NEUTRALS.ink, marginBottom: 4 },
+  label: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600' },
   quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  quickChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: '#f5f5f5' },
+  quickChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: NEUTRALS.gray50 },
   quickChipActive: { backgroundColor: COLORS.primary },
-  quickChipText: { fontSize: 13, color: '#555', fontWeight: '600' },
-  quickChipTextActive: { color: '#fff' },
+  quickChipText: { fontSize: 13, color: NEUTRALS.gray700, fontWeight: '600' },
+  quickChipTextActive: { color: NEUTRALS.white },
   typeRow: { flexDirection: 'row', gap: 8 },
-  typeChip: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: '#f5f5f5', alignItems: 'center' },
+  typeChip: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: NEUTRALS.gray50, alignItems: 'center' },
   typeChipActive: { backgroundColor: COLORS.primary },
-  typeChipText: { fontSize: 13, color: '#555', fontWeight: '600' },
-  typeChipTextActive: { color: '#fff' },
-  input: { borderWidth: 1, borderColor: '#e8e8e8', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14 },
+  typeChipText: { fontSize: 13, color: NEUTRALS.gray700, fontWeight: '600' },
+  typeChipTextActive: { color: NEUTRALS.white },
+  input: { borderWidth: 1, borderColor: NEUTRALS.gray200, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14 },
   buttons: { flexDirection: 'row', gap: 12, marginTop: 4 },
   cancelButton: {
     flex: 1,
     paddingVertical: 13,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: '#e0e0e0',
+    borderColor: NEUTRALS.gray250,
     alignItems: 'center',
   },
-  cancelButtonText: { color: '#888', fontWeight: '600', fontSize: 15 },
+  cancelButtonText: { color: NEUTRALS.gray600, fontWeight: '600', fontSize: 15 },
   saveButton: { flex: 2, paddingVertical: 13, borderRadius: 12, backgroundColor: COLORS.primary, alignItems: 'center' },
   saveButtonDisabled: { backgroundColor: COLORS.primaryDisabled },
-  saveButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  saveButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 15 },
 })

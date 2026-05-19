@@ -13,7 +13,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { deleteFeed, recordFeed } from '../api/babyLogApi'
 import { scheduleFeedNotification } from '../utils/notifications'
-import { COLORS } from '../utils/constants'
+import { COLORS, NEUTRALS } from '../utils/constants'
 import { extractErrorMessage } from '../utils/errors'
 import type { UndoAction } from './UndoToast'
 
@@ -156,7 +156,7 @@ export default function QuickFeed({
               disabled={busy}
             >
               {loadingKey === `feed-${ml}`
-                ? <ActivityIndicator size="small" color="#fff" />
+                ? <ActivityIndicator size="small" color={NEUTRALS.white} />
                 : <Text style={styles.feedBtnText}>{ml}ml</Text>
               }
             </TouchableOpacity>
@@ -181,7 +181,7 @@ export default function QuickFeed({
               disabled={busy}
             >
               {loadingKey === `breast-${min}`
-                ? <ActivityIndicator size="small" color="#fff" />
+                ? <ActivityIndicator size="small" color={NEUTRALS.white} />
                 : <Text style={styles.feedBtnText}>{min}분</Text>
               }
             </TouchableOpacity>
@@ -211,7 +211,7 @@ export default function QuickFeed({
               autoFocus
               keyboardType="number-pad"
               placeholder="ml"
-              placeholderTextColor="#bbb"
+              placeholderTextColor={NEUTRALS.gray400}
               value={customInput}
               onChangeText={setCustomInput}
               style={styles.modalInput}
@@ -248,7 +248,7 @@ function labelForType(t: FeedType): string {
 }
 
 const styles = StyleSheet.create({
-  subLabel: { fontSize: 11, color: '#bbb', fontWeight: '600', marginTop: 4 },
+  subLabel: { fontSize: 11, color: NEUTRALS.gray400, fontWeight: '600', marginTop: 4 },
   typeTabs: { flexDirection: 'row', gap: 6 },
   typeTab: {
     paddingHorizontal: 12,
@@ -258,7 +258,7 @@ const styles = StyleSheet.create({
   },
   typeTabActive: { backgroundColor: COLORS.primary },
   typeTabText: { fontSize: 12, fontWeight: '700', color: COLORS.primary },
-  typeTabTextActive: { color: '#fff' },
+  typeTabTextActive: { color: NEUTRALS.white },
   row: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   feedBtn: {
     paddingHorizontal: 14,
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     minWidth: 52,
     alignItems: 'center',
   },
-  feedBtnText: { color: '#fff', fontSize: 13, fontWeight: '700' },
+  feedBtnText: { color: NEUTRALS.white, fontSize: 13, fontWeight: '700' },
   feedBtnRecent: { borderWidth: 2, borderColor: '#FFC107' },
   customBtn: {
     paddingHorizontal: 14,
@@ -291,25 +291,25 @@ const styles = StyleSheet.create({
   modalCard: {
     width: '100%',
     maxWidth: 360,
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderRadius: 16,
     padding: 20,
     gap: 12,
   },
-  modalTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
+  modalTitle: { fontSize: 16, fontWeight: '700', color: NEUTRALS.ink },
   modalInput: {
     borderWidth: 1,
-    borderColor: '#eee',
+    borderColor: NEUTRALS.gray150,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 18,
-    color: '#1a1a1a',
+    color: NEUTRALS.ink,
   },
   modalBtnRow: { flexDirection: 'row', gap: 8, justifyContent: 'flex-end' },
   modalBtn: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 10 },
-  modalBtnGhost: { backgroundColor: '#f5f5f5' },
-  modalBtnGhostText: { color: '#666', fontWeight: '600' },
+  modalBtnGhost: { backgroundColor: NEUTRALS.gray50 },
+  modalBtnGhostText: { color: NEUTRALS.gray650, fontWeight: '600' },
   modalBtnPrimary: { backgroundColor: COLORS.primary },
-  modalBtnPrimaryText: { color: '#fff', fontWeight: '700' },
+  modalBtnPrimaryText: { color: NEUTRALS.white, fontWeight: '700' },
 })

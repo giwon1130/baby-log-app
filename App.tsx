@@ -16,6 +16,7 @@ import CryHistoryScreen from './src/screens/CryHistoryScreen'
 import { getStoredFamilyId } from './src/api/client'
 import { requestNotificationPermission, setupNotificationHandler } from './src/utils/notifications'
 import type { MainTabParamList, RootStackParamList } from './src/navigation/types'
+import { NEUTRALS } from './src/utils/constants'
 
 const Tab = createBottomTabNavigator<MainTabParamList>()
 const Stack = createNativeStackNavigator<RootStackParamList>()
@@ -25,8 +26,8 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarActiveTintColor: '#FF6B9D',
-        tabBarInactiveTintColor: '#bbb',
-        tabBarStyle: { borderTopColor: '#f0f0f0' },
+        tabBarInactiveTintColor: NEUTRALS.gray400,
+        tabBarStyle: { borderTopColor: NEUTRALS.gray100 },
         headerStyle: { backgroundColor: '#FFF9FB' },
         headerShadowVisible: false,
         tabBarIcon: ({ color, size }) => {

@@ -15,15 +15,15 @@ import { useStoredBaby } from '../hooks/useStoredBaby'
 import { formatDuration } from '../utils/dateUtils'
 import type { WeeklyStats } from '../types'
 
-import { COLORS } from '../utils/constants'
+import { COLORS, NEUTRALS } from '../utils/constants'
 const SCREEN_WIDTH = Dimensions.get('window').width
 const CHART_WIDTH = SCREEN_WIDTH - 32
 
 const CHART_CONFIG = {
-  backgroundGradientFrom: '#fff',
-  backgroundGradientTo: '#fff',
+  backgroundGradientFrom: NEUTRALS.white,
+  backgroundGradientTo: NEUTRALS.white,
   color: (opacity = 1) => `rgba(255, 107, 157, ${opacity})`,
-  labelColor: () => '#aaa',
+  labelColor: () => NEUTRALS.gray450,
   strokeWidth: 2,
   barPercentage: 0.6,
   decimalPlaces: 0,
@@ -218,12 +218,12 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primaryBg },
   content: { padding: 16, gap: 12, paddingBottom: 32 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { color: '#bbb', fontSize: 15 },
+  emptyText: { color: NEUTRALS.gray400, fontSize: 15 },
   summaryCard: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: NEUTRALS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -231,31 +231,31 @@ const styles = StyleSheet.create({
     gap: 14,
   },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: NEUTRALS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
     gap: 8,
   },
-  cardLabel: { fontSize: 13, color: '#999', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  cardLabel: { fontSize: 13, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   summaryRow: { flexDirection: 'row', alignItems: 'center' },
   summaryItem: { flex: 1, alignItems: 'center', gap: 4 },
-  summaryValue: { fontSize: 18, fontWeight: '700', color: '#1a1a1a' },
-  summaryLabel: { fontSize: 11, color: '#aaa' },
-  summaryDivider: { width: 1, height: 36, backgroundColor: '#f0f0f0' },
+  summaryValue: { fontSize: 18, fontWeight: '700', color: NEUTRALS.ink },
+  summaryLabel: { fontSize: 11, color: NEUTRALS.gray450 },
+  summaryDivider: { width: 1, height: 36, backgroundColor: NEUTRALS.gray100 },
   chart: { borderRadius: 8, marginTop: 4 },
   sleepDetail: { gap: 6, marginTop: 4 },
   sleepDetailRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 4 },
-  sleepDetailDate: { fontSize: 13, color: '#888' },
+  sleepDetailDate: { fontSize: 13, color: NEUTRALS.gray600 },
   sleepDetailValue: { fontSize: 13, color: COLORS.sleep, fontWeight: '600' },
   trendRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   trendChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   trendUp: { backgroundColor: '#E8F5E9' },
   trendDown: { backgroundColor: '#FFF3E0' },
-  trendChipText: { fontSize: 13, fontWeight: '600', color: '#333' },
+  trendChipText: { fontSize: 13, fontWeight: '600', color: NEUTRALS.gray800 },
   trendStable: { fontSize: 13, color: COLORS.success, fontWeight: '600' },
 })

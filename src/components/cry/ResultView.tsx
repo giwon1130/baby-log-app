@@ -6,6 +6,7 @@ import type { CryFeatureSummary } from '../../../modules/cry-detector'
 import type { CrySample } from '../../types'
 import { AcousticDetails } from './AcousticDetails'
 import { ConfidenceBar } from './ConfidenceBar'
+import { NEUTRALS } from '../../utils/constants'
 
 /**
  * Renders a complete cry-analysis result: top prediction, acoustic details,
@@ -71,11 +72,11 @@ export function ResultView({
       ) : (
         <View style={styles.feedbackRow}>
           <TouchableOpacity style={[styles.feedbackButton, styles.correctButton]} onPress={onConfirm}>
-            <Ionicons name="checkmark" size={18} color="#fff" />
+            <Ionicons name="checkmark" size={18} color={NEUTRALS.white} />
             <Text style={styles.feedbackButtonText}>맞았어요</Text>
           </TouchableOpacity>
           <TouchableOpacity style={[styles.feedbackButton, styles.wrongButton]} onPress={onCorrect}>
-            <Ionicons name="close" size={18} color="#fff" />
+            <Ionicons name="close" size={18} color={NEUTRALS.white} />
             <Text style={styles.feedbackButtonText}>다른 이유예요</Text>
           </TouchableOpacity>
         </View>
@@ -85,19 +86,19 @@ export function ResultView({
 }
 
 const styles = StyleSheet.create({
-  resultCard: { backgroundColor: '#fff', borderRadius: 16, padding: 20, gap: 10 },
-  resultSmall: { fontSize: 12, color: '#888', fontWeight: '600' },
-  resultLabel: { fontSize: 28, fontWeight: '700', color: '#222' },
+  resultCard: { backgroundColor: NEUTRALS.white, borderRadius: 16, padding: 20, gap: 10 },
+  resultSmall: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600' },
+  resultLabel: { fontSize: 28, fontWeight: '700', color: NEUTRALS.gray850 },
   reasonList: { marginTop: 8, gap: 4 },
-  reasonText: { fontSize: 13, color: '#666', lineHeight: 18 },
+  reasonText: { fontSize: 13, color: NEUTRALS.gray650, lineHeight: 18 },
 
-  altCard: { backgroundColor: '#fff', borderRadius: 14, padding: 16, marginTop: 8, gap: 8 },
-  altTitle: { fontSize: 12, color: '#888', fontWeight: '600' },
+  altCard: { backgroundColor: NEUTRALS.white, borderRadius: 14, padding: 16, marginTop: 8, gap: 8 },
+  altTitle: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600' },
   altRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  altLabel: { width: 72, fontSize: 13, color: '#444' },
-  altBar: { flex: 1, height: 8, backgroundColor: '#F0F0F0', borderRadius: 4, overflow: 'hidden' },
+  altLabel: { width: 72, fontSize: 13, color: NEUTRALS.gray750 },
+  altBar: { flex: 1, height: 8, backgroundColor: NEUTRALS.gray100, borderRadius: 4, overflow: 'hidden' },
   altBarFill: { height: '100%', backgroundColor: '#FFB7CE' },
-  altPct: { width: 40, textAlign: 'right', fontSize: 12, color: '#888' },
+  altPct: { width: 40, textAlign: 'right', fontSize: 12, color: NEUTRALS.gray600 },
 
   feedbackRow: { flexDirection: 'row', gap: 10, marginTop: 12 },
   feedbackButton: {
@@ -110,8 +111,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   correctButton: { backgroundColor: '#36C26A' },
-  wrongButton: { backgroundColor: '#888' },
-  feedbackButtonText: { color: '#fff', fontWeight: '700', fontSize: 14 },
+  wrongButton: { backgroundColor: NEUTRALS.gray600 },
+  feedbackButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 14 },
 
   confirmedCard: {
     flexDirection: 'row',

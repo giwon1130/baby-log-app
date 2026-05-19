@@ -8,7 +8,7 @@ import {
   getNapReminderHours, setNapReminderHours,
   getFeedIntervalOverride, setFeedIntervalOverride,
 } from '../utils/notifications'
-import { COLORS } from '../utils/constants'
+import { COLORS, NEUTRALS } from '../utils/constants'
 
 /**
  * 알림 설정 카드 — 수유 / 기저귀 / 낮잠 3가지.
@@ -80,8 +80,8 @@ export function NotificationSettingsCard() {
             setFeedEnabledLocal(v)
             await setNotificationEnabled(v)
           }}
-          trackColor={{ false: '#e0e0e0', true: COLORS.primary }}
-          thumbColor="#fff"
+          trackColor={{ false: NEUTRALS.gray250, true: COLORS.primary }}
+          thumbColor={NEUTRALS.white}
         />
       </View>
 
@@ -107,8 +107,8 @@ export function NotificationSettingsCard() {
         <Switch
           value={diaperEnabled}
           onValueChange={async (v) => { setDiaperEnabledLocal(v); await setDiaperNotificationEnabled(v) }}
-          trackColor={{ false: '#e0e0e0', true: COLORS.primary }}
-          thumbColor="#fff"
+          trackColor={{ false: NEUTRALS.gray250, true: COLORS.primary }}
+          thumbColor={NEUTRALS.white}
         />
       </View>
 
@@ -134,8 +134,8 @@ export function NotificationSettingsCard() {
         <Switch
           value={sleepEnabled}
           onValueChange={async (v) => { setSleepEnabledLocal(v); await setSleepNotificationEnabled(v) }}
-          trackColor={{ false: '#e0e0e0', true: COLORS.primary }}
-          thumbColor="#fff"
+          trackColor={{ false: NEUTRALS.gray250, true: COLORS.primary }}
+          thumbColor={NEUTRALS.white}
         />
       </View>
     </View>
@@ -144,28 +144,28 @@ export function NotificationSettingsCard() {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: NEUTRALS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
     gap: 12,
   },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
+  sectionTitle: { fontSize: 14, fontWeight: '700', color: NEUTRALS.ink },
   notifRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  notifTitle: { fontSize: 13, fontWeight: '600', color: '#333' },
-  notifDesc: { fontSize: 12, color: '#aaa', marginTop: 2 },
+  notifTitle: { fontSize: 13, fontWeight: '600', color: NEUTRALS.gray800 },
+  notifDesc: { fontSize: 12, color: NEUTRALS.gray450, marginTop: 2 },
   hourPicker: { flexDirection: 'row', gap: 6, marginTop: 8 },
   hourChip: {
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: NEUTRALS.gray50,
   },
   hourChipActive: { backgroundColor: COLORS.primary },
-  hourChipText: { fontSize: 12, color: '#666', fontWeight: '600' },
-  hourChipTextActive: { color: '#fff' },
+  hourChipText: { fontSize: 12, color: NEUTRALS.gray650, fontWeight: '600' },
+  hourChipTextActive: { color: NEUTRALS.white },
 })

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { COLORS } from '../utils/constants'
+import { COLORS, NEUTRALS } from '../utils/constants'
 import {
   Modal,
   StyleSheet,
@@ -129,19 +129,19 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 28,
     gap: 16,
     paddingBottom: 40,
   },
-  title: { fontSize: 18, fontWeight: '700', color: '#1a1a1a', textAlign: 'center' },
-  subtitle: { fontSize: 13, color: '#aaa', textAlign: 'center', marginTop: -8 },
+  title: { fontSize: 18, fontWeight: '700', color: NEUTRALS.ink, textAlign: 'center' },
+  subtitle: { fontSize: 13, color: NEUTRALS.gray450, textAlign: 'center', marginTop: -8 },
   sides: { flexDirection: 'row', gap: 16 },
   sideBtn: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: NEUTRALS.gray50,
     borderRadius: 20,
     paddingVertical: 28,
     alignItems: 'center',
@@ -149,10 +149,10 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   sideBtnActive: { backgroundColor: COLORS.primary },
-  sideLabel: { fontSize: 14, fontWeight: '600', color: '#888' },
+  sideLabel: { fontSize: 14, fontWeight: '600', color: NEUTRALS.gray600 },
   sideLabelActive: { color: 'rgba(255,255,255,0.85)' },
-  sideTime: { fontSize: 32, fontWeight: '800', color: '#1a1a1a', fontVariant: ['tabular-nums'] },
-  sideTimeActive: { color: '#fff' },
+  sideTime: { fontSize: 32, fontWeight: '800', color: NEUTRALS.ink, fontVariant: ['tabular-nums'] },
+  sideTimeActive: { color: NEUTRALS.white },
   pulsingDot: {
     width: 8,
     height: 8,
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   },
   totalTime: {
     fontSize: 15,
-    color: '#666',
+    color: NEUTRALS.gray650,
     textAlign: 'center',
     fontWeight: '600',
   },
@@ -170,10 +170,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     borderRadius: 14,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: NEUTRALS.gray50,
     alignItems: 'center',
   },
-  cancelBtnText: { fontSize: 15, color: '#555', fontWeight: '600' },
+  cancelBtnText: { fontSize: 15, color: NEUTRALS.gray700, fontWeight: '600' },
   completeBtn: {
     flex: 2,
     paddingVertical: 14,
@@ -182,5 +182,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   completeBtnDisabled: { backgroundColor: COLORS.primaryDisabled },
-  completeBtnText: { fontSize: 15, color: '#fff', fontWeight: '700' },
+  completeBtnText: { fontSize: 15, color: NEUTRALS.white, fontWeight: '700' },
 })

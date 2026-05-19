@@ -1,5 +1,6 @@
 import React from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { NEUTRALS } from '../utils/constants'
 
 type Props = {
   message: string | null
@@ -27,6 +28,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     gap: 12,
   },
-  text: { flex: 1, color: '#fff', fontSize: 13, fontWeight: '600' },
-  dismiss: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  text: { flex: 1, color: NEUTRALS.white, fontSize: 13, fontWeight: '600' },
+  dismiss: { color: NEUTRALS.white, fontSize: 16, fontWeight: '700' },
 })

@@ -1,17 +1,17 @@
 import React from 'react'
 import { Dimensions, StyleSheet, Text, View } from 'react-native'
 import { LineChart } from 'react-native-chart-kit'
-import { COLORS } from '../utils/constants'
+import { COLORS, NEUTRALS } from '../utils/constants'
 import type { GrowthRecord } from '../types'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
 const CHART_WIDTH = SCREEN_WIDTH - 64
 
 const WEIGHT_CHART_CONFIG = {
-  backgroundGradientFrom: '#fff',
-  backgroundGradientTo: '#fff',
+  backgroundGradientFrom: NEUTRALS.white,
+  backgroundGradientTo: NEUTRALS.white,
   color: (opacity = 1) => `rgba(255, 107, 157, ${opacity})`,
-  labelColor: () => '#aaa',
+  labelColor: () => NEUTRALS.gray450,
   strokeWidth: 2,
   decimalPlaces: 1,
   propsForDots: { r: '4', strokeWidth: '2', stroke: COLORS.primary },
@@ -82,16 +82,16 @@ export function GrowthChart({ weightRecs, heightRecs, dateLabel }: Props) {
 const styles = StyleSheet.create({
   chartSection: { paddingHorizontal: 16, paddingTop: 12, gap: 12 },
   chartCard: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: NEUTRALS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
     gap: 6,
   },
-  chartLabel: { fontSize: 12, color: '#999', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  chartLabel: { fontSize: 12, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   chart: { borderRadius: 8 },
 })

@@ -6,7 +6,7 @@ import {
 import TimeOffsetPicker from './TimeOffsetPicker'
 import type { SleepRecord } from '../types'
 
-import { COLORS } from '../utils/constants'
+import { COLORS, NEUTRALS } from '../utils/constants'
 type Props = {
   record: SleepRecord | null
   onClose: () => void
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   overlay: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' },
   sheet: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     padding: 24,
@@ -99,21 +99,21 @@ const styles = StyleSheet.create({
   },
   handle: {
     width: 40, height: 4, borderRadius: 2,
-    backgroundColor: '#e0e0e0', alignSelf: 'center', marginBottom: 8,
+    backgroundColor: NEUTRALS.gray250, alignSelf: 'center', marginBottom: 8,
   },
-  title: { fontSize: 17, fontWeight: '700', color: '#1a1a1a', marginBottom: 12 },
-  label: { fontSize: 12, color: '#888', fontWeight: '600', marginBottom: 4 },
+  title: { fontSize: 17, fontWeight: '700', color: NEUTRALS.ink, marginBottom: 12 },
+  label: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600', marginBottom: 4 },
   input: {
-    borderWidth: 1, borderColor: '#e8e8e8', borderRadius: 10,
+    borderWidth: 1, borderColor: NEUTRALS.gray200, borderRadius: 10,
     paddingHorizontal: 14, paddingVertical: 10, fontSize: 14,
   },
   buttons: { flexDirection: 'row', gap: 12, marginTop: 12 },
   cancelButton: {
     flex: 1, paddingVertical: 13, borderRadius: 12,
-    borderWidth: 1.5, borderColor: '#e0e0e0', alignItems: 'center',
+    borderWidth: 1.5, borderColor: NEUTRALS.gray250, alignItems: 'center',
   },
-  cancelButtonText: { color: '#888', fontWeight: '600', fontSize: 15 },
+  cancelButtonText: { color: NEUTRALS.gray600, fontWeight: '600', fontSize: 15 },
   saveButton: { flex: 2, paddingVertical: 13, borderRadius: 12, backgroundColor: COLORS.sleep, alignItems: 'center' },
   saveButtonDisabled: { backgroundColor: '#9fa8da' },
-  saveButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  saveButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 15 },
 })

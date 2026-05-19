@@ -1,12 +1,12 @@
-import React, { useRef } from 'react'
+import React from 'react'
 import {
   Alert,
-  Animated,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native'
+import { NEUTRALS } from '../utils/constants'
 
 type Props = {
   children: React.ReactNode
@@ -46,5 +46,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minWidth: 56,
   },
-  deleteText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  deleteText: { color: NEUTRALS.white, fontSize: 12, fontWeight: '700' },
 })

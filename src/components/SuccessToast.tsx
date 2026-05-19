@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react'
 import { Animated, StyleSheet, Text } from 'react-native'
+import { NEUTRALS } from '../utils/constants'
 
 type Props = {
   message: string | null
@@ -37,17 +38,17 @@ const styles = StyleSheet.create({
     bottom: 16,
     left: 24,
     right: 24,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: NEUTRALS.ink,
     borderRadius: 12,
     paddingVertical: 12,
     paddingHorizontal: 20,
     alignItems: 'center',
     zIndex: 999,
-    shadowColor: '#000',
+    shadowColor: NEUTRALS.black,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 8,
     elevation: 8,
   },
-  text: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  text: { color: NEUTRALS.white, fontWeight: '600', fontSize: 14 },
 })

@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons'
 import type { CryLabel } from '../../types'
 import { LABEL_OPTIONS } from '../../utils/cryFeatures'
 
-import { COLORS } from '../../utils/constants'
+import { COLORS, NEUTRALS } from '../../utils/constants'
 /** Bottom-sheet modal where the parent picks the actual cry reason. */
 export function CorrectionModal({
   visible,
@@ -30,7 +30,7 @@ export function CorrectionModal({
             >
               <Ionicons name={opt.icon} size={20} color={COLORS.primary} />
               <Text style={styles.optionText}>{opt.display}</Text>
-              <Ionicons name="chevron-forward" size={18} color="#ccc" />
+              <Ionicons name="chevron-forward" size={18} color={NEUTRALS.gray300} />
             </TouchableOpacity>
           ))}
         </Pressable>
@@ -42,22 +42,22 @@ export function CorrectionModal({
 const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
   sheet: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     padding: 20,
     gap: 4,
     paddingBottom: 36,
   },
-  title: { fontSize: 18, fontWeight: '700', color: '#222' },
-  sub: { fontSize: 13, color: '#888', marginBottom: 12 },
+  title: { fontSize: 18, fontWeight: '700', color: NEUTRALS.gray850 },
+  sub: { fontSize: 13, color: NEUTRALS.gray600, marginBottom: 12 },
   option: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     paddingVertical: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#eee',
+    borderBottomColor: NEUTRALS.gray150,
   },
-  optionText: { flex: 1, fontSize: 16, color: '#222' },
+  optionText: { flex: 1, fontSize: 16, color: NEUTRALS.gray850 },
 })

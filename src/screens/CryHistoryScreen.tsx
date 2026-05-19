@@ -10,7 +10,7 @@ import { CorrectionModal } from '../components/cry/CorrectionModal'
 import { LearningStageBanner } from '../components/cry/LearningStageBanner'
 import { extractErrorMessage } from '../utils/errors'
 
-import { COLORS } from '../utils/constants'
+import { COLORS, NEUTRALS } from '../utils/constants'
 /**
  * Browse past cry analyses for the current baby.
  *
@@ -135,7 +135,7 @@ function SampleCard({ sample, onEdit }: { sample: CrySample; onEdit: () => void 
           </View>
         ) : (
           <View style={[styles.badge, styles.badgePending]}>
-            <Text style={[styles.badgeText, { color: '#888' }]}>미확인</Text>
+            <Text style={[styles.badgeText, { color: NEUTRALS.gray600 }]}>미확인</Text>
           </View>
         )}
       </View>
@@ -213,37 +213,37 @@ const styles = StyleSheet.create({
 
   statsCard: {
     flexDirection: 'row',
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderRadius: 14,
     paddingVertical: 16,
     alignItems: 'center',
   },
   statBlock: { flex: 1, alignItems: 'center', gap: 4 },
-  statValue: { fontSize: 22, fontWeight: '700', color: '#222' },
-  statLabel: { fontSize: 11, color: '#888' },
-  statDivider: { width: StyleSheet.hairlineWidth, height: 28, backgroundColor: '#eee' },
+  statValue: { fontSize: 22, fontWeight: '700', color: NEUTRALS.gray850 },
+  statLabel: { fontSize: 11, color: NEUTRALS.gray600 },
+  statDivider: { width: StyleSheet.hairlineWidth, height: 28, backgroundColor: NEUTRALS.gray150 },
 
   emptyCard: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderRadius: 14,
     padding: 32,
     alignItems: 'center',
     gap: 8,
   },
-  emptyText: { fontSize: 14, color: '#888' },
+  emptyText: { fontSize: 14, color: NEUTRALS.gray600 },
 
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderRadius: 14,
     padding: 14,
     gap: 6,
   },
   cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  cardTime: { fontSize: 12, color: '#888', fontWeight: '600' },
+  cardTime: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600' },
   cardBody: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
-  cardLabel: { fontSize: 18, fontWeight: '700', color: '#222' },
-  cardConfidence: { fontSize: 12, color: '#888' },
-  cardReason: { fontSize: 11, color: '#888' },
+  cardLabel: { fontSize: 18, fontWeight: '700', color: NEUTRALS.gray850 },
+  cardConfidence: { fontSize: 12, color: NEUTRALS.gray600 },
+  cardReason: { fontSize: 11, color: NEUTRALS.gray600 },
 
   badge: {
     flexDirection: 'row',
@@ -255,6 +255,6 @@ const styles = StyleSheet.create({
   },
   badgeCorrect: { backgroundColor: '#E8F8EE' },
   badgeFixed: { backgroundColor: '#FFF1DC' },
-  badgePending: { backgroundColor: '#F0F0F0' },
+  badgePending: { backgroundColor: NEUTRALS.gray100 },
   badgeText: { fontSize: 11, fontWeight: '600' },
 })

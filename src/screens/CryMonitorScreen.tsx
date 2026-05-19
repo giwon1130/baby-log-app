@@ -22,7 +22,7 @@ import { ResultView } from '../components/cry/ResultView'
 import type { MainTabScreenProps } from '../navigation/types'
 import { extractErrorMessage } from '../utils/errors'
 
-import { COLORS } from '../utils/constants'
+import { COLORS, NEUTRALS } from '../utils/constants'
 const RECORD_SECONDS = 5
 
 type Phase = 'idle' | 'recording' | 'analyzing' | 'result'
@@ -217,7 +217,7 @@ export default function CryMonitorScreen() {
               style={[styles.button, sample ? styles.secondaryButton : styles.primaryButton]}
               onPress={beginRecording}
             >
-              <Ionicons name="mic" size={22} color="#fff" />
+              <Ionicons name="mic" size={22} color={NEUTRALS.white} />
               <Text style={styles.buttonText}>{sample ? '다시 분석' : '분석 시작'}</Text>
             </TouchableOpacity>
 
@@ -250,10 +250,10 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primaryBg },
   content: { padding: 16, gap: 12, paddingBottom: 32 },
   centerBox: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
-  unsupported: { fontSize: 16, color: '#666' },
+  unsupported: { fontSize: 16, color: NEUTRALS.gray650 },
 
   heroCard: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderRadius: 16,
     padding: 24,
     alignItems: 'center',
@@ -261,9 +261,9 @@ const styles = StyleSheet.create({
     minHeight: 220,
     justifyContent: 'center',
   },
-  heroTitle: { fontSize: 22, fontWeight: '700', color: '#222' },
-  heroSub: { fontSize: 14, color: '#666', textAlign: 'center', lineHeight: 20 },
-  heroHint: { fontSize: 12, color: '#888', textAlign: 'center', lineHeight: 18, marginTop: 4 },
+  heroTitle: { fontSize: 22, fontWeight: '700', color: NEUTRALS.gray850 },
+  heroSub: { fontSize: 14, color: NEUTRALS.gray650, textAlign: 'center', lineHeight: 20 },
+  heroHint: { fontSize: 12, color: NEUTRALS.gray600, textAlign: 'center', lineHeight: 18, marginTop: 4 },
 
   pulseRing: {
     width: 80,
@@ -295,8 +295,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   primaryButton: { backgroundColor: COLORS.primary },
-  secondaryButton: { backgroundColor: '#555' },
-  buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  secondaryButton: { backgroundColor: NEUTRALS.gray700 },
+  buttonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 16 },
 
   linkButton: {
     flexDirection: 'row',
@@ -308,5 +308,5 @@ const styles = StyleSheet.create({
   },
   linkButtonText: { color: COLORS.primary, fontWeight: '600', fontSize: 14 },
 
-  footnote: { color: '#888', fontSize: 11, textAlign: 'center', marginTop: 8, lineHeight: 16 },
+  footnote: { color: NEUTRALS.gray600, fontSize: 11, textAlign: 'center', marginTop: 8, lineHeight: 16 },
 })

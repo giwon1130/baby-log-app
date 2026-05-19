@@ -20,7 +20,7 @@ import { ageInMonths, calcPercentile, formatPercentile, percentileColor } from '
 import { extractErrorMessage } from '../utils/errors'
 import type { Baby, GrowthRecord } from '../types'
 
-import { COLORS } from '../utils/constants'
+import { COLORS, NEUTRALS } from '../utils/constants'
 
 export default function GrowthRecordScreen() {
   const { babyId, familyId, initialized } = useStoredBaby()
@@ -286,19 +286,19 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primaryBg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   form: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     padding: 20,
     gap: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: NEUTRALS.gray100,
   },
-  formTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
+  formTitle: { fontSize: 16, fontWeight: '700', color: NEUTRALS.ink },
   row: { flexDirection: 'row', gap: 12 },
   fieldHalf: { flex: 1, gap: 4 },
-  label: { fontSize: 12, color: '#888', fontWeight: '600' },
+  label: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600' },
   input: {
     borderWidth: 1,
-    borderColor: '#e8e8e8',
+    borderColor: NEUTRALS.gray200,
     borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -312,11 +312,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   submitButtonDisabled: { backgroundColor: COLORS.primaryDisabled },
-  submitButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  submitButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 15 },
   listContent: { padding: 16, gap: 10 },
   recordItem: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -324,28 +324,28 @@ const styles = StyleSheet.create({
   },
   metrics: { flexDirection: 'row', gap: 16 },
   metric: { alignItems: 'center' },
-  metricLabel: { fontSize: 11, color: '#aaa', fontWeight: '600' },
-  metricValue: { fontSize: 15, fontWeight: '700', color: '#1a1a1a', marginTop: 2 },
-  recordTime: { fontSize: 12, color: '#aaa' },
-  empty: { textAlign: 'center', color: '#bbb', marginTop: 40 },
+  metricLabel: { fontSize: 11, color: NEUTRALS.gray450, fontWeight: '600' },
+  metricValue: { fontSize: 15, fontWeight: '700', color: NEUTRALS.ink, marginTop: 2 },
+  recordTime: { fontSize: 12, color: NEUTRALS.gray450 },
+  empty: { textAlign: 'center', color: NEUTRALS.gray400, marginTop: 40 },
   percentileCard: {
     marginHorizontal: 16,
     marginTop: 12,
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderRadius: 16,
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: NEUTRALS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
     gap: 10,
   },
-  percentileTitle: { fontSize: 12, color: '#999', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  percentileTitle: { fontSize: 12, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   percentileRow: { flexDirection: 'row', gap: 20 },
   percentileItem: { alignItems: 'center', gap: 2 },
-  percentileLabel: { fontSize: 11, color: '#aaa', fontWeight: '600' },
+  percentileLabel: { fontSize: 11, color: NEUTRALS.gray450, fontWeight: '600' },
   percentileValue: { fontSize: 20, fontWeight: '800' },
-  percentileSub: { fontSize: 10, color: '#ccc' },
+  percentileSub: { fontSize: 10, color: NEUTRALS.gray300 },
   metricPercentile: { fontSize: 10, fontWeight: '700', marginTop: 1 },
 })

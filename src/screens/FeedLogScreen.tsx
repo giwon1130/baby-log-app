@@ -22,7 +22,7 @@ import SuccessToast from '../components/SuccessToast'
 import BreastfeedingTimer from '../components/BreastfeedingTimer'
 import { formatTime } from '../utils/dateUtils'
 import { extractErrorMessage } from '../utils/errors'
-import { FEED_TYPE_LABEL, COLORS } from '../utils/constants'
+import { FEED_TYPE_LABEL, COLORS, NEUTRALS } from '../utils/constants'
 import type { FeedRecord } from '../types'
 
 const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
@@ -252,32 +252,32 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primaryBg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   form: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     padding: 20,
     gap: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
+    borderBottomColor: NEUTRALS.gray100,
   },
-  formTitle: { fontSize: 16, fontWeight: '700', color: '#1a1a1a', marginBottom: 4 },
-  label: { fontSize: 12, color: '#888', fontWeight: '600', marginTop: 4 },
+  formTitle: { fontSize: 16, fontWeight: '700', color: NEUTRALS.ink, marginBottom: 4 },
+  label: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600', marginTop: 4 },
   quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  quickChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: '#f5f5f5' },
+  quickChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, backgroundColor: NEUTRALS.gray50 },
   quickChipActive: { backgroundColor: COLORS.primary },
-  quickChipText: { fontSize: 13, color: '#555', fontWeight: '600' },
-  quickChipTextActive: { color: '#fff' },
+  quickChipText: { fontSize: 13, color: NEUTRALS.gray700, fontWeight: '600' },
+  quickChipTextActive: { color: NEUTRALS.white },
   typeRow: { flexDirection: 'row', gap: 8 },
-  typeChip: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: '#f5f5f5', alignItems: 'center' },
+  typeChip: { flex: 1, paddingVertical: 8, borderRadius: 10, backgroundColor: NEUTRALS.gray50, alignItems: 'center' },
   typeChipActive: { backgroundColor: COLORS.primary },
-  typeChipText: { fontSize: 13, color: '#555', fontWeight: '600' },
-  typeChipTextActive: { color: '#fff' },
-  input: { borderWidth: 1, borderColor: '#e8e8e8', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14 },
+  typeChipText: { fontSize: 13, color: NEUTRALS.gray700, fontWeight: '600' },
+  typeChipTextActive: { color: NEUTRALS.white },
+  input: { borderWidth: 1, borderColor: NEUTRALS.gray200, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10, fontSize: 14 },
   submitButton: { backgroundColor: COLORS.primary, borderRadius: 12, paddingVertical: 12, alignItems: 'center', marginTop: 4 },
   submitButtonDisabled: { backgroundColor: COLORS.primaryDisabled },
-  submitButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
+  submitButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 15 },
   listContent: { padding: 16, gap: 10 },
   recordItem: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -285,9 +285,9 @@ const styles = StyleSheet.create({
   },
   recordLeft: { gap: 4 },
   recordRight: { alignItems: 'flex-end', gap: 4 },
-  recordAmount: { fontSize: 18, fontWeight: '700', color: '#1a1a1a' },
-  recordType: { fontSize: 12, color: '#999' },
-  recordNote: { fontSize: 11, color: '#bbb', marginTop: 2, maxWidth: 140 },
+  recordAmount: { fontSize: 18, fontWeight: '700', color: NEUTRALS.ink },
+  recordType: { fontSize: 12, color: NEUTRALS.gray500 },
+  recordNote: { fontSize: 11, color: NEUTRALS.gray400, marginTop: 2, maxWidth: 140 },
   recordBreast: { fontSize: 12, color: COLORS.primary, fontWeight: '600' },
   timerButton: {
     borderWidth: 1.5,
@@ -298,8 +298,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timerButtonText: { fontSize: 13, color: COLORS.primary, fontWeight: '600' },
-  recordTime: { fontSize: 13, color: '#444' },
+  recordTime: { fontSize: 13, color: NEUTRALS.gray750 },
   recordNext: { fontSize: 12, color: COLORS.primary },
-  editHint: { fontSize: 10, color: '#ccc', marginTop: 2 },
-  empty: { textAlign: 'center', color: '#bbb', marginTop: 40 },
+  editHint: { fontSize: 10, color: NEUTRALS.gray300, marginTop: 2 },
+  empty: { textAlign: 'center', color: NEUTRALS.gray400, marginTop: 40 },
 })

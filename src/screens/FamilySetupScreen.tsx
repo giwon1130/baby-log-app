@@ -19,7 +19,7 @@ import type { Baby } from '../types'
 import type { RootStackScreenProps } from '../navigation/types'
 import { extractErrorMessage } from '../utils/errors'
 
-import { COLORS } from '../utils/constants'
+import { COLORS, NEUTRALS } from '../utils/constants'
 type Step = 'choice' | 'create' | 'join' | 'baby' | 'selectBaby'
 
 export default function FamilySetupScreen({ navigation, route }: RootStackScreenProps<'FamilySetup'>) {
@@ -131,7 +131,7 @@ export default function FamilySetupScreen({ navigation, route }: RootStackScreen
               disabled={submitting}
             >
               {submitting
-                ? <ActivityIndicator color="#fff" />
+                ? <ActivityIndicator color={NEUTRALS.white} />
                 : <Text style={styles.primaryButtonText}>새 가족 시작하기</Text>
               }
             </TouchableOpacity>
@@ -164,7 +164,7 @@ export default function FamilySetupScreen({ navigation, route }: RootStackScreen
               disabled={inviteCode.length < 8 || submitting}
             >
               {submitting
-                ? <ActivityIndicator color="#fff" />
+                ? <ActivityIndicator color={NEUTRALS.white} />
                 : <Text style={styles.primaryButtonText}>참여하기</Text>
               }
             </TouchableOpacity>
@@ -258,7 +258,7 @@ export default function FamilySetupScreen({ navigation, route }: RootStackScreen
               disabled={!babyName || submitting}
             >
               {submitting
-                ? <ActivityIndicator color="#fff" />
+                ? <ActivityIndicator color={NEUTRALS.white} />
                 : <Text style={styles.primaryButtonText}>시작하기</Text>
               }
             </TouchableOpacity>
@@ -279,17 +279,17 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   logo: { fontSize: 56, textAlign: 'center' },
-  title: { fontSize: 28, fontWeight: '800', color: '#1a1a1a', textAlign: 'center' },
-  subtitle: { fontSize: 15, color: '#888', textAlign: 'center', marginBottom: 12 },
-  label: { fontSize: 13, fontWeight: '600', color: '#555', marginTop: 4 },
+  title: { fontSize: 28, fontWeight: '800', color: NEUTRALS.ink, textAlign: 'center' },
+  subtitle: { fontSize: 15, color: NEUTRALS.gray600, textAlign: 'center', marginBottom: 12 },
+  label: { fontSize: 13, fontWeight: '600', color: NEUTRALS.gray700, marginTop: 4 },
   input: {
     borderWidth: 1,
-    borderColor: '#e8e8e8',
+    borderColor: NEUTRALS.gray200,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 15,
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
   },
   inputValid: { borderColor: COLORS.primary },
   codeInput: {
@@ -301,19 +301,19 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     letterSpacing: 6,
     color: COLORS.primary,
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
   },
   genderRow: { flexDirection: 'row', gap: 12 },
   genderChip: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 12,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: NEUTRALS.gray50,
     alignItems: 'center',
   },
   genderChipActive: { backgroundColor: COLORS.primary },
-  genderChipText: { fontSize: 15, fontWeight: '600', color: '#555' },
-  genderChipTextActive: { color: '#fff' },
+  genderChipText: { fontSize: 15, fontWeight: '600', color: NEUTRALS.gray700 },
+  genderChipTextActive: { color: NEUTRALS.white },
   primaryButton: {
     backgroundColor: COLORS.primary,
     borderRadius: 14,
@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   buttonDisabled: { backgroundColor: COLORS.primaryDisabled },
-  primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  primaryButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 16 },
   secondaryButton: {
     borderWidth: 1.5,
     borderColor: COLORS.primary,
@@ -331,18 +331,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   secondaryButtonText: { color: COLORS.primary, fontWeight: '600', fontSize: 15 },
-  backText: { color: '#aaa', textAlign: 'center', marginTop: 8, fontSize: 14 },
+  backText: { color: NEUTRALS.gray450, textAlign: 'center', marginTop: 8, fontSize: 14 },
   babyOption: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderRadius: 14,
     padding: 16,
     borderWidth: 1.5,
-    borderColor: '#f0f0f0',
+    borderColor: NEUTRALS.gray100,
   },
   babyOptionEmoji: { fontSize: 32 },
-  babyOptionName: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
-  babyOptionMeta: { fontSize: 12, color: '#aaa', marginTop: 2 },
+  babyOptionName: { fontSize: 16, fontWeight: '700', color: NEUTRALS.ink },
+  babyOptionMeta: { fontSize: 12, color: NEUTRALS.gray450, marginTop: 2 },
 })

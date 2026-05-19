@@ -17,7 +17,7 @@ import { scheduleDiaperReminder } from '../utils/notifications'
 import type { SleepRecord } from '../types'
 import type { UndoAction } from './UndoToast'
 import { extractErrorMessage } from '../utils/errors'
-import { COLORS } from '../utils/constants'
+import { COLORS, NEUTRALS } from '../utils/constants'
 import QuickFeed from './QuickFeed'
 
 const QUICK_DIAPERS: { type: string; label: string }[] = [
@@ -150,7 +150,7 @@ export default function QuickActions({
         disabled={busy}
       >
         {(loadingKey === 'sleep-start' || loadingKey === 'sleep-end')
-          ? <ActivityIndicator size="small" color="#fff" />
+          ? <ActivityIndicator size="small" color={NEUTRALS.white} />
           : (
             <Text style={styles.sleepBtnText}>
               {activeSleep ? '☀️ 깨우기' : '😴 재우기'}
@@ -172,10 +172,10 @@ function diaperLabelFor(t: string): string {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: NEUTRALS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -184,12 +184,12 @@ const styles = StyleSheet.create({
   },
   sectionLabel: {
     fontSize: 12,
-    color: '#999',
+    color: NEUTRALS.gray500,
     fontWeight: '600',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  subLabel: { fontSize: 11, color: '#bbb', fontWeight: '600', marginTop: 4 },
+  subLabel: { fontSize: 11, color: NEUTRALS.gray400, fontWeight: '600', marginTop: 4 },
   row: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   diaperBtn: {
     width: 48,
@@ -207,6 +207,6 @@ const styles = StyleSheet.create({
   },
   sleepBtnIdle: { backgroundColor: COLORS.sleep },
   sleepBtnActive: { backgroundColor: '#FF9800' },
-  sleepBtnText: { color: '#fff', fontSize: 15, fontWeight: '700' },
+  sleepBtnText: { color: NEUTRALS.white, fontSize: 15, fontWeight: '700' },
   btnLoading: { opacity: 0.6 },
 })

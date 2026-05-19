@@ -20,7 +20,7 @@ import type { Baby, Family, GrowthStage } from '../types'
 import type { MainTabScreenProps } from '../navigation/types'
 import { extractErrorMessage } from '../utils/errors'
 
-import { COLORS } from '../utils/constants'
+import { COLORS, NEUTRALS } from '../utils/constants'
 const GENDER_LABEL: Record<string, string> = { MALE: '남아', FEMALE: '여아' }
 
 export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'BabyProfile'>) {
@@ -376,16 +376,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: NEUTRALS.gray50,
   },
   babyTabActive: { backgroundColor: COLORS.primary },
-  babyTabText: { fontSize: 13, color: '#555', fontWeight: '600' },
-  babyTabTextActive: { color: '#fff' },
+  babyTabText: { fontSize: 13, color: NEUTRALS.gray700, fontWeight: '600' },
+  babyTabTextActive: { color: NEUTRALS.white },
   card: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     borderRadius: 16,
     padding: 20,
-    shadowColor: '#000',
+    shadowColor: NEUTRALS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -403,8 +403,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   avatarText: { fontSize: 28 },
-  babyName: { fontSize: 20, fontWeight: '700', color: '#1a1a1a' },
-  babyMeta: { fontSize: 13, color: '#888', marginTop: 2 },
+  babyName: { fontSize: 20, fontWeight: '700', color: NEUTRALS.ink },
+  babyMeta: { fontSize: 13, color: NEUTRALS.gray600, marginTop: 2 },
   editBtn: {
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -414,10 +414,10 @@ const styles = StyleSheet.create({
   },
   editBtnText: { fontSize: 12, color: COLORS.primary, fontWeight: '600' },
   editForm: { gap: 8 },
-  editLabel: { fontSize: 11, color: '#888', fontWeight: '600' },
+  editLabel: { fontSize: 11, color: NEUTRALS.gray600, fontWeight: '600' },
   editInput: {
     borderWidth: 1,
-    borderColor: '#e8e8e8',
+    borderColor: NEUTRALS.gray200,
     borderRadius: 10,
     paddingHorizontal: 12,
     paddingVertical: 10,
@@ -428,10 +428,10 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderRadius: 10,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: NEUTRALS.gray50,
     alignItems: 'center',
   },
-  cancelBtnText: { fontSize: 14, color: '#555', fontWeight: '600' },
+  cancelBtnText: { fontSize: 14, color: NEUTRALS.gray700, fontWeight: '600' },
   saveBtn: {
     flex: 1,
     paddingVertical: 10,
@@ -440,13 +440,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   saveBtnDisabled: { backgroundColor: COLORS.primaryDisabled },
-  saveBtnText: { fontSize: 14, color: '#fff', fontWeight: '700' },
+  saveBtnText: { fontSize: 14, color: NEUTRALS.white, fontWeight: '700' },
   statRow: { flexDirection: 'row', gap: 16 },
   stat: { flex: 1 },
-  statLabel: { fontSize: 11, color: '#999', fontWeight: '600', textTransform: 'uppercase' },
-  statValue: { fontSize: 15, fontWeight: '600', color: '#333', marginTop: 2 },
-  sectionTitle: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
-  guideText: { fontSize: 14, color: '#555' },
+  statLabel: { fontSize: 11, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase' },
+  statValue: { fontSize: 15, fontWeight: '600', color: NEUTRALS.gray800, marginTop: 2 },
+  sectionTitle: { fontSize: 14, fontWeight: '700', color: NEUTRALS.ink },
+  guideText: { fontSize: 14, color: NEUTRALS.gray700 },
   inviteDesc: { fontSize: 13, color: '#777' },
   inviteCodeBox: {
     backgroundColor: COLORS.primarySurface,
@@ -457,7 +457,7 @@ const styles = StyleSheet.create({
   },
   inviteCode: { fontSize: 24, fontWeight: '800', color: COLORS.primary, letterSpacing: 4 },
   inviteCopyHint: { fontSize: 11, color: '#FFAAC8' },
-  emptyTitle: { fontSize: 16, fontWeight: '600', color: '#666' },
+  emptyTitle: { fontSize: 16, fontWeight: '600', color: NEUTRALS.gray650 },
   primaryButton: {
     backgroundColor: COLORS.primary,
     borderRadius: 12,
@@ -465,8 +465,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
   },
-  primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  dangerDesc: { fontSize: 12, color: '#999', lineHeight: 18 },
+  primaryButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 15 },
+  dangerDesc: { fontSize: 12, color: NEUTRALS.gray500, lineHeight: 18 },
   dangerBtn: {
     backgroundColor: '#fff5f5',
     borderWidth: 1,

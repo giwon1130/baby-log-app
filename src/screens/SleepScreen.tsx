@@ -21,7 +21,7 @@ import { formatTime, formatDuration } from '../utils/dateUtils'
 import { extractErrorMessage } from '../utils/errors'
 import type { SleepRecord } from '../types'
 
-import { COLORS } from '../utils/constants'
+import { COLORS, NEUTRALS } from '../utils/constants'
 function calcElapsed(iso: string, now: number): string {
   const totalSecs = Math.floor((now - new Date(iso).getTime()) / 1000)
   const h = Math.floor(totalSecs / 3600)
@@ -226,12 +226,12 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primaryBg },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   statusCard: {
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     margin: 16,
     borderRadius: 20,
     padding: 24,
     gap: 16,
-    shadowColor: '#000',
+    shadowColor: NEUTRALS.black,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
@@ -239,10 +239,10 @@ const styles = StyleSheet.create({
   },
   sleepingIndicator: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   sleepingEmoji: { fontSize: 40 },
-  sleepingTitle: { fontSize: 20, fontWeight: '700', color: '#1a1a1a' },
-  sleepingTime: { fontSize: 14, color: '#888', marginTop: 2 },
-  awakeTitle: { fontSize: 20, fontWeight: '700', color: '#1a1a1a' },
-  awakeDesc: { fontSize: 14, color: '#aaa' },
+  sleepingTitle: { fontSize: 20, fontWeight: '700', color: NEUTRALS.ink },
+  sleepingTime: { fontSize: 14, color: NEUTRALS.gray600, marginTop: 2 },
+  awakeTitle: { fontSize: 20, fontWeight: '700', color: NEUTRALS.ink },
+  awakeDesc: { fontSize: 14, color: NEUTRALS.gray450 },
   actionButton: {
     borderRadius: 14,
     paddingVertical: 14,
@@ -250,20 +250,20 @@ const styles = StyleSheet.create({
   },
   sleepButton: { backgroundColor: COLORS.sleep },
   wakeButton: { backgroundColor: COLORS.amber },
-  actionButtonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
+  actionButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: 16 },
   listContent: { paddingHorizontal: 16, gap: 10, paddingBottom: 16 },
   recordItem: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: NEUTRALS.white,
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  recordSlept: { fontSize: 13, color: '#444' },
-  recordWoke: { fontSize: 13, color: '#888', marginTop: 2 },
+  recordSlept: { fontSize: 13, color: NEUTRALS.gray750 },
+  recordWoke: { fontSize: 13, color: NEUTRALS.gray600, marginTop: 2 },
   recordRight: { alignItems: 'flex-end' },
   duration: { fontSize: 16, fontWeight: '700', color: COLORS.sleep },
   ongoing: { fontSize: 13, color: COLORS.amber, fontWeight: '600' },
-  empty: { textAlign: 'center', color: '#bbb', marginTop: 40 },
+  empty: { textAlign: 'center', color: NEUTRALS.gray400, marginTop: 40 },
 })

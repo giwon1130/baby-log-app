@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons'
 import type { CryFeatureSummary } from '../../../modules/cry-detector'
 import { buildFeatureRows } from '../../utils/cryFeatures'
 
-import { COLORS } from '../../utils/constants'
+import { COLORS, NEUTRALS } from '../../utils/constants'
 /**
  * "분석 디테일" card — shows the raw audio features the classifier saw, with a
  * friendly interpretation. Helps the user understand why a label was chosen and
@@ -20,7 +20,7 @@ export function AcousticDetails({ features }: { features: CryFeatureSummary }) {
       <Text style={styles.title}>분석 디테일</Text>
       {rows.map((row, i) => (
         <View key={i} style={[styles.row, row.emphasis && styles.rowEmphasis]}>
-          <Ionicons name={row.icon} size={18} color={row.emphasis ? COLORS.primary : '#888'} />
+          <Ionicons name={row.icon} size={18} color={row.emphasis ? COLORS.primary : NEUTRALS.gray600} />
           <View style={{ flex: 1 }}>
             <View style={styles.line}>
               <Text style={styles.label}>{row.label}</Text>
@@ -37,8 +37,8 @@ export function AcousticDetails({ features }: { features: CryFeatureSummary }) {
 }
 
 const styles = StyleSheet.create({
-  card: { backgroundColor: '#fff', borderRadius: 14, padding: 16, marginTop: 8, gap: 10 },
-  title: { fontSize: 12, color: '#888', fontWeight: '600' },
+  card: { backgroundColor: NEUTRALS.white, borderRadius: 14, padding: 16, marginTop: 8, gap: 10 },
+  title: { fontSize: 12, color: NEUTRALS.gray600, fontWeight: '600' },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, paddingVertical: 4 },
   rowEmphasis: {
     backgroundColor: '#FFF4F8',
@@ -47,8 +47,8 @@ const styles = StyleSheet.create({
     marginHorizontal: -8,
   },
   line: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
-  label: { fontSize: 13, color: '#444', fontWeight: '600' },
-  value: { fontSize: 13, color: '#666', fontWeight: '600' },
+  label: { fontSize: 13, color: NEUTRALS.gray750, fontWeight: '600' },
+  value: { fontSize: 13, color: NEUTRALS.gray650, fontWeight: '600' },
   valueEmphasis: { color: COLORS.primary, fontWeight: '700' },
-  hint: { fontSize: 11, color: '#888', marginTop: 2 },
+  hint: { fontSize: 11, color: NEUTRALS.gray600, marginTop: 2 },
 })
