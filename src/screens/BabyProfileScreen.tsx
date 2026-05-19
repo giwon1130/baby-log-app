@@ -4,7 +4,6 @@ import {
   ActivityIndicator,
   Alert,
   ScrollView,
-  Switch,
   StyleSheet,
   Text,
   TextInput,
@@ -15,15 +14,8 @@ import * as Clipboard from 'expo-clipboard'
 import { deleteBaby, getBabies, getFamily, getGrowthStage, updateBaby } from '../api/babyLogApi'
 import { clearStoredBaby, setStoredBaby, storeFamilyAndBaby } from '../api/client'
 import { useStoredBaby } from '../hooks/useStoredBaby'
-import {
-  getDiaperNotificationEnabled, setDiaperNotificationEnabled,
-  getNotificationEnabled, setNotificationEnabled,
-  getSleepNotificationEnabled, setSleepNotificationEnabled,
-  getDiaperReminderHours, setDiaperReminderHours,
-  getNapReminderHours, setNapReminderHours,
-  getFeedIntervalOverride, setFeedIntervalOverride,
-} from '../hooks/useFeedNotification'
 import ErrorBanner from '../components/ErrorBanner'
+import { NotificationSettingsCard } from '../components/NotificationSettingsCard'
 import type { Baby, Family, GrowthStage } from '../types'
 import type { MainTabScreenProps } from '../navigation/types'
 import { extractErrorMessage } from '../utils/errors'
@@ -39,12 +31,6 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
   const [growthStage, setGrowthStage] = useState<GrowthStage | null>(null)
   const [family, setFamily] = useState<Family | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [notifEnabled, setNotifEnabled] = useState(true)
-  const [diaperNotifEnabled, setDiaperNotifEnabled] = useState(true)
-  const [sleepNotifEnabled, setSleepNotifEnabled] = useState(true)
-  const [diaperHours, setDiaperHours] = useState(3)
-  const [napHours, setNapHours] = useState(2)
-  const [feedIntervalOverride, setFeedIntervalOverrideState] = useState<number | null>(null)
 
   // 편집 상태
   const [editing, setEditing] = useState(false)
@@ -74,20 +60,6 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
     if (!initialized) return
     const init = async () => {
       if (familyId) await loadAll(familyId, storedBabyId)
-      const [feed, diaper, sleep, dh, nh, fi] = await Promise.all([
-        getNotificationEnabled(),
-        getDiaperNotificationEnabled(),
-        getSleepNotificationEnabled(),
-        getDiaperReminderHours(),
-        getNapReminderHours(),
-        getFeedIntervalOverride(),
-      ])
-      setNotifEnabled(feed)
-      setDiaperNotifEnabled(diaper)
-      setSleepNotifEnabled(sleep)
-      setDiaperHours(dh)
-      setNapHours(nh)
-      setFeedIntervalOverrideState(fi)
       setLoading(false)
     }
     init()
@@ -339,96 +311,7 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
             <Text style={styles.guideText}>체중·키·머리둘레를 기록하고 그래프로 보기 ›</Text>
           </TouchableOpacity>
 
-          <View style={styles.card}>
-            <Text style={styles.sectionTitle}>알림 설정</Text>
-            <View style={styles.notifRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.notifTitle}>🍼 수유 알림</Text>
-                <Text style={styles.notifDesc}>
-                  {feedIntervalOverride != null
-                    ? `수유 ${feedIntervalOverride}시간 후 알림`
-                    : '다음 수유 시간에 알림을 보내요 (자동)'}
-                </Text>
-                {notifEnabled && (
-                  <View style={styles.hourPicker}>
-                    {([null, 2, 2.5, 3, 3.5, 4] as (number | null)[]).map(h => (
-                      <TouchableOpacity
-                        key={String(h)}
-                        style={[styles.hourChip, feedIntervalOverride === h && styles.hourChipActive]}
-                        onPress={async () => {
-                          setFeedIntervalOverrideState(h)
-                          await setFeedIntervalOverride(h)
-                        }}
-                      >
-                        <Text style={[styles.hourChipText, feedIntervalOverride === h && styles.hourChipTextActive]}>
-                          {h == null ? '자동' : `${h}h`}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-              <Switch
-                value={notifEnabled}
-                onValueChange={async (v) => {
-                  setNotifEnabled(v)
-                  await setNotificationEnabled(v)
-                }}
-                trackColor={{ false: '#e0e0e0', true: COLORS.primary }}
-                thumbColor="#fff"
-              />
-            </View>
-            <View style={styles.notifRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.notifTitle}>🧷 기저귀 알림</Text>
-                <Text style={styles.notifDesc}>마지막 교환 {diaperHours}시간 후 알림</Text>
-                {diaperNotifEnabled && (
-                  <View style={styles.hourPicker}>
-                    {[1, 2, 3, 4, 5, 6].map(h => (
-                      <TouchableOpacity
-                        key={h}
-                        style={[styles.hourChip, diaperHours === h && styles.hourChipActive]}
-                        onPress={async () => { setDiaperHours(h); await setDiaperReminderHours(h) }}
-                      >
-                        <Text style={[styles.hourChipText, diaperHours === h && styles.hourChipTextActive]}>{h}h</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-              <Switch
-                value={diaperNotifEnabled}
-                onValueChange={async (v) => { setDiaperNotifEnabled(v); await setDiaperNotificationEnabled(v) }}
-                trackColor={{ false: '#e0e0e0', true: COLORS.primary }}
-                thumbColor="#fff"
-              />
-            </View>
-            <View style={styles.notifRow}>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.notifTitle}>😴 낮잠 알림</Text>
-                <Text style={styles.notifDesc}>기상 {napHours}시간 후 알림</Text>
-                {sleepNotifEnabled && (
-                  <View style={styles.hourPicker}>
-                    {[1, 2, 3, 4].map(h => (
-                      <TouchableOpacity
-                        key={h}
-                        style={[styles.hourChip, napHours === h && styles.hourChipActive]}
-                        onPress={async () => { setNapHours(h); await setNapReminderHours(h) }}
-                      >
-                        <Text style={[styles.hourChipText, napHours === h && styles.hourChipTextActive]}>{h}h</Text>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                )}
-              </View>
-              <Switch
-                value={sleepNotifEnabled}
-                onValueChange={async (v) => { setSleepNotifEnabled(v); await setSleepNotificationEnabled(v) }}
-                trackColor={{ false: '#e0e0e0', true: COLORS.primary }}
-                thumbColor="#fff"
-              />
-            </View>
-          </View>
+          <NotificationSettingsCard />
 
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>가족 초대</Text>
@@ -565,9 +448,6 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 14, fontWeight: '700', color: '#1a1a1a' },
   guideText: { fontSize: 14, color: '#555' },
   inviteDesc: { fontSize: 13, color: '#777' },
-  notifRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  notifTitle: { fontSize: 13, fontWeight: '600', color: '#333' },
-  notifDesc: { fontSize: 12, color: '#aaa', marginTop: 2 },
   inviteCodeBox: {
     backgroundColor: COLORS.primarySurface,
     borderRadius: 10,
@@ -586,16 +466,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryButtonText: { color: '#fff', fontWeight: '700', fontSize: 15 },
-  hourPicker: { flexDirection: 'row', gap: 6, marginTop: 8 },
-  hourChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 20,
-    backgroundColor: '#f5f5f5',
-  },
-  hourChipActive: { backgroundColor: COLORS.primary },
-  hourChipText: { fontSize: 12, color: '#666', fontWeight: '600' },
-  hourChipTextActive: { color: '#fff' },
   dangerDesc: { fontSize: 12, color: '#999', lineHeight: 18 },
   dangerBtn: {
     backgroundColor: '#fff5f5',

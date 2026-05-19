@@ -57,3 +57,54 @@ App Store Connect → 베이비로그-ai → TestFlight 탭
 - 컴포넌트: `src/components/` — Edit*Modal, BreastfeedingTimer, QuickActions, SwipeToDelete, UndoToast, ErrorBanner, SuccessToast 등
 - 알림: `expo-notifications`. 수유 기록 시 `nextFeedAt` 기준 로컬 알림 자동 등록 + 앱 시작 시 재동기화
 - 가족 공유: 8자리 초대 코드 → 같은 아기 데이터 공유
+
+## 실시간 동기화 (Phase 1+2, Build #4 부터)
+
+- **SSE**: `/api/v1/families/{familyId}/stream` 으로 가족 단위 record 이벤트 구독 (`react-native-sse`, `useFamilyStream` 훅, HomeScreen에 연결됨)
+- **Push**: 같은 가족의 다른 디바이스에 Expo Push 발송 (CREATED 이벤트만)
+- **자기 제외**: `X-Device-Id` 헤더로 자기 디바이스 제외 (`getOrCreateDeviceId` AsyncStorage 영구, 모든 API 호출에 자동 첨부)
+- **Push Token 등록**: HomeScreen 초기화 시 `registerPushTokenForFamily(familyId)` 자동 호출
+
+### 검증 시나리오 (폰 2대 필요, Build #4 이상)
+
+**Step 0 — 사전 준비**
+1. 두 기기에 TestFlight로 Build #4 설치 (Version `1.0.0 (4)`)
+2. 앱 처음 실행 시 **알림 권한 허용** (안 허용하면 Expo Push Token 발급 안 돼서 푸시 X)
+3. 두 기기 모두 같은 **8자리 초대 코드**로 같은 가족 가입
+4. 두 기기 모두 홈 → 아기 탭 스크롤 끝에 **🎓 신생아 졸업** 섹션 보이면 Build #4 맞음
+
+**Step 1 — Foreground SSE**
+- 두 기기 모두 baby-log 홈 화면 열어둠
+- 기기 A에서 수유 한 번 기록
+- 기기 B 홈 화면 통계가 30초 안에 자동 새로고침 → ✅
+
+**Step 2 — Background Push**
+- 기기 B를 잠금화면 또는 다른 앱으로 (앱 백그라운드)
+- 기기 A에서 기저귀 한 번 기록
+- 기기 B에 푸시 도착: `💧 기저귀 / {아기이름} 교체 했어요` → ✅
+
+**Step 3 — 자기 제외**
+- 기기 A에서 기록 → 기기 A엔 푸시 X
+- 같은 동작에 기기 B만 푸시 받음 → ✅
+
+### 디버그 (실패 시)
+
+| 증상 | 원인 후보 | 확인 방법 |
+|------|-----------|-----------|
+| Step 1 실패 (SSE 안 옴) | SSE 연결 실패, familyId 불일치 | `curl -sN https://baby-log-api-production.up.railway.app/api/v1/families/{id}/stream` 로 `event:ready` 떨어지는지 |
+| Step 2 실패 (푸시 안 옴) | 알림 권한 없음 / Push Token 미등록 / Expo Push API 실패 | 폰 설정 → 베이비로그 → 알림 허용 / Railway 로그에 `ExpoPushSender` 호출 확인 / push_tokens 테이블 row 존재 확인 |
+| Step 3 실패 (자기에게도 푸시) | X-Device-Id 헤더 미첨부 또는 백엔드 필터 누락 | Railway 로그에서 X-Device-Id 헤더 수신 확인 / `pushTokenService.tokensForFamilyExcept` 로직 |
+
+### 백엔드 직접 점검
+
+```bash
+# SSE endpoint 생존 확인
+curl -sN --max-time 4 "https://baby-log-api-production.up.railway.app/api/v1/families/<familyId>/stream"
+# → event:ready / data:ok 보이면 OK
+
+# 등록된 푸시 토큰 확인 (직접 DB 접근 — Railway shell or psql)
+# select device_id, label, platform, updated_at from bl_push_tokens where family_id = '<familyId>';
+
+# Railway 로그
+railway logs --service baby-log-api
+```
