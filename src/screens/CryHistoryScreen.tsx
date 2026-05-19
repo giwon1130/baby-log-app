@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 
 import { confirmCrySample, getCryHistory } from '../api/babyLogApi'
-import { getStoredBabyId } from '../api/client'
+import { useStoredBaby } from '../hooks/useStoredBaby'
 import type { CryLabel, CrySample } from '../types'
 import { CorrectionModal } from '../components/cry/CorrectionModal'
 import { LearningStageBanner } from '../components/cry/LearningStageBanner'
@@ -17,7 +17,7 @@ import { LearningStageBanner } from '../components/cry/LearningStageBanner'
  * accumulated confirmations feed back into the per-baby classifier.
  */
 export default function CryHistoryScreen() {
-  const [babyId, setBabyId] = useState<string | null>(null)
+  const { babyId, initialized } = useStoredBaby()
   const [items, setItems] = useState<CrySample[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -33,12 +33,10 @@ export default function CryHistoryScreen() {
   }, [])
 
   useEffect(() => {
-    getStoredBabyId().then(async (id) => {
-      setBabyId(id)
-      if (id) await load(id)
-      setLoading(false)
-    })
-  }, [load])
+    if (!initialized) return
+    if (babyId) load(babyId).finally(() => setLoading(false))
+    else setLoading(false)
+  }, [initialized, babyId, load])
 
   const onRefresh = useCallback(async () => {
     if (!babyId) return

@@ -11,7 +11,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native'
 import { BarChart, LineChart } from 'react-native-chart-kit'
 import { getWeeklyStats } from '../api/babyLogApi'
-import { getStoredBabyId } from '../api/client'
+import { useStoredBaby } from '../hooks/useStoredBaby'
 import { formatDuration } from '../utils/dateUtils'
 import type { WeeklyStats } from '../types'
 
@@ -41,10 +41,10 @@ function shortDate(iso: string): string {
 }
 
 export default function StatsScreen() {
+  const { babyId, initialized, loadBaby } = useStoredBaby()
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [stats, setStats] = useState<WeeklyStats | null>(null)
-  const [babyId, setBabyId] = useState<string | null>(null)
 
   const loadStats = useCallback(async (bid: string) => {
     const data = await getWeeklyStats(bid).catch(() => null)
@@ -52,18 +52,15 @@ export default function StatsScreen() {
   }, [])
 
   useEffect(() => {
-    const init = async () => {
-      const bid = await getStoredBabyId()
-      setBabyId(bid)
-      if (bid) await loadStats(bid)
-      setLoading(false)
-    }
-    init()
-  }, [])
+    if (!initialized) return
+    if (babyId) loadStats(babyId).finally(() => setLoading(false))
+    else setLoading(false)
+  }, [initialized, babyId, loadStats])
 
   useFocusEffect(useCallback(() => {
+    loadBaby()
     if (babyId) loadStats(babyId)
-  }, [babyId, loadStats]))
+  }, [babyId, loadStats, loadBaby]))
 
   const onRefresh = useCallback(async () => {
     if (!babyId) return

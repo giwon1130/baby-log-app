@@ -12,7 +12,7 @@ import {
 } from 'react-native'
 import { LineChart } from 'react-native-chart-kit'
 import { getBabies, deleteGrowthRecord, getGrowthRecords, recordGrowth, updateGrowthRecord } from '../api/babyLogApi'
-import { getStoredBabyId, getStoredFamilyId } from '../api/client'
+import { useStoredBaby } from '../hooks/useStoredBaby'
 import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'
 import EditGrowthModal from '../components/EditGrowthModal'
@@ -40,7 +40,7 @@ const HEIGHT_CHART_CONFIG = {
 }
 
 export default function GrowthRecordScreen() {
-  const [babyId, setBabyId] = useState<string | null>(null)
+  const { babyId, familyId, initialized } = useStoredBaby()
   const [baby, setBaby] = useState<Baby | null>(null)
   const [records, setRecords] = useState<GrowthRecord[]>([])
   const [loading, setLoading] = useState(true)
@@ -66,23 +66,20 @@ export default function GrowthRecordScreen() {
   }, [babyId, loadRecords])
 
   useEffect(() => {
+    if (!initialized) return
     const init = async () => {
-      const [bid, fid] = await Promise.all([getStoredBabyId(), getStoredFamilyId()])
-      setBabyId(bid)
-      if (bid && fid) {
-        const [, babies] = await Promise.all([
-          loadRecords(bid),
-          getBabies(fid).catch(() => [] as Baby[]),
-        ])
-        const found = babies.find(b => b.id === bid)
-        if (found) setBaby(found)
-      } else if (bid) {
-        await loadRecords(bid)
+      if (babyId) {
+        await loadRecords(babyId)
+        if (familyId) {
+          const babies = await getBabies(familyId).catch(() => [] as Baby[])
+          const found = babies.find(b => b.id === babyId)
+          if (found) setBaby(found)
+        }
       }
       setLoading(false)
     }
     init()
-  }, [])
+  }, [initialized, babyId, familyId, loadRecords])
 
   const handleSubmit = async () => {
     if (!babyId || (!weightG && !heightCm && !headCm)) return

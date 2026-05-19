@@ -13,7 +13,8 @@ import {
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
 import { deleteBaby, getBabies, getFamily, getGrowthStage, updateBaby } from '../api/babyLogApi'
-import { clearStoredBaby, getStoredBabyId, getStoredFamilyId, setStoredBaby, storeFamilyAndBaby } from '../api/client'
+import { clearStoredBaby, setStoredBaby, storeFamilyAndBaby } from '../api/client'
+import { useStoredBaby } from '../hooks/useStoredBaby'
 import {
   getDiaperNotificationEnabled, setDiaperNotificationEnabled,
   getNotificationEnabled, setNotificationEnabled,
@@ -28,11 +29,11 @@ import type { Baby, Family, GrowthStage } from '../types'
 const GENDER_LABEL: Record<string, string> = { MALE: '남아', FEMALE: '여아' }
 
 export default function BabyProfileScreen({ navigation }: any) {
+  const { babyId: storedBabyId, familyId, initialized, loadBaby } = useStoredBaby()
   const [loading, setLoading] = useState(true)
   const [babies, setBabies] = useState<Baby[]>([])
   const [selectedBaby, setSelectedBaby] = useState<Baby | null>(null)
   const [growthStage, setGrowthStage] = useState<GrowthStage | null>(null)
-  const [familyId, setFamilyId] = useState<string | null>(null)
   const [family, setFamily] = useState<Family | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [notifEnabled, setNotifEnabled] = useState(true)
@@ -67,11 +68,9 @@ export default function BabyProfileScreen({ navigation }: any) {
   }
 
   useEffect(() => {
+    if (!initialized) return
     const init = async () => {
-      const fid = await getStoredFamilyId()
-      const bid = await getStoredBabyId()
-      setFamilyId(fid)
-      if (fid) await loadAll(fid, bid)
+      if (familyId) await loadAll(familyId, storedBabyId)
       const [feed, diaper, sleep, dh, nh, fi] = await Promise.all([
         getNotificationEnabled(),
         getDiaperNotificationEnabled(),
@@ -89,12 +88,13 @@ export default function BabyProfileScreen({ navigation }: any) {
       setLoading(false)
     }
     init()
-  }, [])
+  }, [initialized, familyId, storedBabyId])
 
   useFocusEffect(useCallback(() => {
-    if (!familyId) return
-    getStoredBabyId().then(bid => loadAll(familyId, bid))
-  }, [familyId]))
+    loadBaby().then(({ babyId: bid, familyId: fid }) => {
+      if (fid) loadAll(fid, bid)
+    })
+  }, [loadBaby]))
 
   const handleSelectBaby = async (baby: Baby) => {
     setSelectedBaby(baby)

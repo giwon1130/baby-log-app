@@ -14,7 +14,7 @@ import { useNavigation } from '@react-navigation/native'
 
 import { CryDetector, type CryFeatureSummary } from '../../modules/cry-detector'
 import { confirmCrySample, submitCrySample } from '../api/babyLogApi'
-import { getStoredBabyId } from '../api/client'
+import { useStoredBaby } from '../hooks/useStoredBaby'
 import type { CryLabel, CrySample } from '../types'
 import { CorrectionModal } from '../components/cry/CorrectionModal'
 import { LearningStageBanner } from '../components/cry/LearningStageBanner'
@@ -34,9 +34,9 @@ type Phase = 'idle' | 'recording' | 'analyzing' | 'result'
  */
 export default function CryMonitorScreen() {
   const navigation = useNavigation<any>()
+  const { babyId } = useStoredBaby()
   const [phase, setPhase] = useState<Phase>('idle')
   const [countdown, setCountdown] = useState(RECORD_SECONDS)
-  const [babyId, setBabyId] = useState<string | null>(null)
   const [sample, setSample] = useState<CrySample | null>(null)
   const [lastFeatures, setLastFeatures] = useState<CryFeatureSummary | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -44,7 +44,6 @@ export default function CryMonitorScreen() {
   const countdownTimer = useRef<ReturnType<typeof setInterval> | null>(null)
 
   useEffect(() => {
-    getStoredBabyId().then(setBabyId)
     return () => {
       if (countdownTimer.current) clearInterval(countdownTimer.current)
       CryDetector.stop().catch(() => {})

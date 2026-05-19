@@ -11,9 +11,9 @@ import {
   View,
 } from 'react-native'
 import { getActiveSleep, getBabies, getLatestFeed, getTodayStats } from '../api/babyLogApi'
-import { getStoredBabyId, getStoredFamilyId } from '../api/client'
 import { scheduleFeedNotification } from '../hooks/useFeedNotification'
 import { useFamilyStream } from '../hooks/useFamilyStream'
+import { useStoredBaby } from '../hooks/useStoredBaby'
 import { registerPushTokenForFamily } from '../api/pushRegistration'
 import QuickActions from '../components/QuickActions'
 import ErrorBanner from '../components/ErrorBanner'
@@ -22,14 +22,11 @@ import { parseApiTimestamp, timeUntil, formatDuration as formatSleep, formatAge 
 import type { SleepRecord, TodayStats } from '../types'
 
 export default function HomeScreen({ navigation }: any) {
+  const { babyId, familyId, babyName, daysOld, initialized, loadBaby } = useStoredBaby()
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [todayStats, setTodayStats] = useState<TodayStats | null>(null)
-  const [babyId, setBabyId] = useState<string | null>(null)
-  const [babyName, setBabyName] = useState<string | undefined>(undefined)
-  const [familyId, setFamilyId] = useState<string | null>(null)
   const [activeSleep, setActiveSleep] = useState<SleepRecord | null>(null)
-  const [daysOld, setDaysOld] = useState<number | null>(null)
   const [nextFeedAt, setNextFeedAt] = useState<string | null>(null)
   const [quickError, setQuickError] = useState<string | null>(null)
   const [undoAction, setUndoAction] = useState<UndoAction | null>(null)
@@ -38,6 +35,8 @@ export default function HomeScreen({ navigation }: any) {
     navigation.setOptions({ title: babyName ?? '홈' })
   }, [babyName])
 
+  // baby.name 은 scheduleFeedNotification 에 넘기려고 babies 한 번 더 조회.
+  // babyName/daysOld 자체는 useStoredBaby 가 관리하므로 set 호출 없음.
   const loadData = useCallback(async (bid: string, fid: string) => {
     const [feed, babies, stats, active] = await Promise.allSettled([
       getLatestFeed(bid),
@@ -47,8 +46,6 @@ export default function HomeScreen({ navigation }: any) {
     ])
     if (babies.status === 'fulfilled') {
       const baby = babies.value.find(b => b.id === bid)
-      setBabyName(baby?.name)
-      setDaysOld(baby?.daysOld ?? null)
       if (feed.status === 'fulfilled' && feed.value?.nextFeedAt) {
         await scheduleFeedNotification(feed.value.nextFeedAt, baby?.name, feed.value.fedAt)
       }
@@ -59,32 +56,22 @@ export default function HomeScreen({ navigation }: any) {
   }, [])
 
   useEffect(() => {
-    const init = async () => {
-      const bid = await getStoredBabyId()
-      const fid = await getStoredFamilyId()
-      setBabyId(bid)
-      setFamilyId(fid)
-      if (bid && fid) {
-        await loadData(bid, fid)
-        registerPushTokenForFamily(fid).catch(() => {})
-      }
+    if (!initialized) return
+    if (babyId && familyId) {
+      loadData(babyId, familyId).finally(() => setLoading(false))
+      registerPushTokenForFamily(familyId).catch(() => {})
+    } else {
       setLoading(false)
     }
-    init()
-  }, [])
+  }, [initialized, babyId, familyId, loadData])
 
   useFocusEffect(useCallback(() => {
-    const check = async () => {
-      const bid = await getStoredBabyId()
-      const fid = await getStoredFamilyId()
+    loadBaby().then(({ babyId: bid, familyId: fid }) => {
       if (bid && fid && (bid !== babyId || fid !== familyId)) {
-        setBabyId(bid)
-        setFamilyId(fid)
-        await loadData(bid, fid)
+        loadData(bid, fid)
       }
-    }
-    check()
-  }, [babyId, familyId, loadData]))
+    })
+  }, [babyId, familyId, loadData, loadBaby]))
 
   const onRefresh = useCallback(async () => {
     if (!babyId || !familyId) return
