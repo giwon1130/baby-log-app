@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import {
   ActivityIndicator,
-  Dimensions,
   FlatList,
   RefreshControl,
   StyleSheet,
@@ -10,36 +9,18 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { LineChart } from 'react-native-chart-kit'
 import { getBabies, deleteGrowthRecord, getGrowthRecords, recordGrowth, updateGrowthRecord } from '../api/babyLogApi'
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'
 import EditGrowthModal from '../components/EditGrowthModal'
+import { GrowthChart } from '../components/GrowthChart'
 import { formatTime } from '../utils/dateUtils'
 import { ageInMonths, calcPercentile, formatPercentile, percentileColor } from '../utils/whoGrowth'
 import { extractErrorMessage } from '../utils/errors'
 import type { Baby, GrowthRecord } from '../types'
 
 import { COLORS } from '../utils/constants'
-const SCREEN_WIDTH = Dimensions.get('window').width
-const CHART_WIDTH = SCREEN_WIDTH - 64
-
-const WEIGHT_CHART_CONFIG = {
-  backgroundGradientFrom: '#fff',
-  backgroundGradientTo: '#fff',
-  color: (opacity = 1) => `rgba(255, 107, 157, ${opacity})`,
-  labelColor: () => '#aaa',
-  strokeWidth: 2,
-  decimalPlaces: 1,
-  propsForDots: { r: '4', strokeWidth: '2', stroke: COLORS.primary },
-}
-
-const HEIGHT_CHART_CONFIG = {
-  ...WEIGHT_CHART_CONFIG,
-  color: (opacity = 1) => `rgba(92, 107, 192, ${opacity})`,
-  propsForDots: { r: '4', strokeWidth: '2', stroke: COLORS.sleep },
-}
 
 export default function GrowthRecordScreen() {
   const { babyId, familyId, initialized } = useStoredBaby()
@@ -240,45 +221,7 @@ export default function GrowthRecordScreen() {
         </View>
       )}
 
-      {/* 성장 차트 — 2개 이상 기록 있을 때만 표시 */}
-      {(weightRecs.length >= 2 || heightRecs.length >= 2) && (
-        <View style={styles.chartSection}>
-          {weightRecs.length >= 2 && (
-            <View style={styles.chartCard}>
-              <Text style={styles.chartLabel}>체중 추이 (kg)</Text>
-              <LineChart
-                data={{
-                  labels: weightRecs.map(r => dateLabel(r.measuredAt)),
-                  datasets: [{ data: weightRecs.map(r => Math.round(r.weightG! / 100) / 10) }],
-                }}
-                width={CHART_WIDTH}
-                height={140}
-                chartConfig={WEIGHT_CHART_CONFIG}
-                style={styles.chart}
-                bezier
-                fromZero={false}
-              />
-            </View>
-          )}
-          {heightRecs.length >= 2 && (
-            <View style={styles.chartCard}>
-              <Text style={styles.chartLabel}>키 추이 (cm)</Text>
-              <LineChart
-                data={{
-                  labels: heightRecs.map(r => dateLabel(r.measuredAt)),
-                  datasets: [{ data: heightRecs.map(r => r.heightCm!) }],
-                }}
-                width={CHART_WIDTH}
-                height={140}
-                chartConfig={HEIGHT_CHART_CONFIG}
-                style={styles.chart}
-                bezier
-                fromZero={false}
-              />
-            </View>
-          )}
-        </View>
-      )}
+      <GrowthChart weightRecs={weightRecs} heightRecs={heightRecs} dateLabel={dateLabel} />
 
       <FlatList
         data={records}
@@ -385,20 +328,6 @@ const styles = StyleSheet.create({
   metricValue: { fontSize: 15, fontWeight: '700', color: '#1a1a1a', marginTop: 2 },
   recordTime: { fontSize: 12, color: '#aaa' },
   empty: { textAlign: 'center', color: '#bbb', marginTop: 40 },
-  chartSection: { paddingHorizontal: 16, paddingTop: 12, gap: 12 },
-  chartCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-    gap: 6,
-  },
-  chartLabel: { fontSize: 12, color: '#999', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
-  chart: { borderRadius: 8 },
   percentileCard: {
     marginHorizontal: 16,
     marginTop: 12,
