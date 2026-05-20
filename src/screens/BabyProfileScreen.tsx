@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useFocusEffect } from '@react-navigation/native'
 import {
   ActivityIndicator,
@@ -32,6 +32,7 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
   const [growthStage, setGrowthStage] = useState<GrowthStage | null>(null)
   const [family, setFamily] = useState<Family | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const scrollRef = useRef<ScrollView>(null)
 
   // 편집 상태
   const [editing, setEditing] = useState(false)
@@ -144,6 +145,9 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
                 await clearStoredBaby()
               }
               setEditing(false)
+              // 졸업 버튼은 화면 맨 아래 — 완료 후 맨 위로 올려
+              // 졸업된 아기가 사라지고 다음 아기로 바뀐 걸 바로 보이게
+              scrollRef.current?.scrollTo({ y: 0, animated: true })
               Alert.alert(
                 '🎓 졸업 완료',
                 `${target.name}의 모든 기록이 정리됐어요.\n그동안 정말 수고 많으셨어요 💛`,
@@ -182,7 +186,7 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView ref={scrollRef} style={styles.container} contentContainerStyle={styles.content}>
       <ErrorBanner message={error} onDismiss={() => setError(null)} />
 
       {/* 아기 선택 탭 + 추가 버튼 */}
