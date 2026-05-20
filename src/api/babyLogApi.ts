@@ -95,8 +95,8 @@ export const startSleep = (babyId: string, data: { sleptAt?: string; note?: stri
 export const endSleep = (babyId: string, sleepId: string, data: { wokeAt?: string }) =>
   api.post<SleepRecord>(`/api/v1/babies/${babyId}/sleeps/${sleepId}/end`, data)
 
-export const getSleepRecords = (babyId: string, limit = 50) =>
-  api.get<SleepRecord[]>(`/api/v1/babies/${babyId}/sleeps?limit=${limit}`)
+export const getSleepRecords = (babyId: string, limit = 50, date?: string) =>
+  api.get<SleepRecord[]>(`/api/v1/babies/${babyId}/sleeps?limit=${limit}${date ? `&date=${date}` : ''}`)
 
 export const getActiveSleep = (babyId: string) =>
   api.get<SleepRecord | null>(`/api/v1/babies/${babyId}/sleeps/active`)

@@ -14,6 +14,7 @@ import { getWeeklyStats } from '../api/babyLogApi'
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import { formatDuration } from '../utils/dateUtils'
 import EmptyState from '../components/EmptyState'
+import { DailyClockSection } from '../components/DailyClockSection'
 import type { WeeklyStats } from '../types'
 
 import { COLORS, NEUTRALS, FONT } from '../utils/constants'
@@ -103,9 +104,6 @@ export default function StatsScreen() {
   }, [stats])
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>
-  if (!stats || !chartData) return <View style={styles.center}><EmptyState icon="bar-chart-outline" title="데이터가 없어요" hint="기록이 쌓이면 통계가 보여요" /></View>
-
-  const { feedLabels, feedMlData, feedCountData, sleepLabels, sleepData, totalFeedThisWeek, avgFeedPerDay, totalSleepHours, avgSleepPerDay, feedTrend, sleepTrend } = chartData
 
   return (
     <ScrollView
@@ -113,104 +111,117 @@ export default function StatsScreen() {
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
     >
-      {/* 주간 요약 */}
-      <View style={styles.summaryCard}>
-        <Text style={styles.cardLabel}>이번 주 요약</Text>
-        <View style={styles.summaryRow}>
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>{totalFeedThisWeek.toLocaleString()}ml</Text>
-            <Text style={styles.summaryLabel}>총 수유량</Text>
-          </View>
-          <View style={styles.summaryDivider} />
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>{avgFeedPerDay}ml</Text>
-            <Text style={styles.summaryLabel}>일평균 수유</Text>
-          </View>
-          <View style={styles.summaryDivider} />
-          <View style={styles.summaryItem}>
-            <Text style={styles.summaryValue}>{avgSleepPerDay}h</Text>
-            <Text style={styles.summaryLabel}>일평균 수면</Text>
-          </View>
-        </View>
+      {/* 24시간 리듬 차트 — 주간 통계 유무와 무관하게 항상 표시 */}
+      <DailyClockSection babyId={babyId} />
 
-        {/* 트렌드 인사이트 */}
-        {(feedTrend != null || sleepTrend != null) && (
-          <View style={styles.trendRow}>
-            {feedTrend != null && Math.abs(feedTrend) >= 5 && (
-              <View style={[styles.trendChip, feedTrend > 0 ? styles.trendUp : styles.trendDown]}>
-                <Text style={styles.trendChipText}>
-                  {feedTrend > 0 ? '📈' : '📉'} 수유량 {feedTrend > 0 ? '+' : ''}{feedTrend}%
-                </Text>
+      {stats && chartData ? (
+        <>
+          {/* 주간 요약 */}
+          <View style={styles.summaryCard}>
+            <Text style={styles.cardLabel}>이번 주 요약</Text>
+            <View style={styles.summaryRow}>
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryValue}>{chartData.totalFeedThisWeek.toLocaleString()}ml</Text>
+                <Text style={styles.summaryLabel}>총 수유량</Text>
               </View>
-            )}
-            {sleepTrend != null && Math.abs(sleepTrend) >= 5 && (
-              <View style={[styles.trendChip, sleepTrend > 0 ? styles.trendUp : styles.trendDown]}>
-                <Text style={styles.trendChipText}>
-                  {sleepTrend > 0 ? '😴' : '⚠️'} 수면 {sleepTrend > 0 ? '+' : ''}{sleepTrend}%
-                </Text>
+              <View style={styles.summaryDivider} />
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryValue}>{chartData.avgFeedPerDay}ml</Text>
+                <Text style={styles.summaryLabel}>일평균 수유</Text>
               </View>
-            )}
-            {(feedTrend == null || Math.abs(feedTrend) < 5) && (sleepTrend == null || Math.abs(sleepTrend) < 5) && (
-              <Text style={styles.trendStable}>이번 주 패턴이 안정적이에요 ✅</Text>
-            )}
-          </View>
-        )}
-      </View>
-
-      {/* 일별 수유량 바 차트 */}
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>일별 수유량 (ml)</Text>
-        <BarChart
-          data={{ labels: feedLabels, datasets: [{ data: feedMlData }] }}
-          width={CHART_WIDTH - 32}
-          height={180}
-          chartConfig={CHART_CONFIG}
-          style={styles.chart}
-          showValuesOnTopOfBars
-          fromZero
-          yAxisLabel=""
-          yAxisSuffix=""
-        />
-      </View>
-
-      {/* 일별 수유 횟수 라인 차트 */}
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>일별 수유 횟수</Text>
-        <LineChart
-          data={{ labels: feedLabels, datasets: [{ data: feedCountData.length > 0 ? feedCountData : [0] }] }}
-          width={CHART_WIDTH - 32}
-          height={160}
-          chartConfig={CHART_CONFIG}
-          style={styles.chart}
-          bezier
-          fromZero
-        />
-      </View>
-
-      {/* 일별 수면 시간 라인 차트 */}
-      <View style={styles.card}>
-        <Text style={styles.cardLabel}>일별 수면 시간 (시간)</Text>
-        <LineChart
-          data={{ labels: sleepLabels, datasets: [{ data: sleepData.length > 0 ? sleepData : [0] }] }}
-          width={CHART_WIDTH - 32}
-          height={160}
-          chartConfig={SLEEP_CHART_CONFIG}
-          style={styles.chart}
-          bezier
-          fromZero
-        />
-        {/* 일별 수면 상세 */}
-        <View style={styles.sleepDetail}>
-          {stats.sleepStats.map(s => (
-            <View key={s.date} style={styles.sleepDetailRow}>
-              <Text style={styles.sleepDetailDate}>{shortDate(s.date)}</Text>
-              <Text style={styles.sleepDetailValue}>
-                {s.sleepCount}회 · {formatDuration(s.totalMinutes)}
-              </Text>
+              <View style={styles.summaryDivider} />
+              <View style={styles.summaryItem}>
+                <Text style={styles.summaryValue}>{chartData.avgSleepPerDay}h</Text>
+                <Text style={styles.summaryLabel}>일평균 수면</Text>
+              </View>
             </View>
-          ))}
-        </View>
-      </View>
+
+            {/* 트렌드 인사이트 */}
+            {(chartData.feedTrend != null || chartData.sleepTrend != null) && (
+              <View style={styles.trendRow}>
+                {chartData.feedTrend != null && Math.abs(chartData.feedTrend) >= 5 && (
+                  <View style={[styles.trendChip, chartData.feedTrend > 0 ? styles.trendUp : styles.trendDown]}>
+                    <Text style={styles.trendChipText}>
+                      {chartData.feedTrend > 0 ? '📈' : '📉'} 수유량 {chartData.feedTrend > 0 ? '+' : ''}{chartData.feedTrend}%
+                    </Text>
+                  </View>
+                )}
+                {chartData.sleepTrend != null && Math.abs(chartData.sleepTrend) >= 5 && (
+                  <View style={[styles.trendChip, chartData.sleepTrend > 0 ? styles.trendUp : styles.trendDown]}>
+                    <Text style={styles.trendChipText}>
+                      {chartData.sleepTrend > 0 ? '😴' : '⚠️'} 수면 {chartData.sleepTrend > 0 ? '+' : ''}{chartData.sleepTrend}%
+                    </Text>
+                  </View>
+                )}
+                {(chartData.feedTrend == null || Math.abs(chartData.feedTrend) < 5) && (chartData.sleepTrend == null || Math.abs(chartData.sleepTrend) < 5) && (
+                  <Text style={styles.trendStable}>이번 주 패턴이 안정적이에요 ✅</Text>
+                )}
+              </View>
+            )}
+          </View>
+
+          {/* 일별 수유량 바 차트 */}
+          <View style={styles.card}>
+            <Text style={styles.cardLabel}>일별 수유량 (ml)</Text>
+            <BarChart
+              data={{ labels: chartData.feedLabels, datasets: [{ data: chartData.feedMlData }] }}
+              width={CHART_WIDTH - 32}
+              height={180}
+              chartConfig={CHART_CONFIG}
+              style={styles.chart}
+              showValuesOnTopOfBars
+              fromZero
+              yAxisLabel=""
+              yAxisSuffix=""
+            />
+          </View>
+
+          {/* 일별 수유 횟수 라인 차트 */}
+          <View style={styles.card}>
+            <Text style={styles.cardLabel}>일별 수유 횟수</Text>
+            <LineChart
+              data={{ labels: chartData.feedLabels, datasets: [{ data: chartData.feedCountData.length > 0 ? chartData.feedCountData : [0] }] }}
+              width={CHART_WIDTH - 32}
+              height={160}
+              chartConfig={CHART_CONFIG}
+              style={styles.chart}
+              bezier
+              fromZero
+            />
+          </View>
+
+          {/* 일별 수면 시간 라인 차트 */}
+          <View style={styles.card}>
+            <Text style={styles.cardLabel}>일별 수면 시간 (시간)</Text>
+            <LineChart
+              data={{ labels: chartData.sleepLabels, datasets: [{ data: chartData.sleepData.length > 0 ? chartData.sleepData : [0] }] }}
+              width={CHART_WIDTH - 32}
+              height={160}
+              chartConfig={SLEEP_CHART_CONFIG}
+              style={styles.chart}
+              bezier
+              fromZero
+            />
+            {/* 일별 수면 상세 */}
+            <View style={styles.sleepDetail}>
+              {stats.sleepStats.map(s => (
+                <View key={s.date} style={styles.sleepDetailRow}>
+                  <Text style={styles.sleepDetailDate}>{shortDate(s.date)}</Text>
+                  <Text style={styles.sleepDetailValue}>
+                    {s.sleepCount}회 · {formatDuration(s.totalMinutes)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        </>
+      ) : (
+        <EmptyState
+          icon="bar-chart-outline"
+          title="주간 통계가 아직 없어요"
+          hint="기록이 며칠 쌓이면 추세가 보여요"
+        />
+      )}
     </ScrollView>
   )
 }
