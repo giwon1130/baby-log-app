@@ -53,11 +53,17 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
       if (feed.status === 'fulfilled' && feed.value?.nextFeedAt) {
         await scheduleFeedNotification(feed.value.nextFeedAt, baby?.name, feed.value.fedAt)
       }
-      // iOS 홈 위젯 갱신 — 마지막/다음 수유 시각
+      // iOS 홈 위젯 갱신 — 수유 시각 + 오늘 요약(medium 위젯용)
+      const s = stats.status === 'fulfilled' ? stats.value : null
       updateFeedWidget({
         babyName: baby?.name,
         lastFedAt: feed.status === 'fulfilled' ? feed.value?.fedAt : null,
         nextFeedAt: feed.status === 'fulfilled' ? feed.value?.nextFeedAt : null,
+        feedCount: s?.feedCount,
+        totalFeedMl: s?.totalFeedMl,
+        diaperCount: s?.diaperCount,
+        sleepCount: s?.sleepCount,
+        totalSleepMinutes: s?.totalSleepMinutes,
       })
     }
     if (feed.status === 'fulfilled') setNextFeedAt(feed.value?.nextFeedAt ?? null)
