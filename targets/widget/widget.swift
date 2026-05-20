@@ -148,6 +148,53 @@ struct MediumWidgetView: View {
     }
 }
 
+// ── Lock Screen (accessory, iOS 16+) ─────────────────────────────────────
+
+struct AccessoryRectangularView: View {
+    let entry: FeedEntry
+    var body: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            HStack(spacing: 3) {
+                Image(systemName: "drop.fill").font(.system(size: 11))
+                Text(entry.babyName).font(.caption2).bold().lineLimit(1)
+            }
+            if let last = entry.lastFedAt {
+                Text("마지막 \(last, style: .relative)").font(.caption2)
+            }
+            if let next = entry.nextFeedAt {
+                Text("다음 \(next, style: .time)").font(.caption2).bold()
+            }
+        }
+    }
+}
+
+struct AccessoryCircularView: View {
+    let entry: FeedEntry
+    var body: some View {
+        VStack(spacing: 1) {
+            Image(systemName: "drop.fill").font(.system(size: 11))
+            if let next = entry.nextFeedAt {
+                Text(next, style: .time).font(.system(size: 11, weight: .bold))
+            } else {
+                Text("—").font(.system(size: 11, weight: .bold))
+            }
+        }
+    }
+}
+
+struct AccessoryInlineView: View {
+    let entry: FeedEntry
+    var body: some View {
+        if let next = entry.nextFeedAt {
+            Text("🍼 다음 수유 \(next, style: .time)")
+        } else if let last = entry.lastFedAt {
+            Text("🍼 마지막 \(last, style: .relative)")
+        } else {
+            Text("🍼 수유 기록 없음")
+        }
+    }
+}
+
 // ── Entry dispatch ───────────────────────────────────────────────────────
 
 struct WidgetEntryView: View {
@@ -158,6 +205,12 @@ struct WidgetEntryView: View {
         switch family {
         case .systemMedium:
             MediumWidgetView(entry: entry)
+        case .accessoryRectangular:
+            AccessoryRectangularView(entry: entry)
+        case .accessoryCircular:
+            AccessoryCircularView(entry: entry)
+        case .accessoryInline:
+            AccessoryInlineView(entry: entry)
         default:
             SmallWidgetView(entry: entry)
         }
@@ -180,6 +233,9 @@ struct BabyLogWidget: Widget {
         }
         .configurationDisplayName("수유 현황")
         .description("마지막·다음 수유와 오늘 요약을 한눈에")
-        .supportedFamilies([.systemSmall, .systemMedium])
+        .supportedFamilies([
+            .systemSmall, .systemMedium,
+            .accessoryRectangular, .accessoryCircular, .accessoryInline,
+        ])
     }
 }
