@@ -4,10 +4,12 @@ import {
   getDiaperNotificationEnabled, setDiaperNotificationEnabled,
   getNotificationEnabled, setNotificationEnabled,
   getSleepNotificationEnabled, setSleepNotificationEnabled,
+  getDailySummaryEnabled, setDailySummaryEnabled,
   getDiaperReminderHours, setDiaperReminderHours,
   getNapReminderHours, setNapReminderHours,
   getFeedIntervalOverride, setFeedIntervalOverride,
 } from '../utils/notifications'
+import { syncDailySummaryEnabled } from '../api/pushRegistration'
 import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 
 /**
@@ -18,16 +20,18 @@ export function NotificationSettingsCard() {
   const [feedEnabled, setFeedEnabledLocal] = useState(true)
   const [diaperEnabled, setDiaperEnabledLocal] = useState(true)
   const [sleepEnabled, setSleepEnabledLocal] = useState(true)
+  const [summaryEnabled, setSummaryEnabledLocal] = useState(true)
   const [diaperHours, setDiaperHoursLocal] = useState(3)
   const [napHours, setNapHoursLocal] = useState(2)
   const [feedInterval, setFeedIntervalLocal] = useState<number | null>(null)
 
   useEffect(() => {
     const load = async () => {
-      const [f, d, s, dh, nh, fi] = await Promise.all([
+      const [f, d, s, ds, dh, nh, fi] = await Promise.all([
         getNotificationEnabled(),
         getDiaperNotificationEnabled(),
         getSleepNotificationEnabled(),
+        getDailySummaryEnabled(),
         getDiaperReminderHours(),
         getNapReminderHours(),
         getFeedIntervalOverride(),
@@ -35,6 +39,7 @@ export function NotificationSettingsCard() {
       setFeedEnabledLocal(f)
       setDiaperEnabledLocal(d)
       setSleepEnabledLocal(s)
+      setSummaryEnabledLocal(ds)
       setDiaperHoursLocal(dh)
       setNapHoursLocal(nh)
       setFeedIntervalLocal(fi)
@@ -137,6 +142,24 @@ export function NotificationSettingsCard() {
         <Switch
           value={sleepEnabled}
           onValueChange={async (v) => { setSleepEnabledLocal(v); await setSleepNotificationEnabled(v) }}
+          trackColor={{ false: NEUTRALS.gray250, true: COLORS.primary }}
+          thumbColor={NEUTRALS.white}
+        />
+      </View>
+
+      {/* 일일 요약 */}
+      <View style={styles.notifRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.notifTitle}>📋 일일 요약</Text>
+          <Text style={styles.notifDesc}>매일 저녁 9시, 오늘 수유·기저귀·수면 요약</Text>
+        </View>
+        <Switch
+          value={summaryEnabled}
+          onValueChange={async (v) => {
+            setSummaryEnabledLocal(v)
+            await setDailySummaryEnabled(v)
+            await syncDailySummaryEnabled(v)
+          }}
           trackColor={{ false: NEUTRALS.gray250, true: COLORS.primary }}
           thumbColor={NEUTRALS.white}
         />

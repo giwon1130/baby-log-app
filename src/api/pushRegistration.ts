@@ -2,7 +2,8 @@ import * as Notifications from 'expo-notifications'
 import * as Device from 'expo-device'
 import Constants from 'expo-constants'
 import { Platform } from 'react-native'
-import { api, getOrCreateDeviceId } from './client'
+import { api, getOrCreateDeviceId, getStoredFamilyId } from './client'
+import { getDailySummaryEnabled } from '../utils/notifications'
 
 export async function registerPushTokenForFamily(familyId: string): Promise<void> {
   if (!Device.isDevice) return
@@ -25,10 +26,26 @@ export async function registerPushTokenForFamily(familyId: string): Promise<void
     return
   }
   const deviceId = await getOrCreateDeviceId()
+  const dailySummaryEnabled = await getDailySummaryEnabled()
   await api.post(`/api/v1/families/${familyId}/push-tokens`, {
     deviceId,
     expoToken: token,
     label: Device.modelName ?? '',
     platform: Platform.OS,
+    dailySummaryEnabled,
   }).catch(() => {})
+}
+
+/**
+ * 일일 요약 수신 토글을 백엔드에 반영 (디바이스 단위).
+ * 토큰 미등록 등으로 실패해도 조용히 무시 — 로컬 AsyncStorage 가 우선.
+ */
+export async function syncDailySummaryEnabled(enabled: boolean): Promise<void> {
+  const familyId = await getStoredFamilyId()
+  if (!familyId) return
+  const deviceId = await getOrCreateDeviceId()
+  await api.patch(
+    `/api/v1/families/${familyId}/push-tokens/${deviceId}/daily-summary`,
+    { enabled },
+  ).catch(() => {})
 }

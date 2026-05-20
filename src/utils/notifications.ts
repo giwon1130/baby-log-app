@@ -8,6 +8,7 @@ import { Platform } from 'react-native'
 const NOTIFICATION_ENABLED_KEY = 'feedNotificationEnabled'
 const DIAPER_NOTIFICATION_ENABLED_KEY = 'diaperNotificationEnabled'
 const SLEEP_NOTIFICATION_ENABLED_KEY = 'sleepNotificationEnabled'
+const DAILY_SUMMARY_ENABLED_KEY = 'dailySummaryEnabled'
 const FEED_INTERVAL_OVERRIDE_KEY = 'feedIntervalOverrideHours'
 const DIAPER_REMINDER_HOURS_KEY = 'diaperReminderHours'
 const NAP_REMINDER_HOURS_KEY = 'napReminderHours'
@@ -43,6 +44,19 @@ export async function getSleepNotificationEnabled(): Promise<boolean> {
 export async function setSleepNotificationEnabled(enabled: boolean): Promise<void> {
   await AsyncStorage.setItem(SLEEP_NOTIFICATION_ENABLED_KEY, String(enabled))
   if (!enabled) await cancelNapReminder()
+}
+
+/**
+ * 일일 요약 푸시 수신 토글. 서버 cron 이 발송하므로 로컬값은 캐시이고
+ * 실제 발송 여부는 백엔드 bl_push_tokens.daily_summary_enabled 가 결정 —
+ * 토글 시 syncDailySummaryEnabled() 로 백엔드에도 반영해야 함.
+ */
+export async function getDailySummaryEnabled(): Promise<boolean> {
+  const val = await AsyncStorage.getItem(DAILY_SUMMARY_ENABLED_KEY)
+  return val !== 'false'
+}
+export async function setDailySummaryEnabled(enabled: boolean): Promise<void> {
+  await AsyncStorage.setItem(DAILY_SUMMARY_ENABLED_KEY, String(enabled))
 }
 
 // ── Interval overrides ────────────────────────────────────────────────────────
