@@ -144,6 +144,10 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
                 await clearStoredBaby()
               }
               setEditing(false)
+              Alert.alert(
+                '🎓 졸업 완료',
+                `${target.name}의 모든 기록이 정리됐어요.\n그동안 정말 수고 많으셨어요 💛`,
+              )
             } catch (err) {
               setError(extractErrorMessage(err, '삭제에 실패했어요'))
             } finally {
