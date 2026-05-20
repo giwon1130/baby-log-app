@@ -31,9 +31,13 @@ type Props = {
   show: { feed: boolean; sleep: boolean; diaper: boolean }
 }
 
-/** 그날 0시 기준 경과 시간(0~24) → SVG 각도(deg). 자정을 12시 방향(-90°)에. */
+/**
+ * 그날 0시 기준 경과 시간(0~24) → SVG 각도(deg).
+ * 정오(12시)를 차트 위(12시 방향)에 — 일반 시계 감각.
+ * → 정오 위 / 자정 아래 / 18시 오른쪽 / 6시 왼쪽.
+ */
 function hoursToAngle(h: number): number {
-  return (h / 24) * 360 - 90
+  return ((h + 12) / 24) * 360 - 90
 }
 
 function polar(angleDeg: number, r: number): { x: number; y: number } {
