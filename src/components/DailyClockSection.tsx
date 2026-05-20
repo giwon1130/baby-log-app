@@ -88,6 +88,11 @@ export function DailyClockSection({ babyId }: { babyId: string | null }) {
 
       <DailyClockChart date={date} feeds={feeds} diapers={diapers} sleeps={sleeps} show={show} />
 
+      {/* 하루 요약 */}
+      <Text style={styles.summary}>
+        수유 {feeds.length}회 · 기저귀 {diapers.length}회 · 수면 {sleeps.length}회
+      </Text>
+
       {/* 종류 토글 (범례 겸용) */}
       <View style={styles.toggleRow}>
         {KINDS.map(({ key, label, color }) => {
@@ -125,6 +130,7 @@ const styles = StyleSheet.create({
   },
   navBtn: { padding: 4 },
   dateText: { fontSize: FONT.h4, fontWeight: '700', color: NEUTRALS.ink },
+  summary: { fontSize: FONT.bodySm, fontWeight: '700', color: NEUTRALS.gray700 },
   toggleRow: { flexDirection: 'row', gap: 8 },
   chip: {
     flexDirection: 'row',

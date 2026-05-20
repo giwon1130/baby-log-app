@@ -16,6 +16,7 @@ const CENTER = SIZE / 2
 const R_SLEEP = 92    // 수면 호 반지름
 const R_FEED = 92     // 수유 점 (호와 같은 링, 점이라 겹쳐도 무방)
 const R_DIAPER = 72   // 기저귀 점 (안쪽 링)
+const R_LABEL = 78    // 0/6/12/18 라벨 — 눈금 바깥, 트랙 안쪽
 const SLEEP_WIDTH = 13
 
 type FeedPoint = { fedAt: string }
@@ -108,15 +109,15 @@ export function DailyClockChart({ date, feeds, diapers, sleeps, show }: Props) {
           })}
         </G>
 
-        {/* 0/6/12/18 라벨 */}
+        {/* 0/6/12/18 라벨 — 눈금과 트랙 사이 */}
         <G>
           {ticks.map(h => {
-            const p = polar(hoursToAngle(h), R_DIAPER - 30)
+            const p = polar(hoursToAngle(h), R_LABEL)
             return (
               <SvgText
                 key={h}
                 x={p.x} y={p.y + 4}
-                fontSize={12} fontWeight="700"
+                fontSize={11} fontWeight="700"
                 fill={NEUTRALS.gray500}
                 textAnchor="middle"
               >
@@ -150,14 +151,6 @@ export function DailyClockChart({ date, feeds, diapers, sleeps, show }: Props) {
           const p = polar(hoursToAngle(h), R_DIAPER)
           return <Circle key={`diaper-${i}`} cx={p.x} cy={p.y} r={4.5} fill={COLORS.amber} stroke={NEUTRALS.white} strokeWidth={1.5} />
         })}
-
-        {/* 중앙 요약 */}
-        <SvgText x={CENTER} y={CENTER - 4} fontSize={13} fontWeight="800" fill={NEUTRALS.ink} textAnchor="middle">
-          {`수유 ${feedHours.length} · 기저귀 ${diaperHours.length}`}
-        </SvgText>
-        <SvgText x={CENTER} y={CENTER + 14} fontSize={11} fill={NEUTRALS.gray500} textAnchor="middle">
-          {`수면 ${sleepSpans.length}회`}
-        </SvgText>
       </Svg>
     </View>
   )
