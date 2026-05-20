@@ -12,6 +12,7 @@ import {
 } from 'react-native'
 import { getActiveSleep, getBabies, getLatestFeed, getTodayStats } from '../api/babyLogApi'
 import { scheduleFeedNotification } from '../utils/notifications'
+import { updateFeedWidget } from '../utils/widget'
 import { useFamilyStream } from '../hooks/useFamilyStream'
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import { registerPushTokenForFamily } from '../api/pushRegistration'
@@ -52,6 +53,12 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
       if (feed.status === 'fulfilled' && feed.value?.nextFeedAt) {
         await scheduleFeedNotification(feed.value.nextFeedAt, baby?.name, feed.value.fedAt)
       }
+      // iOS 홈 위젯 갱신 — 마지막/다음 수유 시각
+      updateFeedWidget({
+        babyName: baby?.name,
+        lastFedAt: feed.status === 'fulfilled' ? feed.value?.fedAt : null,
+        nextFeedAt: feed.status === 'fulfilled' ? feed.value?.nextFeedAt : null,
+      })
     }
     if (feed.status === 'fulfilled') setNextFeedAt(feed.value?.nextFeedAt ?? null)
     if (stats.status === 'fulfilled') setTodayStats(stats.value)

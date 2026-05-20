@@ -18,6 +18,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supportsTablet: false,
     bundleIdentifier: 'com.giwon.babylog',
     buildNumber: '1',
+    appleTeamId: '776H9NV6HT',
+    entitlements: {
+      'com.apple.security.application-groups': ['group.com.giwon.babylog'],
+    },
     infoPlist: {
       NSUserNotificationsUsageDescription: '다음 수유 시간을 알려드립니다.',
       NSMicrophoneUsageDescription: '아기 울음을 감지해서 수면·수유 기록에 도움을 드리기 위해 사용합니다. 녹음이나 업로드는 하지 않아요.',
@@ -54,6 +58,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     '@react-native-community/datetimepicker',
+    '@bacons/apple-targets',
   ],
   extra: {
     apiBaseUrl: process.env.BABY_LOG_API_URL ?? 'https://baby-log-api-production.up.railway.app',
