@@ -16,6 +16,7 @@ import { useStoredBaby } from '../hooks/useStoredBaby'
 import { formatDuration } from '../utils/dateUtils'
 import EmptyState from '../components/EmptyState'
 import { DailyClockSection } from '../components/DailyClockSection'
+import { WeeklyHeatmapSection } from '../components/WeeklyHeatmapSection'
 import type { WeeklyStats } from '../types'
 
 import { COLORS, NEUTRALS, FONT } from '../utils/constants'
@@ -119,6 +120,9 @@ export default function StatsScreen() {
     >
       {/* 24시간 리듬 차트 — 주간 통계 유무와 무관하게 항상 표시 */}
       <DailyClockSection babyId={babyId} />
+
+      {/* 주간 패턴 히트맵 */}
+      <WeeklyHeatmapSection babyId={babyId} />
 
       {/* 주간/월간 토글 */}
       <View style={styles.periodTabs}>
