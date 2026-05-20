@@ -131,6 +131,9 @@ export const getTodayStats = (babyId: string) =>
 export const getWeeklyStats = (babyId: string) =>
   api.get<WeeklyStats>(`/api/v1/babies/${babyId}/stats/weekly`)
 
+export const getMonthlyStats = (babyId: string) =>
+  api.get<WeeklyStats>(`/api/v1/babies/${babyId}/stats/monthly`)
+
 // Cry analysis
 export const submitCrySample = (babyId: string, data: {
   durationSec: number

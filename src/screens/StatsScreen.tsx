@@ -6,11 +6,12 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 import { BarChart, LineChart } from 'react-native-chart-kit'
-import { getWeeklyStats } from '../api/babyLogApi'
+import { getMonthlyStats, getWeeklyStats } from '../api/babyLogApi'
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import { formatDuration } from '../utils/dateUtils'
 import EmptyState from '../components/EmptyState'
@@ -43,48 +44,53 @@ function shortDate(iso: string): string {
   return `${d.getMonth() + 1}/${d.getDate()}`
 }
 
+type Period = 'week' | 'month'
+
 export default function StatsScreen() {
   const { babyId, initialized, loadBaby } = useStoredBaby()
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [stats, setStats] = useState<WeeklyStats | null>(null)
+  const [period, setPeriod] = useState<Period>('week')
 
-  const loadStats = useCallback(async (bid: string) => {
-    const data = await getWeeklyStats(bid).catch(() => null)
+  const loadStats = useCallback(async (bid: string, p: Period) => {
+    const data = await (p === 'week' ? getWeeklyStats(bid) : getMonthlyStats(bid)).catch(() => null)
     setStats(data)
   }, [])
 
   useEffect(() => {
     if (!initialized) return
-    if (babyId) loadStats(babyId).finally(() => setLoading(false))
+    if (babyId) loadStats(babyId, period).finally(() => setLoading(false))
     else setLoading(false)
-  }, [initialized, babyId, loadStats])
+  }, [initialized, babyId, period, loadStats])
 
   useFocusEffect(useCallback(() => {
     loadBaby()
-    if (babyId) loadStats(babyId)
-  }, [babyId, loadStats, loadBaby]))
+    if (babyId) loadStats(babyId, period)
+  }, [babyId, period, loadStats, loadBaby]))
 
   const onRefresh = useCallback(async () => {
     if (!babyId) return
     setRefreshing(true)
-    await loadStats(babyId)
+    await loadStats(babyId, period)
     setRefreshing(false)
-  }, [babyId, loadStats])
+  }, [babyId, period, loadStats])
 
   const chartData = useMemo(() => {
     if (!stats) return null
-    const feedLabels = stats.feedStats.map(s => shortDate(s.date))
+    // 월간(30일)은 라벨이 빽빽 — 5일 간격만 표시
+    const every = period === 'month' ? 5 : 1
+    const feedLabels = stats.feedStats.map((s, i) => (i % every === 0 ? shortDate(s.date) : ''))
     const feedMlData = stats.feedStats.map(s => s.totalMl)
     const feedCountData = stats.feedStats.map(s => s.feedCount)
-    const sleepLabels = stats.sleepStats.map(s => shortDate(s.date))
+    const sleepLabels = stats.sleepStats.map((s, i) => (i % every === 0 ? shortDate(s.date) : ''))
     const sleepData = stats.sleepStats.map(s => Math.round(s.totalMinutes / 60 * 10) / 10)
     const totalFeedThisWeek = feedMlData.reduce((a, b) => a + b, 0)
     const avgFeedPerDay = stats.feedStats.length > 0
       ? Math.round(totalFeedThisWeek / stats.feedStats.length)
       : 0
     const totalSleepHours = Math.round(sleepData.reduce((a, b) => a + b, 0) * 10) / 10
-    const avgSleepPerDay = Math.round(totalSleepHours / 7 * 10) / 10
+    const avgSleepPerDay = Math.round(totalSleepHours / (stats.sleepStats.length || 1) * 10) / 10
 
     // 전반부(앞 3일) vs 후반부(뒤 3일) 트렌드
     const feedTrend = (() => {
@@ -101,7 +107,7 @@ export default function StatsScreen() {
     })()
 
     return { feedLabels, feedMlData, feedCountData, sleepLabels, sleepData, totalFeedThisWeek, avgFeedPerDay, totalSleepHours, avgSleepPerDay, feedTrend, sleepTrend }
-  }, [stats])
+  }, [stats, period])
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>
 
@@ -114,11 +120,26 @@ export default function StatsScreen() {
       {/* 24시간 리듬 차트 — 주간 통계 유무와 무관하게 항상 표시 */}
       <DailyClockSection babyId={babyId} />
 
+      {/* 주간/월간 토글 */}
+      <View style={styles.periodTabs}>
+        {(['week', 'month'] as Period[]).map(p => (
+          <TouchableOpacity
+            key={p}
+            style={[styles.periodTab, period === p && styles.periodTabActive]}
+            onPress={() => setPeriod(p)}
+          >
+            <Text style={[styles.periodTabText, period === p && styles.periodTabTextActive]}>
+              {p === 'week' ? '주간' : '월간'}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
       {stats && chartData ? (
         <>
-          {/* 주간 요약 */}
+          {/* 기간 요약 */}
           <View style={styles.summaryCard}>
-            <Text style={styles.cardLabel}>이번 주 요약</Text>
+            <Text style={styles.cardLabel}>{period === 'week' ? '이번 주 요약' : '최근 30일 요약'}</Text>
             <View style={styles.summaryRow}>
               <View style={styles.summaryItem}>
                 <Text style={styles.summaryValue}>{chartData.totalFeedThisWeek.toLocaleString()}ml</Text>
@@ -230,6 +251,19 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primaryBg },
   content: { padding: 16, gap: 12, paddingBottom: 32 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  periodTabs: { flexDirection: 'row', gap: 8 },
+  periodTab: {
+    flex: 1,
+    paddingVertical: 9,
+    borderRadius: 10,
+    backgroundColor: NEUTRALS.white,
+    borderWidth: 1,
+    borderColor: NEUTRALS.gray200,
+    alignItems: 'center',
+  },
+  periodTabActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  periodTabText: { fontSize: FONT.bodySm, fontWeight: '700', color: NEUTRALS.gray500 },
+  periodTabTextActive: { color: NEUTRALS.white },
   summaryCard: {
     backgroundColor: NEUTRALS.white,
     borderRadius: 16,
