@@ -15,6 +15,7 @@ import SwipeToDelete from '../components/SwipeToDelete'
 import ErrorBanner from '../components/ErrorBanner'
 import EditGrowthModal from '../components/EditGrowthModal'
 import EmptyState from '../components/EmptyState'
+import EditButton from '../components/EditButton'
 import { GrowthChart } from '../components/GrowthChart'
 import { formatTime } from '../utils/dateUtils'
 import { ageInMonths, calcPercentile, formatPercentile, percentileColor } from '../utils/whoGrowth'
@@ -31,12 +32,19 @@ export default function GrowthRecordScreen() {
   const [submitting, setSubmitting] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorRetry, setErrorRetry] = useState<(() => void) | null>(null)
   const [editingRecord, setEditingRecord] = useState<GrowthRecord | null>(null)
 
   const [weightG, setWeightG] = useState('')
   const [heightCm, setHeightCm] = useState('')
   const [headCm, setHeadCm] = useState('')
   const [note, setNote] = useState('')
+
+  const showError = useCallback((msg: string, retry?: () => void) => {
+    setError(msg)
+    setErrorRetry(() => retry ?? null)
+  }, [])
+  const dismissError = useCallback(() => { setError(null); setErrorRetry(null) }, [])
 
   const loadRecords = useCallback(async (bid: string) => {
     setRecords(await getGrowthRecords(bid))
@@ -68,6 +76,7 @@ export default function GrowthRecordScreen() {
   const handleSubmit = async () => {
     if (!babyId || (!weightG && !heightCm && !headCm)) return
     setSubmitting(true)
+    dismissError()
     try {
       const record = await recordGrowth(babyId, {
         weightG: weightG ? parseInt(weightG) : undefined,
@@ -81,7 +90,7 @@ export default function GrowthRecordScreen() {
       setHeadCm('')
       setNote('')
     } catch (err) {
-      setError(extractErrorMessage(err, '성장 기록 저장에 실패했어요'))
+      showError(extractErrorMessage(err, '성장 기록 저장에 실패했어요'), handleSubmit)
     } finally {
       setSubmitting(false)
     }
@@ -93,7 +102,7 @@ export default function GrowthRecordScreen() {
       const updated = await updateGrowthRecord(babyId, id, data)
       setRecords(prev => prev.map(r => r.id === id ? updated : r))
     } catch (err) {
-      setError(extractErrorMessage(err, '수정에 실패했어요'))
+      showError(extractErrorMessage(err, '수정에 실패했어요'))
     }
   }
 
@@ -103,7 +112,7 @@ export default function GrowthRecordScreen() {
       await deleteGrowthRecord(babyId, recordId)
       setRecords(prev => prev.filter(r => r.id !== recordId))
     } catch (err) {
-      setError(extractErrorMessage(err, '삭제에 실패했어요'))
+      showError(extractErrorMessage(err, '삭제에 실패했어요'))
     }
   }
 
@@ -143,7 +152,7 @@ export default function GrowthRecordScreen() {
         onClose={() => setEditingRecord(null)}
         onSave={handleUpdate}
       />
-      <ErrorBanner message={error} onDismiss={() => setError(null)} />
+      <ErrorBanner message={error} onDismiss={dismissError} onRetry={errorRetry ?? undefined} />
       <View style={styles.form}>
         <Text style={styles.formTitle}>성장 기록</Text>
 
@@ -156,6 +165,7 @@ export default function GrowthRecordScreen() {
               value={weightG}
               onChangeText={setWeightG}
               keyboardType="number-pad"
+              accessibilityLabel="체중 (g)"
             />
           </View>
           <View style={styles.fieldHalf}>
@@ -166,6 +176,7 @@ export default function GrowthRecordScreen() {
               value={heightCm}
               onChangeText={setHeightCm}
               keyboardType="decimal-pad"
+              accessibilityLabel="키 (cm)"
             />
           </View>
         </View>
@@ -177,6 +188,7 @@ export default function GrowthRecordScreen() {
           value={headCm}
           onChangeText={setHeadCm}
           keyboardType="decimal-pad"
+          accessibilityLabel="머리 둘레 (cm)"
         />
 
         <TextInput
@@ -184,6 +196,7 @@ export default function GrowthRecordScreen() {
           placeholder="메모 (선택)"
           value={note}
           onChangeText={setNote}
+          accessibilityLabel="메모"
         />
 
         <TouchableOpacity
@@ -271,7 +284,10 @@ export default function GrowthRecordScreen() {
                   </View>
                 )}
               </View>
-              <Text style={styles.recordTime}>{formatTime(item.measuredAt)}</Text>
+              <View style={styles.rowEnd}>
+                <Text style={styles.recordTime}>{formatTime(item.measuredAt)}</Text>
+                <EditButton onPress={() => setEditingRecord(item)} />
+              </View>
             </View>
             </TouchableOpacity>
           </SwipeToDelete>
@@ -324,6 +340,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   metrics: { flexDirection: 'row', gap: 16 },
+  rowEnd: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   metric: { alignItems: 'center' },
   metricLabel: { fontSize: FONT.caption, color: NEUTRALS.gray450, fontWeight: '600' },
   metricValue: { fontSize: FONT.body, fontWeight: '700', color: NEUTRALS.ink, marginTop: 2 },

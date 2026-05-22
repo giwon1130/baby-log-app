@@ -18,6 +18,7 @@ import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
 import EditSleepModal from '../components/EditSleepModal'
 import EmptyState from '../components/EmptyState'
+import EditButton from '../components/EditButton'
 import { formatTime, formatDuration } from '../utils/dateUtils'
 import { extractErrorMessage } from '../utils/errors'
 import type { SleepRecord } from '../types'
@@ -41,11 +42,18 @@ export default function SleepScreen() {
   const [submitting, setSubmitting] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorRetry, setErrorRetry] = useState<(() => void) | null>(null)
   const [sleptAt, setSleptAt] = useState(new Date())
   const [success, setSuccess] = useState<string | null>(null)
   const [now, setNow] = useState(Date.now())
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [editingRecord, setEditingRecord] = useState<SleepRecord | null>(null)
+
+  const showError = useCallback((msg: string, retry?: () => void) => {
+    setError(msg)
+    setErrorRetry(() => retry ?? null)
+  }, [])
+  const dismissError = useCallback(() => { setError(null); setErrorRetry(null) }, [])
 
   const reload = useCallback(async (bid: string) => {
     const [recs, active] = await Promise.all([
@@ -96,13 +104,14 @@ export default function SleepScreen() {
   const handleStart = async () => {
     if (!babyId) return
     setSubmitting(true)
+    dismissError()
     try {
       await startSleep(babyId, { sleptAt: sleptAt.toISOString() })
       setSleptAt(new Date())
       setSuccess('수면 기록 시작')
       await reload(babyId)
     } catch (err) {
-      setError(extractErrorMessage(err, '수면 시작 기록에 실패했어요'))
+      showError(extractErrorMessage(err, '수면 시작 기록에 실패했어요'), handleStart)
     } finally {
       setSubmitting(false)
     }
@@ -111,12 +120,13 @@ export default function SleepScreen() {
   const handleEnd = async () => {
     if (!babyId || !activeSleep) return
     setSubmitting(true)
+    dismissError()
     try {
       const ended = await endSleep(babyId, activeSleep.id, {})
       await reload(babyId)
       if (ended.wokeAt) await scheduleNapReminder(ended.wokeAt, babyName)
     } catch (err) {
-      setError(extractErrorMessage(err, '수면 종료 기록에 실패했어요'))
+      showError(extractErrorMessage(err, '수면 종료 기록에 실패했어요'), handleEnd)
     } finally {
       setSubmitting(false)
     }
@@ -130,7 +140,7 @@ export default function SleepScreen() {
       if (activeSleep?.id === id) setActiveSleep(updated)
       setSuccess('수면 기록이 수정됐어요')
     } catch (err) {
-      setError(extractErrorMessage(err, '수정에 실패했어요'))
+      showError(extractErrorMessage(err, '수정에 실패했어요'))
     }
   }
 
@@ -141,7 +151,7 @@ export default function SleepScreen() {
       setRecords(prev => prev.filter(r => r.id !== sleepId))
       if (activeSleep?.id === sleepId) setActiveSleep(null)
     } catch (err) {
-      setError(extractErrorMessage(err, '삭제에 실패했어요'))
+      showError(extractErrorMessage(err, '삭제에 실패했어요'))
     }
   }
 
@@ -154,7 +164,7 @@ export default function SleepScreen() {
         onClose={() => setEditingRecord(null)}
         onSave={handleUpdate}
       />
-      <ErrorBanner message={error} onDismiss={() => setError(null)} />
+      <ErrorBanner message={error} onDismiss={dismissError} onRetry={errorRetry ?? undefined} />
       <SuccessToast message={success} onHide={() => setSuccess(null)} />
       {/* 수면 상태 카드 */}
       <View style={styles.statusCard}>
@@ -162,9 +172,19 @@ export default function SleepScreen() {
           <>
             <View style={styles.sleepingIndicator}>
               <Text style={styles.sleepingEmoji}>😴</Text>
-              <View>
+              <View style={styles.sleepingInfo}>
                 <Text style={styles.sleepingTitle}>수면 중</Text>
                 <Text style={styles.sleepingTime}>{calcElapsed(activeSleep.sleptAt, now)}</Text>
+                <TouchableOpacity
+                  onPress={() => setEditingRecord(activeSleep)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="잠든 시각 수정"
+                >
+                  <Text style={styles.editTimeLink}>
+                    잠든 시각 {formatTime(activeSleep.sleptAt)} · 수정 ✎
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
             <TouchableOpacity
@@ -200,18 +220,21 @@ export default function SleepScreen() {
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 수면 기록을 삭제할까요?">
             <TouchableOpacity onLongPress={() => setEditingRecord(item)} activeOpacity={0.85}>
               <View style={styles.recordItem}>
-                <View>
+                <View style={styles.recordLeft}>
                   <Text style={styles.recordSlept}>잠든 시각 {formatTime(item.sleptAt)}</Text>
                   {item.wokeAt && (
                     <Text style={styles.recordWoke}>깬 시각 {formatTime(item.wokeAt)}</Text>
                   )}
                 </View>
-                <View style={styles.recordRight}>
-                  {item.durationMinutes != null ? (
-                    <Text style={styles.duration}>{formatDuration(item.durationMinutes)}</Text>
-                  ) : (
-                    <Text style={styles.ongoing}>수면 중</Text>
-                  )}
+                <View style={styles.rowEnd}>
+                  <View style={styles.recordRight}>
+                    {item.durationMinutes != null ? (
+                      <Text style={styles.duration}>{formatDuration(item.durationMinutes)}</Text>
+                    ) : (
+                      <Text style={styles.ongoing}>수면 중</Text>
+                    )}
+                  </View>
+                  <EditButton onPress={() => setEditingRecord(item)} />
                 </View>
               </View>
             </TouchableOpacity>
@@ -239,9 +262,11 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   sleepingIndicator: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  sleepingInfo: { flex: 1 },
   sleepingEmoji: { fontSize: 40 },
   sleepingTitle: { fontSize: FONT.h1, fontWeight: '700', color: NEUTRALS.ink },
   sleepingTime: { fontSize: FONT.bodyMd, color: NEUTRALS.gray600, marginTop: 2 },
+  editTimeLink: { fontSize: FONT.label, color: COLORS.primary, fontWeight: '600', marginTop: 4 },
   awakeTitle: { fontSize: FONT.h1, fontWeight: '700', color: NEUTRALS.ink },
   awakeDesc: { fontSize: FONT.bodyMd, color: NEUTRALS.gray450 },
   actionButton: {
@@ -261,6 +286,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  recordLeft: { flex: 1 },
+  rowEnd: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   recordSlept: { fontSize: FONT.bodySm, color: NEUTRALS.gray750 },
   recordWoke: { fontSize: FONT.bodySm, color: NEUTRALS.gray600, marginTop: 2 },
   recordRight: { alignItems: 'flex-end' },

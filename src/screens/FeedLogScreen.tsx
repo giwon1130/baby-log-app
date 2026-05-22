@@ -21,6 +21,7 @@ import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
 import BreastfeedingTimer from '../components/BreastfeedingTimer'
 import EmptyState from '../components/EmptyState'
+import EditButton from '../components/EditButton'
 import { formatTime } from '../utils/dateUtils'
 import { extractErrorMessage } from '../utils/errors'
 import { FEED_TYPE_LABEL, COLORS, NEUTRALS, FONT } from '../utils/constants'
@@ -38,6 +39,7 @@ export default function FeedLogScreen() {
   const [editingRecord, setEditingRecord] = useState<FeedRecord | null>(null)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorRetry, setErrorRetry] = useState<(() => void) | null>(null)
 
   const [amount, setAmount] = useState('')
   const [feedType, setFeedType] = useState<string>('FORMULA')
@@ -49,6 +51,12 @@ export default function FeedLogScreen() {
   const [rightMinutes, setRightMinutes] = useState<number | null>(null)
 
   const isBreast = feedType === 'BREAST' || feedType === 'MIXED'
+
+  const showError = useCallback((msg: string, retry?: () => void) => {
+    setError(msg)
+    setErrorRetry(() => retry ?? null)
+  }, [])
+  const dismissError = useCallback(() => { setError(null); setErrorRetry(null) }, [])
 
   const loadFeeds = useCallback(async (bid: string, filter: DateFilterValue) => {
     const data = await getFeeds(bid, 50, toDateParam(filter))
@@ -88,6 +96,7 @@ export default function FeedLogScreen() {
     if (!isBreast && !amount) return
     if (isBreast && !amount && leftMinutes == null) return
     setSubmitting(true)
+    dismissError()
     try {
       const record = await recordFeed(babyId, {
         amountMl: amount ? parseInt(amount) : 0,
@@ -109,7 +118,7 @@ export default function FeedLogScreen() {
       setSuccess(label)
       if (record.nextFeedAt) await scheduleFeedNotification(record.nextFeedAt, babyName, record.fedAt)
     } catch (err) {
-      setError(extractErrorMessage(err, '수유 기록 저장에 실패했어요'))
+      showError(extractErrorMessage(err, '수유 기록 저장에 실패했어요'), handleSubmit)
     } finally {
       setSubmitting(false)
     }
@@ -121,7 +130,7 @@ export default function FeedLogScreen() {
       await deleteFeed(babyId, feedId)
       setFeeds(prev => prev.filter(f => f.id !== feedId))
     } catch (err) {
-      setError(extractErrorMessage(err, '삭제에 실패했어요'))
+      showError(extractErrorMessage(err, '삭제에 실패했어요'))
     }
   }
 
@@ -131,7 +140,7 @@ export default function FeedLogScreen() {
       const updated = await updateFeed(babyId, feedId, { amountMl, feedType, note, fedAt })
       setFeeds(prev => prev.map(f => f.id === feedId ? updated : f))
     } catch (err) {
-      setError(extractErrorMessage(err, '수정에 실패했어요'))
+      showError(extractErrorMessage(err, '수정에 실패했어요'))
     }
   }
 
@@ -144,7 +153,7 @@ export default function FeedLogScreen() {
         onComplete={handleTimerComplete}
         onCancel={() => setTimerVisible(false)}
       />
-      <ErrorBanner message={error} onDismiss={() => setError(null)} />
+      <ErrorBanner message={error} onDismiss={dismissError} onRetry={errorRetry ?? undefined} />
       <SuccessToast message={success} onHide={() => setSuccess(null)} />
       <EditFeedModal
         record={editingRecord}
@@ -173,6 +182,7 @@ export default function FeedLogScreen() {
           keyboardType="number-pad"
           value={amount}
           onChangeText={setAmount}
+          accessibilityLabel="수유량 직접 입력 (ml)"
         />
         <Text style={styles.label}>수유 방법</Text>
         <View style={styles.typeRow}>
@@ -198,7 +208,13 @@ export default function FeedLogScreen() {
             </Text>
           </TouchableOpacity>
         )}
-        <TextInput style={styles.input} placeholder="메모 (선택)" value={note} onChangeText={setNote} />
+        <TextInput
+          style={styles.input}
+          placeholder="메모 (선택)"
+          value={note}
+          onChangeText={setNote}
+          accessibilityLabel="메모"
+        />
         <TimeOffsetPicker value={fedAt} onChange={setFedAt} />
         <TouchableOpacity
           style={[styles.submitButton, ((!amount && (!isBreast || leftMinutes == null)) || submitting) && styles.submitButtonDisabled]}
@@ -235,10 +251,12 @@ export default function FeedLogScreen() {
                 )}
                 {!!item.note && <Text style={styles.recordNote}>{item.note}</Text>}
               </View>
-              <View style={styles.recordRight}>
-                <Text style={styles.recordTime}>{formatTime(item.fedAt)}</Text>
-                {item.nextFeedAt && <Text style={styles.recordNext}>다음 {formatTime(item.nextFeedAt)}</Text>}
-                <Text style={styles.editHint}>꾹 눌러서 수정</Text>
+              <View style={styles.rowEnd}>
+                <View style={styles.recordRight}>
+                  <Text style={styles.recordTime}>{formatTime(item.fedAt)}</Text>
+                  {item.nextFeedAt && <Text style={styles.recordNext}>다음 {formatTime(item.nextFeedAt)}</Text>}
+                </View>
+                <EditButton onPress={() => setEditingRecord(item)} />
               </View>
             </TouchableOpacity>
           </SwipeToDelete>
@@ -284,7 +302,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  recordLeft: { gap: 4 },
+  recordLeft: { gap: 4, flex: 1 },
+  rowEnd: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   recordRight: { alignItems: 'flex-end', gap: 4 },
   recordAmount: { fontSize: FONT.h2, fontWeight: '700', color: NEUTRALS.ink },
   recordType: { fontSize: FONT.label, color: NEUTRALS.gray500 },
@@ -301,5 +320,4 @@ const styles = StyleSheet.create({
   timerButtonText: { fontSize: FONT.bodySm, color: COLORS.primary, fontWeight: '600' },
   recordTime: { fontSize: FONT.bodySm, color: NEUTRALS.gray750 },
   recordNext: { fontSize: FONT.label, color: COLORS.primary },
-  editHint: { fontSize: FONT.micro, color: NEUTRALS.gray300, marginTop: 2 },
 })

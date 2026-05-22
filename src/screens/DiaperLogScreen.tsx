@@ -20,6 +20,7 @@ import TimeOffsetPicker from '../components/TimeOffsetPicker'
 import SuccessToast from '../components/SuccessToast'
 import EditDiaperModal from '../components/EditDiaperModal'
 import EmptyState from '../components/EmptyState'
+import EditButton from '../components/EditButton'
 import { formatTime, timeSince } from '../utils/dateUtils'
 import { extractErrorMessage } from '../utils/errors'
 import { DIAPER_TYPE_LABEL, COLORS, NEUTRALS, FONT } from '../utils/constants'
@@ -35,12 +36,19 @@ export default function DiaperLogScreen() {
   const [dateFilter, setDateFilter] = useState<DateFilterValue>('today')
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorRetry, setErrorRetry] = useState<(() => void) | null>(null)
 
   const [diaperType, setDiaperType] = useState<string>('WET')
   const [note, setNote] = useState('')
   const [changedAt, setChangedAt] = useState(new Date())
   const [success, setSuccess] = useState<string | null>(null)
   const [editingRecord, setEditingRecord] = useState<DiaperRecord | null>(null)
+
+  const showError = useCallback((msg: string, retry?: () => void) => {
+    setError(msg)
+    setErrorRetry(() => retry ?? null)
+  }, [])
+  const dismissError = useCallback(() => { setError(null); setErrorRetry(null) }, [])
 
   const loadDiapers = useCallback(async (bid: string, filter: DateFilterValue) => {
     const data = await getDiapers(bid, 50, toDateParam(filter))
@@ -72,6 +80,7 @@ export default function DiaperLogScreen() {
   const handleSubmit = async () => {
     if (!babyId) return
     setSubmitting(true)
+    dismissError()
     try {
       const changedAtIso = changedAt.toISOString()
       await recordDiaper(babyId, { diaperType, note, changedAt: changedAtIso })
@@ -83,7 +92,7 @@ export default function DiaperLogScreen() {
       setSuccess(`기저귀 교환 기록 완료 (${typeLabel[diaperType] ?? diaperType})`)
       await scheduleDiaperReminder(changedAtIso, babyName)
     } catch (err) {
-      setError(extractErrorMessage(err, '기저귀 기록 저장에 실패했어요'))
+      showError(extractErrorMessage(err, '기저귀 기록 저장에 실패했어요'), handleSubmit)
     } finally {
       setSubmitting(false)
     }
@@ -96,7 +105,7 @@ export default function DiaperLogScreen() {
       setDiapers(prev => prev.map(d => d.id === id ? updated : d))
       setSuccess('기저귀 기록이 수정됐어요')
     } catch (err) {
-      setError(extractErrorMessage(err, '수정에 실패했어요'))
+      showError(extractErrorMessage(err, '수정에 실패했어요'))
     }
   }
 
@@ -106,7 +115,7 @@ export default function DiaperLogScreen() {
       await deleteDiaper(babyId, diaperId)
       setDiapers(prev => prev.filter(d => d.id !== diaperId))
     } catch (err) {
-      setError(extractErrorMessage(err, '삭제에 실패했어요'))
+      showError(extractErrorMessage(err, '삭제에 실패했어요'))
     }
   }
 
@@ -119,7 +128,7 @@ export default function DiaperLogScreen() {
         onClose={() => setEditingRecord(null)}
         onSave={handleUpdate}
       />
-      <ErrorBanner message={error} onDismiss={() => setError(null)} />
+      <ErrorBanner message={error} onDismiss={dismissError} onRetry={errorRetry ?? undefined} />
       <SuccessToast message={success} onHide={() => setSuccess(null)} />
       <View style={styles.form}>
         <Text style={styles.formTitle}>기저귀 교환 기록</Text>
@@ -137,7 +146,13 @@ export default function DiaperLogScreen() {
             </TouchableOpacity>
           ))}
         </View>
-        <TextInput style={styles.input} placeholder="메모 (선택)" value={note} onChangeText={setNote} />
+        <TextInput
+          style={styles.input}
+          placeholder="메모 (선택)"
+          value={note}
+          onChangeText={setNote}
+          accessibilityLabel="메모"
+        />
         <TimeOffsetPicker value={changedAt} onChange={setChangedAt} />
         <TouchableOpacity
           style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
@@ -159,13 +174,16 @@ export default function DiaperLogScreen() {
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 기저귀 기록을 삭제할까요?">
             <TouchableOpacity onLongPress={() => setEditingRecord(item)} activeOpacity={0.85}>
               <View style={styles.recordItem}>
-                <View>
+                <View style={styles.recordLeft}>
                   <Text style={styles.recordType}>{DIAPER_TYPE_LABEL[item.diaperType]}</Text>
                   {!!item.note && <Text style={styles.recordNote}>{item.note}</Text>}
                 </View>
-                <View style={styles.recordRight}>
-                  <Text style={styles.recordTime}>{formatTime(item.changedAt)}</Text>
-                  <Text style={styles.recordAgo}>{timeSince(item.changedAt)}</Text>
+                <View style={styles.rowEnd}>
+                  <View style={styles.recordRight}>
+                    <Text style={styles.recordTime}>{formatTime(item.changedAt)}</Text>
+                    <Text style={styles.recordAgo}>{timeSince(item.changedAt)}</Text>
+                  </View>
+                  <EditButton onPress={() => setEditingRecord(item)} />
                 </View>
               </View>
             </TouchableOpacity>
@@ -202,6 +220,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   recordType: { fontSize: FONT.h4, fontWeight: '700', color: NEUTRALS.ink },
+  recordLeft: { flex: 1 },
+  rowEnd: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   recordRight: { alignItems: 'flex-end', gap: 2 },
   recordTime: { fontSize: FONT.bodySm, color: NEUTRALS.gray750 },
   recordAgo: { fontSize: FONT.label, color: NEUTRALS.gray450 },
