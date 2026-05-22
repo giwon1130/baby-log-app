@@ -55,6 +55,9 @@ export default function TimeOffsetPicker({ value, onChange }: Props) {
             key={p.minutes}
             style={[styles.chip, !showCustom && selectedPreset?.minutes === p.minutes && styles.chipActive]}
             onPress={() => handlePreset(p.minutes)}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`기록 시각 ${p.label}`}
           >
             <Text style={[styles.chipText, !showCustom && selectedPreset?.minutes === p.minutes && styles.chipTextActive]}>
               {p.label}
@@ -64,6 +67,9 @@ export default function TimeOffsetPicker({ value, onChange }: Props) {
         <TouchableOpacity
           style={[styles.chip, showCustom && styles.chipActive]}
           onPress={() => setShowCustom(v => !v)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="기록 시각 직접 입력"
         >
           <Text style={[styles.chipText, showCustom && styles.chipTextActive]}>직접</Text>
         </TouchableOpacity>
@@ -78,6 +84,7 @@ export default function TimeOffsetPicker({ value, onChange }: Props) {
             keyboardType="number-pad"
             autoFocus
             onSubmitEditing={handleCustomSubmit}
+            accessibilityLabel="몇 분 전 기록인지 입력"
           />
           <TouchableOpacity style={styles.customBtn} onPress={handleCustomSubmit}>
             <Text style={styles.customBtnText}>확인</Text>

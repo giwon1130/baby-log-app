@@ -129,6 +129,8 @@ export default function QuickActions({
             style={[styles.diaperBtn, loadingKey === `diaper-${type}` && styles.btnLoading]}
             onPress={() => handleDiaper(type)}
             disabled={busy}
+            accessibilityRole="button"
+            accessibilityLabel={`기저귀 ${diaperLabelFor(type)} 기록`}
           >
             {loadingKey === `diaper-${type}`
               ? <ActivityIndicator size="small" color={COLORS.primary} />
@@ -148,6 +150,8 @@ export default function QuickActions({
         ]}
         onPress={() => void handleSleepToggle()}
         disabled={busy}
+        accessibilityRole="button"
+        accessibilityLabel={activeSleep ? '수면 종료 (깨우기)' : '수면 시작 (재우기)'}
       >
         {(loadingKey === 'sleep-start' || loadingKey === 'sleep-end')
           ? <ActivityIndicator size="small" color={NEUTRALS.white} />
@@ -206,7 +210,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sleepBtnIdle: { backgroundColor: COLORS.sleep },
-  sleepBtnActive: { backgroundColor: '#FF9800' },
+  sleepBtnActive: { backgroundColor: COLORS.amber },
   sleepBtnText: { color: NEUTRALS.white, fontSize: FONT.body, fontWeight: '700' },
   btnLoading: { opacity: 0.6 },
 })

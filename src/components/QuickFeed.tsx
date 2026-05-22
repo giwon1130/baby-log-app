@@ -218,6 +218,7 @@ export default function QuickFeed({
               style={styles.modalInput}
               returnKeyType="done"
               onSubmitEditing={() => void submitCustom()}
+              accessibilityLabel="수유량 (ml)"
             />
             <View style={styles.modalBtnRow}>
               <TouchableOpacity

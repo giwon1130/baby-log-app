@@ -209,6 +209,9 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
         <TouchableOpacity
           style={styles.addBabyBtn}
           onPress={() => navigation.navigate('FamilySetup', { mode: 'addBaby', familyId })}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="아기 추가"
         >
           <Text style={styles.addBabyBtnText}>+ 아기 추가</Text>
         </TouchableOpacity>
@@ -230,7 +233,13 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
                 </Text>
               </View>
               {!editing && (
-                <TouchableOpacity style={styles.editBtn} onPress={startEdit}>
+                <TouchableOpacity
+                  style={styles.editBtn}
+                  onPress={startEdit}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="아기 정보 수정"
+                >
                   <Text style={styles.editBtnText}>수정</Text>
                 </TouchableOpacity>
               )}
@@ -244,6 +253,7 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
                   value={editName}
                   onChangeText={setEditName}
                   placeholder="아기 이름"
+                  accessibilityLabel="아기 이름"
                 />
                 <Text style={styles.editLabel}>출생 체중 (g)</Text>
                 <TextInput
@@ -252,6 +262,7 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
                   onChangeText={setEditWeightG}
                   keyboardType="number-pad"
                   placeholder="예: 3500"
+                  accessibilityLabel="출생 체중 (g)"
                 />
                 <Text style={styles.editLabel}>출생 신장 (cm)</Text>
                 <TextInput
@@ -260,6 +271,7 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
                   onChangeText={setEditHeightCm}
                   keyboardType="decimal-pad"
                   placeholder="예: 50.5"
+                  accessibilityLabel="출생 신장 (cm)"
                 />
                 <View style={styles.editActions}>
                   <TouchableOpacity
@@ -477,13 +489,13 @@ const styles = StyleSheet.create({
   primaryButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: FONT.body },
   dangerDesc: { fontSize: FONT.label, color: NEUTRALS.gray500, lineHeight: 18 },
   dangerBtn: {
-    backgroundColor: '#fff5f5',
+    backgroundColor: COLORS.dangerSurface,
     borderWidth: 1,
-    borderColor: '#ffcccc',
+    borderColor: COLORS.dangerBorder,
     borderRadius: 12,
     paddingVertical: 12,
     alignItems: 'center',
   },
   dangerBtnDisabled: { opacity: 0.6 },
-  dangerBtnText: { fontSize: FONT.bodyMd, color: '#d04848', fontWeight: '700' },
+  dangerBtnText: { fontSize: FONT.bodyMd, color: COLORS.danger, fontWeight: '700' },
 })
