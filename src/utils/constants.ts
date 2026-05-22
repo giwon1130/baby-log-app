@@ -6,7 +6,24 @@ export const COLORS = {
   sleep: '#5C6BC0',
   amber: '#FF8F00',
   success: '#4CAF50',
-  error: '#F44336',
+  error: '#F44336',        // 상태 표시용 빨강 (성장 백분위 경고 등)
+  errorStrong: '#FF3B30',  // 솔리드 에러 배너 / 삭제 버튼 — 흰 텍스트 위
+  errorSurface: '#FFECEC', // 연한 인라인 에러 카드 배경
+  danger: '#D04848',       // 위험 액션 텍스트·아이콘 (졸업 등)
+  dangerSurface: '#FFF5F5',// 위험 액션 카드/버튼 배경
+  dangerBorder: '#FFCCCC', // 위험 액션 테두리
+} as const
+
+/**
+ * Spacing scale. 신규 코드는 이 토큰을 사용. 기존 화면은 점진 적용.
+ */
+export const SPACING = {
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 24,
 } as const
 
 /**

@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { NEUTRALS, FONT } from '../utils/constants'
+import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 
 type Props = {
   children: React.ReactNode
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   deleteButton: {
-    backgroundColor: '#FF3B30',
+    backgroundColor: COLORS.errorStrong,
     paddingHorizontal: 16,
     justifyContent: 'center',
     alignItems: 'center',

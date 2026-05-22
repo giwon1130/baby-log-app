@@ -206,7 +206,7 @@ export default function CryMonitorScreen() {
 
         {error && (
           <View style={styles.errorCard}>
-            <Ionicons name="warning" size={18} color="#D64545" />
+            <Ionicons name="warning" size={18} color={COLORS.danger} />
             <Text style={styles.errorText}>{error}</Text>
           </View>
         )}
@@ -279,11 +279,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#FEE',
+    backgroundColor: COLORS.errorSurface,
     borderRadius: 12,
     padding: 12,
   },
-  errorText: { color: '#D64545', flex: 1, fontSize: FONT.bodySm },
+  errorText: { color: COLORS.danger, flex: 1, fontSize: FONT.bodySm },
 
   button: {
     flexDirection: 'row',
