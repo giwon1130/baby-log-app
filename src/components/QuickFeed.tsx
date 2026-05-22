@@ -16,6 +16,7 @@ import { scheduleFeedNotification } from '../utils/notifications'
 import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 import { extractErrorMessage } from '../utils/errors'
 import type { UndoAction } from './UndoToast'
+import QuickCard from './QuickCard'
 
 type FeedType = 'FORMULA' | 'BREAST' | 'MIXED' // MIXED 는 유축(Expressed)으로 재사용
 
@@ -26,7 +27,10 @@ const FEED_TYPE_TABS: { type: FeedType; label: string }[] = [
 ]
 const FORMULA_AMOUNTS = [60, 80, 100, 120, 150]
 const BREAST_MINUTES = [5, 10, 15]
-const LAST_FEED_ML_KEY = 'quickActions.lastFeedMl'
+const LAST_FEED_KEY = 'quickActions.lastFeed'
+
+/** 마지막 수유 — "직전값 다시" 1탭 버튼에 사용 */
+type LastFeed = { feedType: FeedType; amountMl?: number; leftMinutes?: number }
 
 type Props = {
   babyId: string
@@ -35,6 +39,21 @@ type Props = {
   onError?: (msg: string) => void
   onUndoAvailable: (action: UndoAction) => void
   onNavigateBreastTimer?: () => void
+}
+
+function labelForType(t: FeedType): string {
+  switch (t) {
+    case 'FORMULA': return '분유'
+    case 'BREAST':  return '모유'
+    case 'MIXED':   return '유축'
+  }
+}
+
+function describeLastFeed(lf: LastFeed): string {
+  const t = labelForType(lf.feedType)
+  if (lf.amountMl != null) return `${t} ${lf.amountMl}ml`
+  if (lf.leftMinutes != null) return `${t} ${lf.leftMinutes}분`
+  return t
 }
 
 export default function QuickFeed({
@@ -47,37 +66,41 @@ export default function QuickFeed({
 }: Props) {
   const [feedType, setFeedType] = useState<FeedType>('FORMULA')
   const [loadingKey, setLoadingKey] = useState<string | null>(null)
-  const [lastFeedMl, setLastFeedMl] = useState<number | null>(null)
+  const [lastFeed, setLastFeed] = useState<LastFeed | null>(null)
   const [customOpen, setCustomOpen] = useState(false)
   const [customInput, setCustomInput] = useState('')
 
   useEffect(() => {
     void (async () => {
-      const stored = await AsyncStorage.getItem(LAST_FEED_ML_KEY)
-      if (stored) {
-        const n = Number(stored)
-        if (Number.isFinite(n) && n > 0) setLastFeedMl(n)
+      const stored = await AsyncStorage.getItem(LAST_FEED_KEY)
+      if (!stored) return
+      try {
+        const parsed = JSON.parse(stored) as LastFeed
+        if (parsed?.feedType) setLastFeed(parsed)
+      } catch {
+        // 구버전(숫자 ml 문자열) 저장값은 무시
       }
     })()
   }, [])
 
-  const rememberLastMl = useCallback(async (ml: number) => {
-    setLastFeedMl(ml)
-    await AsyncStorage.setItem(LAST_FEED_ML_KEY, String(ml))
+  const rememberLastFeed = useCallback(async (lf: LastFeed) => {
+    setLastFeed(lf)
+    await AsyncStorage.setItem(LAST_FEED_KEY, JSON.stringify(lf))
   }, [])
 
   const busy = loadingKey !== null
 
   const submitFeed = useCallback(async (
-    payload: { amountMl?: number; leftMinutes?: number; rightMinutes?: number },
+    payload: { amountMl?: number; leftMinutes?: number },
+    type: FeedType,
     key: string,
     successMsg: string,
   ) => {
     setLoadingKey(key)
     try {
-      const record = await recordFeed(babyId, { ...payload, feedType })
+      const record = await recordFeed(babyId, { ...payload, feedType: type })
       if (record.nextFeedAt) await scheduleFeedNotification(record.nextFeedAt, babyName)
-      if (payload.amountMl) await rememberLastMl(payload.amountMl)
+      await rememberLastFeed({ feedType: type, amountMl: payload.amountMl, leftMinutes: payload.leftMinutes })
       onRecorded()
       onUndoAvailable({
         message: successMsg,
@@ -95,15 +118,23 @@ export default function QuickFeed({
     } finally {
       setLoadingKey(null)
     }
-  }, [babyId, babyName, feedType, onRecorded, onError, onUndoAvailable, rememberLastMl])
+  }, [babyId, babyName, onRecorded, onError, onUndoAvailable, rememberLastFeed])
 
   const handleFormulaOrExpressed = useCallback((ml: number) => {
-    void submitFeed({ amountMl: ml }, `feed-${ml}`, `${labelForType(feedType)} ${ml}ml 기록`)
+    void submitFeed({ amountMl: ml }, feedType, `feed-${ml}`, `${labelForType(feedType)} ${ml}ml 기록`)
   }, [feedType, submitFeed])
 
   const handleBreastQuick = useCallback((minutes: number) => {
-    void submitFeed({ leftMinutes: minutes }, `breast-${minutes}`, `모유 ${minutes}분 기록`)
+    void submitFeed({ leftMinutes: minutes }, 'BREAST', `breast-${minutes}`, `모유 ${minutes}분 기록`)
   }, [submitFeed])
+
+  const handleRepeat = useCallback(() => {
+    if (!lastFeed) return
+    const payload = lastFeed.amountMl != null
+      ? { amountMl: lastFeed.amountMl }
+      : { leftMinutes: lastFeed.leftMinutes }
+    void submitFeed(payload, lastFeed.feedType, 'feed-repeat', `${describeLastFeed(lastFeed)} 기록`)
+  }, [lastFeed, submitFeed])
 
   const submitCustom = useCallback(async () => {
     const ml = Number(customInput)
@@ -114,19 +145,27 @@ export default function QuickFeed({
     Keyboard.dismiss()
     setCustomOpen(false)
     setCustomInput('')
-    await submitFeed({ amountMl: ml }, 'feed-custom', `${labelForType(feedType)} ${ml}ml 기록`)
+    await submitFeed({ amountMl: ml }, feedType, 'feed-custom', `${labelForType(feedType)} ${ml}ml 기록`)
   }, [customInput, feedType, submitFeed, onError])
 
-  const formulaChips = (() => {
-    if (lastFeedMl != null && !FORMULA_AMOUNTS.includes(lastFeedMl)) {
-      return [lastFeedMl, ...FORMULA_AMOUNTS]
-    }
-    return FORMULA_AMOUNTS
-  })()
-
   return (
-    <View style={{ gap: 8 }}>
-      <Text style={styles.subLabel}>수유</Text>
+    <QuickCard icon="🍼" title="수유">
+      {/* 직전값 1탭 반복 — 가장 흔한 케이스 */}
+      {lastFeed && (
+        <TouchableOpacity
+          style={[styles.repeatBtn, loadingKey === 'feed-repeat' && styles.btnLoading]}
+          onPress={handleRepeat}
+          disabled={busy}
+          accessibilityRole="button"
+          accessibilityLabel={`직전 수유 다시 기록: ${describeLastFeed(lastFeed)}`}
+        >
+          {loadingKey === 'feed-repeat'
+            ? <ActivityIndicator size="small" color={NEUTRALS.white} />
+            : <Text style={styles.repeatText}>↻  {describeLastFeed(lastFeed)} 다시</Text>}
+        </TouchableOpacity>
+      )}
+
+      {/* 수유 방법 */}
       <View style={styles.typeTabs}>
         {FEED_TYPE_TABS.map(({ type, label }) => (
           <TouchableOpacity
@@ -135,6 +174,9 @@ export default function QuickFeed({
             onPress={() => setFeedType(type)}
             style={[styles.typeTab, feedType === type && styles.typeTabActive]}
             disabled={busy}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: feedType === type }}
+            accessibilityLabel={`${label} 수유`}
           >
             <Text style={[styles.typeTabText, feedType === type && styles.typeTabTextActive]}>
               {label}
@@ -143,35 +185,36 @@ export default function QuickFeed({
         ))}
       </View>
 
+      {/* 분유·유축: 용량 칩 */}
       {feedType !== 'BREAST' && (
         <View style={styles.row}>
-          {formulaChips.map(ml => (
+          {FORMULA_AMOUNTS.map(ml => (
             <TouchableOpacity
               key={ml}
-              style={[
-                styles.feedBtn,
-                loadingKey === `feed-${ml}` && styles.btnLoading,
-                lastFeedMl === ml && styles.feedBtnRecent,
-              ]}
+              style={[styles.feedBtn, loadingKey === `feed-${ml}` && styles.btnLoading]}
               onPress={() => handleFormulaOrExpressed(ml)}
               disabled={busy}
+              accessibilityRole="button"
+              accessibilityLabel={`${labelForType(feedType)} ${ml}ml 기록`}
             >
               {loadingKey === `feed-${ml}`
-                ? <ActivityIndicator size="small" color={NEUTRALS.white} />
-                : <Text style={styles.feedBtnText}>{ml}ml</Text>
-              }
+                ? <ActivityIndicator size="small" color={COLORS.primary} />
+                : <Text style={styles.feedBtnText}>{ml}ml</Text>}
             </TouchableOpacity>
           ))}
           <TouchableOpacity
             style={styles.customBtn}
             onPress={() => setCustomOpen(true)}
             disabled={busy}
+            accessibilityRole="button"
+            accessibilityLabel="수유량 직접 입력"
           >
-            <Text style={styles.customBtnText}>직접 입력</Text>
+            <Text style={styles.customBtnText}>직접</Text>
           </TouchableOpacity>
         </View>
       )}
 
+      {/* 모유: 수유 시간 칩 */}
       {feedType === 'BREAST' && (
         <View style={styles.row}>
           {BREAST_MINUTES.map(min => (
@@ -180,11 +223,12 @@ export default function QuickFeed({
               style={[styles.feedBtn, loadingKey === `breast-${min}` && styles.btnLoading]}
               onPress={() => handleBreastQuick(min)}
               disabled={busy}
+              accessibilityRole="button"
+              accessibilityLabel={`모유 ${min}분 기록`}
             >
               {loadingKey === `breast-${min}`
-                ? <ActivityIndicator size="small" color={NEUTRALS.white} />
-                : <Text style={styles.feedBtnText}>{min}분</Text>
-              }
+                ? <ActivityIndicator size="small" color={COLORS.primary} />
+                : <Text style={styles.feedBtnText}>{min}분</Text>}
             </TouchableOpacity>
           ))}
           {onNavigateBreastTimer && (
@@ -192,6 +236,8 @@ export default function QuickFeed({
               style={styles.customBtn}
               onPress={onNavigateBreastTimer}
               disabled={busy}
+              accessibilityRole="button"
+              accessibilityLabel="모유 수유 타이머 열기"
             >
               <Text style={styles.customBtnText}>타이머</Text>
             </TouchableOpacity>
@@ -237,24 +283,24 @@ export default function QuickFeed({
           </Pressable>
         </Pressable>
       </Modal>
-    </View>
+    </QuickCard>
   )
 }
 
-function labelForType(t: FeedType): string {
-  switch (t) {
-    case 'FORMULA': return '분유'
-    case 'BREAST':  return '모유'
-    case 'MIXED':   return '유축'
-  }
-}
-
 const styles = StyleSheet.create({
-  subLabel: { fontSize: FONT.caption, color: NEUTRALS.gray400, fontWeight: '600', marginTop: 4 },
+  repeatBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+  },
+  repeatText: { color: NEUTRALS.white, fontSize: FONT.body, fontWeight: '700' },
   typeTabs: { flexDirection: 'row', gap: 6 },
   typeTab: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 7,
     borderRadius: 16,
     backgroundColor: COLORS.primarySurface,
   },
@@ -264,17 +310,16 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   feedBtn: {
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderRadius: 20,
-    backgroundColor: COLORS.primary,
-    minWidth: 52,
+    backgroundColor: COLORS.primarySurface,
+    minWidth: 56,
     alignItems: 'center',
   },
-  feedBtnText: { color: NEUTRALS.white, fontSize: FONT.bodySm, fontWeight: '700' },
-  feedBtnRecent: { borderWidth: 2, borderColor: '#FFC107' },
+  feedBtnText: { color: COLORS.primary, fontSize: FONT.bodySm, fontWeight: '700' },
   customBtn: {
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderRadius: 20,
     backgroundColor: COLORS.primarySurface,
     borderWidth: 1,

@@ -19,12 +19,13 @@ import type { UndoAction } from './UndoToast'
 import { extractErrorMessage } from '../utils/errors'
 import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 import QuickFeed from './QuickFeed'
+import QuickCard from './QuickCard'
 
-const QUICK_DIAPERS: { type: string; label: string }[] = [
-  { type: 'WET', label: '💧' },
-  { type: 'DIRTY', label: '💩' },
-  { type: 'MIXED', label: '🔄' },
-]
+const QUICK_DIAPERS = [
+  { type: 'WET', emoji: '💧', label: '소변' },
+  { type: 'DIRTY', emoji: '💩', label: '대변' },
+  { type: 'MIXED', emoji: '🔄', label: '혼합' },
+] as const
 
 type Props = {
   babyId: string
@@ -36,6 +37,11 @@ type Props = {
   onNavigateBreastTimer?: () => void
 }
 
+/**
+ * 홈 화면 빠른 기록 — 수유·기저귀·수면을 각각 독립 카드로 노출.
+ * 카드 헤더(아이콘+제목)를 통일해 시각 리듬을 맞추고, 각 유형의
+ * 가장 흔한 동작을 1탭으로 끝낸다.
+ */
 export default function QuickActions({
   babyId,
   babyName,
@@ -108,9 +114,7 @@ export default function QuickActions({
   }, [activeSleep, babyId, onRecorded, onError, onUndoAvailable])
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.sectionLabel}>빠른 기록</Text>
-
+    <View style={styles.group}>
       <QuickFeed
         babyId={babyId}
         babyName={babyName}
@@ -120,47 +124,54 @@ export default function QuickActions({
         onNavigateBreastTimer={onNavigateBreastTimer}
       />
 
-      {/* 기저귀 */}
-      <Text style={styles.subLabel}>기저귀</Text>
-      <View style={styles.row}>
-        {QUICK_DIAPERS.map(({ type, label }) => (
-          <TouchableOpacity
-            key={type}
-            style={[styles.diaperBtn, loadingKey === `diaper-${type}` && styles.btnLoading]}
-            onPress={() => handleDiaper(type)}
-            disabled={busy}
-            accessibilityRole="button"
-            accessibilityLabel={`기저귀 ${diaperLabelFor(type)} 기록`}
-          >
-            {loadingKey === `diaper-${type}`
-              ? <ActivityIndicator size="small" color={COLORS.primary} />
-              : <Text style={styles.diaperBtnText}>{label}</Text>
-            }
-          </TouchableOpacity>
-        ))}
-      </View>
+      {/* 기저귀 — 이모지 + 글자 라벨 */}
+      <QuickCard icon="🧷" title="기저귀">
+        <View style={styles.diaperRow}>
+          {QUICK_DIAPERS.map(({ type, emoji, label }) => (
+            <TouchableOpacity
+              key={type}
+              style={[styles.diaperBtn, loadingKey === `diaper-${type}` && styles.btnLoading]}
+              onPress={() => handleDiaper(type)}
+              disabled={busy}
+              accessibilityRole="button"
+              accessibilityLabel={`기저귀 ${label} 기록`}
+            >
+              {loadingKey === `diaper-${type}`
+                ? <ActivityIndicator size="small" color={COLORS.primary} />
+                : (
+                  <>
+                    <Text style={styles.diaperEmoji}>{emoji}</Text>
+                    <Text style={styles.diaperLabel}>{label}</Text>
+                  </>
+                )}
+            </TouchableOpacity>
+          ))}
+        </View>
+      </QuickCard>
 
-      {/* 수면 토글 */}
-      <Text style={styles.subLabel}>수면</Text>
-      <TouchableOpacity
-        style={[
-          styles.sleepBtn,
-          activeSleep ? styles.sleepBtnActive : styles.sleepBtnIdle,
-          (loadingKey === 'sleep-start' || loadingKey === 'sleep-end') && styles.btnLoading,
-        ]}
-        onPress={() => void handleSleepToggle()}
-        disabled={busy}
-        accessibilityRole="button"
-        accessibilityLabel={activeSleep ? '수면 종료 (깨우기)' : '수면 시작 (재우기)'}
-      >
-        {(loadingKey === 'sleep-start' || loadingKey === 'sleep-end')
-          ? <ActivityIndicator size="small" color={NEUTRALS.white} />
-          : (
-            <Text style={styles.sleepBtnText}>
-              {activeSleep ? '☀️ 깨우기' : '😴 재우기'}
-            </Text>
-          )}
-      </TouchableOpacity>
+      {/* 수면 — 재우기/깨우기 토글 */}
+      <QuickCard icon="😴" title="수면">
+        <TouchableOpacity
+          style={[
+            styles.sleepBtn,
+            activeSleep ? styles.sleepBtnActive : styles.sleepBtnIdle,
+            busy && styles.btnLoading,
+          ]}
+          onPress={() => void handleSleepToggle()}
+          disabled={busy}
+          accessibilityRole="button"
+          accessibilityLabel={activeSleep ? '수면 종료 (깨우기)' : '수면 시작 (재우기)'}
+        >
+          {(loadingKey === 'sleep-start' || loadingKey === 'sleep-end')
+            ? <ActivityIndicator size="small" color={NEUTRALS.white} />
+            : (
+              <Text style={styles.sleepBtnText}>
+                {activeSleep ? '☀️  깨우기' : '🌙  재우기 시작'}
+              </Text>
+            )}
+        </TouchableOpacity>
+        {activeSleep && <Text style={styles.sleepHint}>지금 수면 중이에요</Text>}
+      </QuickCard>
     </View>
   )
 }
@@ -175,42 +186,28 @@ function diaperLabelFor(t: string): string {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    backgroundColor: NEUTRALS.white,
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: NEUTRALS.black,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-    gap: 8,
-  },
-  sectionLabel: {
-    fontSize: FONT.label,
-    color: NEUTRALS.gray500,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  subLabel: { fontSize: FONT.caption, color: NEUTRALS.gray400, fontWeight: '600', marginTop: 4 },
-  row: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  group: { gap: 12 },
+  diaperRow: { flexDirection: 'row', gap: 8 },
   diaperBtn: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    flex: 1,
+    minHeight: 64,
+    paddingVertical: 12,
+    borderRadius: 12,
     backgroundColor: COLORS.primarySurface,
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 4,
   },
-  diaperBtnText: { fontSize: FONT.hero },
+  diaperEmoji: { fontSize: 22 },
+  diaperLabel: { fontSize: FONT.bodySm, color: COLORS.primary, fontWeight: '700' },
   sleepBtn: {
-    paddingVertical: 12,
+    paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
   },
   sleepBtnIdle: { backgroundColor: COLORS.sleep },
   sleepBtnActive: { backgroundColor: COLORS.amber },
   sleepBtnText: { color: NEUTRALS.white, fontSize: FONT.body, fontWeight: '700' },
+  sleepHint: { fontSize: FONT.label, color: NEUTRALS.gray500, textAlign: 'center' },
   btnLoading: { opacity: 0.6 },
 })
