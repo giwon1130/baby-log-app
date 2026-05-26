@@ -9,11 +9,11 @@ Expo SDK 54 · React Native 0.81 · TypeScript · iOS 중심 (Android도 빌드 
 
 | 탭 | 설명 |
 |----|------|
-| 홈 | 빠른 기록 (수유·기저귀·수면 토글), 오늘 요약, 다음 수유 시간 |
-| 기록 | 수유/기저귀/수면 상세 기록 (날짜 필터, 수정, 삭제) |
-| 울음분석 | 10초 녹음 → 음향 feature + 컨텍스트로 분류 → 확인 시 개인화 학습 |
-| 통계 | 주간 수유량·횟수·수면 차트 |
-| 아기 | 아기 프로필, 수유 가이드, 성장 기록, 알림 설정, 가족 초대 코드 |
+| 홈 | **빠른 기록** — 유형별 카드(수유·기저귀·수면) 3개, 수유는 `↻ 다시` 1탭 반복 버튼 + 보조 칩, 기저귀는 글자 라벨 타일. 모닝 브리프·다음 수유 시간·오늘 요약 |
+| 기록 | 수유/기저귀/수면 **가로 페이징**(좌우 스와이프 + 슬라이딩 인디케이터), 세 화면 상시 마운트로 상태 보존. 행마다 연필 아이콘 명시적 수정 |
+| 울음분석 | 5초 녹음 → 음향 feature + 컨텍스트로 분류 → 확인 시 개인화 학습 |
+| 통계 | **주간/월간 토글**, 24시간 원형 리듬 차트, 주간 패턴 히트맵, 수유량·횟수·수면 |
+| 아기 | 아기 프로필, 수유 가이드, 성장 기록, 알림 설정(일일 요약·합성 위험도 토글), 가족 초대 코드 |
 
 ## 울음 분석 (Phase 2A)
 
@@ -65,11 +65,18 @@ npx eas build --profile production --platform ios --auto-submit
 - **Internal Testing** (≤100명, 리뷰 없음): 부부/가까운 사람 — ASC 사용자 이메일 초대
 - **External Testing** (≤10000명, Public Link 가능): 친구 공유 — 첫 빌드만 Beta App Review 1회
 
-## 알림
+## 알림 · 실시간 공유
 
 - 수유 기록 시 `nextFeedAt` 기준으로 로컬 알림 자동 등록
 - 앱 시작 시 최신 수유 기록으로 알림 재동기화
 - iOS: 권한 팝업 자동 요청 / Android: `feed-reminder` 채널
+- **가족 실시간 동기화 (Phase 1+2, Build #4+)**: SSE(`/api/v1/families/{id}/stream`)로 다른 디바이스 기록을 30초 내 자동 새로고침. 백그라운드는 Expo Push로 전송(CREATED 이벤트만). `X-Device-Id` 로 자기 디바이스 푸시 제외
+- **일일 요약 푸시** — 매일 21:00 KST 가족별 그날 통계(수유/기저귀/수면) + Gemini 자연어 본문
+
+## iOS 위젯
+
+- **systemMedium 홈 위젯** — 마지막 수유 / 다음 수유 / 오늘 요약
+- **잠금화면 위젯(accessory)** — 마지막 수유 시각
 
 ## 가족 공유
 
@@ -101,10 +108,17 @@ Pods Unicode 에러나면 `export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8` 먼저.
 ## 로드맵
 
 - [x] 수유/기저귀/수면/성장/통계 + 가족 공유
+- [x] 가족 실시간 동기화 Phase 1+2 (SSE + Expo Push, 자기 디바이스 제외)
 - [x] 울음 분석 Phase 1 (휴리스틱 + 학습 스텁)
 - [x] 울음 분석 Phase 2A (음향 feature 확장)
+- [x] iOS 위젯 (systemMedium 홈 + 잠금화면 accessory)
+- [x] 일일 요약 푸시(21:00 KST cron + Gemini)
+- [x] 통계 탭 주간/월간 토글 + 24시간 리듬 차트 + 주간 패턴 히트맵
+- [x] 빠른 기록 유형별 카드 재설계 (`QuickCard` + 직전값 1탭 반복)
+- [x] 기록 탭 가로 페이징 전환 (스와이프 + 인디케이터)
+- [x] **TestFlight 베타 운영 중 — Build #14 (2026-05-22), EAS 유료 플랜**
 - [ ] 울음 분석 Phase 2B (YAMNet + Donate-a-Cry k-NN)
-- [ ] Siri Shortcuts / Live Activity (Apple Developer 유료 업그레이드 후)
-- [ ] TestFlight 배포
+- [ ] Siri Shortcuts / Live Activity
+- [ ] 데이터 export (PDF/CSV — 산부인과 방문용)
 
 더 자세한 에이전트용 가이드는 [AGENTS.md](./AGENTS.md) 참고.
