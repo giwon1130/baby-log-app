@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { getActiveSleep, getBabies, getGrowthStage, getLatestFeed, getTodayStats } from '../api/babyLogApi'
+import { getActiveSleep, getBabies, getGrowthStage, getLatestFeed, getMonthlyPhotos, getTodayStats } from '../api/babyLogApi'
 import { scheduleFeedNotification } from '../utils/notifications'
 import { updateFeedWidget } from '../utils/widget'
 import { useFamilyStream } from '../hooks/useFamilyStream'
@@ -19,6 +19,7 @@ import { registerPushTokenForFamily } from '../api/pushRegistration'
 import QuickActions from '../components/QuickActions'
 import ErrorBanner from '../components/ErrorBanner'
 import EmptyState from '../components/EmptyState'
+import PromoBadge from '../components/PromoBadge'
 import UndoToast, { type UndoAction } from '../components/UndoToast'
 import { parseApiTimestamp, timeUntil, formatDuration as formatSleep, formatAge } from '../utils/dateUtils'
 import type { GrowthStage, SleepRecord, TodayStats } from '../types'
@@ -33,6 +34,7 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const [activeSleep, setActiveSleep] = useState<SleepRecord | null>(null)
   const [nextFeedAt, setNextFeedAt] = useState<string | null>(null)
   const [growthStage, setGrowthStage] = useState<GrowthStage | null>(null)
+  const [monthlyPhotoCount, setMonthlyPhotoCount] = useState(0)
   const [quickError, setQuickError] = useState<string | null>(null)
   const [undoAction, setUndoAction] = useState<UndoAction | null>(null)
 
@@ -72,6 +74,8 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
     if (active.status === 'fulfilled') setActiveSleep(active.value)
     // 성장 단계 기반 수유 가이드 — 실패해도 화면 다른 부분에 영향 X
     getGrowthStage(bid, fid).then(setGrowthStage).catch(() => setGrowthStage(null))
+    // 월 증명사진 채움 카운트 (홈 카드 표시용)
+    getMonthlyPhotos(bid).then(list => setMonthlyPhotoCount(list.length)).catch(() => setMonthlyPhotoCount(0))
   }, [])
 
   useEffect(() => {
@@ -193,6 +197,21 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
           </View>
         )}
 
+        {/* 월 증명사진 진입 — 발견성 강화 */}
+        <TouchableOpacity
+          style={styles.monthlyCard}
+          activeOpacity={0.85}
+          onPress={() => navigation.navigate('MonthlyPhotos')}
+          accessibilityRole="button"
+          accessibilityLabel="월 증명사진 보기"
+        >
+          <View style={styles.monthlyCardRow}>
+            <Text style={styles.monthlyCardTitle}>🎁 월 증명사진 · {monthlyPhotoCount}/12</Text>
+            <PromoBadge />
+          </View>
+          <Text style={styles.monthlyCardSub}>한 달 한 컷, 첫 돌까지 ›</Text>
+        </TouchableOpacity>
+
         {/* 빠른 기록 */}
         <ErrorBanner message={quickError} onDismiss={() => setQuickError(null)} />
         <QuickActions
@@ -286,6 +305,20 @@ const styles = StyleSheet.create({
   },
   guideLabel: { fontSize: FONT.label, color: NEUTRALS.gray500, fontWeight: '600' },
   guideValue: { fontSize: FONT.bodySm, color: NEUTRALS.gray800, fontWeight: '600' },
+  monthlyCard: {
+    backgroundColor: NEUTRALS.white,
+    borderRadius: 14,
+    padding: 14,
+    gap: 4,
+    shadowColor: NEUTRALS.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  monthlyCardRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  monthlyCardTitle: { fontSize: FONT.bodyMd, fontWeight: '700', color: NEUTRALS.ink },
+  monthlyCardSub: { fontSize: FONT.bodySm, color: NEUTRALS.gray650 },
   cardLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardLabel: { fontSize: FONT.label, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   shareBtn: { fontSize: FONT.label, color: COLORS.primary, fontWeight: '600' },
