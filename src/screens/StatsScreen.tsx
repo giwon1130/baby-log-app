@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useFocusEffect } from '@react-navigation/native'
 import { BarChart, LineChart } from 'react-native-chart-kit'
 import { getMonthlyStats, getWeeklyStats } from '../api/babyLogApi'
@@ -55,6 +56,17 @@ export default function StatsScreen({ navigation }: MainTabScreenProps<'Stats'>)
   const [refreshing, setRefreshing] = useState(false)
   const [stats, setStats] = useState<WeeklyStats | null>(null)
   const [period, setPeriod] = useState<Period>('week')
+  // 마지막 선택 기억 — 진입할 때마다 사용자 의도 유지
+  useEffect(() => {
+    void (async () => {
+      const saved = await AsyncStorage.getItem('statsScreen.period')
+      if (saved === 'week' || saved === 'month') setPeriod(saved)
+    })()
+  }, [])
+  const setPeriodPersistent = useCallback((p: Period) => {
+    setPeriod(p)
+    void AsyncStorage.setItem('statsScreen.period', p)
+  }, [])
 
   const loadStats = useCallback(async (bid: string, p: Period) => {
     const data = await (p === 'week' ? getWeeklyStats(bid) : getMonthlyStats(bid)).catch(() => null)
@@ -132,7 +144,7 @@ export default function StatsScreen({ navigation }: MainTabScreenProps<'Stats'>)
           <TouchableOpacity
             key={p}
             style={[styles.periodTab, period === p && styles.periodTabActive]}
-            onPress={() => setPeriod(p)}
+            onPress={() => setPeriodPersistent(p)}
           >
             <Text style={[styles.periodTabText, period === p && styles.periodTabTextActive]}>
               {p === 'week' ? '주간' : '월간'}

@@ -171,8 +171,14 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
         }
       >
-        {/* 아기 정보 */}
-        <View style={styles.babyCard}>
+        {/* 아기 정보 — 탭 시 아기 프로필로 (이름·생일 등 메타 빠른 진입) */}
+        <TouchableOpacity
+          style={styles.babyCard}
+          activeOpacity={0.85}
+          onPress={() => navigation.navigate('Main', { screen: 'BabyProfile' })}
+          accessibilityRole="button"
+          accessibilityLabel="아기 프로필 보기"
+        >
           <View style={styles.babyCardTop}>
             <View>
               <Text style={styles.babyCardName}>{babyName ?? '아기'}</Text>
@@ -184,7 +190,7 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
             </View>
             <Text style={styles.babyCardEmoji}>👶</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* 수유 가이드 — 성장 단계 기반 권장량/간격 */}
         {growthStage && (

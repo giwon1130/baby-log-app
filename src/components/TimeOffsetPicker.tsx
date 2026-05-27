@@ -1,4 +1,5 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 import {
   StyleSheet,
@@ -24,6 +25,8 @@ export function offsetDate(minutesAgo: number): Date {
   return new Date(Date.now() - minutesAgo * 60 * 1000)
 }
 
+const LAST_OFFSET_KEY = 'timeOffsetPicker.lastMinutes'
+
 export default function TimeOffsetPicker({ value, onChange }: Props) {
   const [customInput, setCustomInput] = useState('')
   const [showCustom, setShowCustom] = useState(false)
@@ -32,16 +35,31 @@ export default function TimeOffsetPicker({ value, onChange }: Props) {
 
   const selectedPreset = PRESETS.find(p => Math.abs(p.minutes - minutesAgo) <= 1)
 
+  // 마운트 시 직전 사용 분이 0이 아니면 그 값을 초기 offset 으로 적용
+  // (기본 value 가 '지금' 일 때만 — 부모가 명시 시각을 줬으면 존중)
+  useEffect(() => {
+    if (Math.abs(Date.now() - value.getTime()) > 60_000) return  // 이미 의도적 시각이면 패스
+    void (async () => {
+      const saved = await AsyncStorage.getItem(LAST_OFFSET_KEY)
+      const m = saved ? parseInt(saved, 10) : NaN
+      if (!isNaN(m) && m > 0) onChange(offsetDate(m))
+    })()
+    // 마운트 1회만 — value 변경에 반응 X
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const handlePreset = (mins: number) => {
     setShowCustom(false)
     setCustomInput('')
     onChange(offsetDate(mins))
+    void AsyncStorage.setItem(LAST_OFFSET_KEY, String(mins))
   }
 
   const handleCustomSubmit = () => {
     const mins = parseInt(customInput)
     if (!isNaN(mins) && mins >= 0) {
       onChange(offsetDate(mins))
+      void AsyncStorage.setItem(LAST_OFFSET_KEY, String(mins))
       setShowCustom(false)
     }
   }
