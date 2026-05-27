@@ -21,6 +21,7 @@ import SuccessToast from '../components/SuccessToast'
 import EditDiaperModal from '../components/EditDiaperModal'
 import EmptyState from '../components/EmptyState'
 import EditButton from '../components/EditButton'
+import { useErrorRetry } from '../hooks/useErrorRetry'
 import { formatTime, timeSince } from '../utils/dateUtils'
 import { extractErrorMessage } from '../utils/errors'
 import { DIAPER_TYPE_LABEL, COLORS, NEUTRALS, FONT } from '../utils/constants'
@@ -35,20 +36,13 @@ export default function DiaperLogScreen() {
   const [submitting, setSubmitting] = useState(false)
   const [dateFilter, setDateFilter] = useState<DateFilterValue>('today')
   const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [errorRetry, setErrorRetry] = useState<(() => void) | null>(null)
+  const { error, retry, showError, dismissError } = useErrorRetry()
 
   const [diaperType, setDiaperType] = useState<string>('WET')
   const [note, setNote] = useState('')
   const [changedAt, setChangedAt] = useState(new Date())
   const [success, setSuccess] = useState<string | null>(null)
   const [editingRecord, setEditingRecord] = useState<DiaperRecord | null>(null)
-
-  const showError = useCallback((msg: string, retry?: () => void) => {
-    setError(msg)
-    setErrorRetry(() => retry ?? null)
-  }, [])
-  const dismissError = useCallback(() => { setError(null); setErrorRetry(null) }, [])
 
   const loadDiapers = useCallback(async (bid: string, filter: DateFilterValue) => {
     const data = await getDiapers(bid, 50, toDateParam(filter))
@@ -128,7 +122,7 @@ export default function DiaperLogScreen() {
         onClose={() => setEditingRecord(null)}
         onSave={handleUpdate}
       />
-      <ErrorBanner message={error} onDismiss={dismissError} onRetry={errorRetry ?? undefined} />
+      <ErrorBanner message={error} onDismiss={dismissError} onRetry={retry ?? undefined} />
       <SuccessToast message={success} onHide={() => setSuccess(null)} />
       <View style={styles.form}>
         <Text style={styles.formTitle}>기저귀 교환 기록</Text>

@@ -22,6 +22,7 @@ import SuccessToast from '../components/SuccessToast'
 import BreastfeedingTimer from '../components/BreastfeedingTimer'
 import EmptyState from '../components/EmptyState'
 import EditButton from '../components/EditButton'
+import { useErrorRetry } from '../hooks/useErrorRetry'
 import { formatTime } from '../utils/dateUtils'
 import { extractErrorMessage } from '../utils/errors'
 import { FEED_TYPE_LABEL, COLORS, NEUTRALS, FONT } from '../utils/constants'
@@ -38,8 +39,7 @@ export default function FeedLogScreen() {
   const [dateFilter, setDateFilter] = useState<DateFilterValue>('today')
   const [editingRecord, setEditingRecord] = useState<FeedRecord | null>(null)
   const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [errorRetry, setErrorRetry] = useState<(() => void) | null>(null)
+  const { error, retry, showError, dismissError } = useErrorRetry()
 
   const [amount, setAmount] = useState('')
   const [feedType, setFeedType] = useState<string>('FORMULA')
@@ -51,12 +51,6 @@ export default function FeedLogScreen() {
   const [rightMinutes, setRightMinutes] = useState<number | null>(null)
 
   const isBreast = feedType === 'BREAST' || feedType === 'MIXED'
-
-  const showError = useCallback((msg: string, retry?: () => void) => {
-    setError(msg)
-    setErrorRetry(() => retry ?? null)
-  }, [])
-  const dismissError = useCallback(() => { setError(null); setErrorRetry(null) }, [])
 
   const loadFeeds = useCallback(async (bid: string, filter: DateFilterValue) => {
     const data = await getFeeds(bid, 50, toDateParam(filter))
@@ -153,7 +147,7 @@ export default function FeedLogScreen() {
         onComplete={handleTimerComplete}
         onCancel={() => setTimerVisible(false)}
       />
-      <ErrorBanner message={error} onDismiss={dismissError} onRetry={errorRetry ?? undefined} />
+      <ErrorBanner message={error} onDismiss={dismissError} onRetry={retry ?? undefined} />
       <SuccessToast message={success} onHide={() => setSuccess(null)} />
       <EditFeedModal
         record={editingRecord}

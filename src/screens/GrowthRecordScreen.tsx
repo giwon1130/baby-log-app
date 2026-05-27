@@ -16,6 +16,7 @@ import ErrorBanner from '../components/ErrorBanner'
 import EditGrowthModal from '../components/EditGrowthModal'
 import EmptyState from '../components/EmptyState'
 import EditButton from '../components/EditButton'
+import { useErrorRetry } from '../hooks/useErrorRetry'
 import { GrowthChart } from '../components/GrowthChart'
 import { formatTime } from '../utils/dateUtils'
 import { ageInMonths, calcPercentile, formatPercentile, percentileColor } from '../utils/whoGrowth'
@@ -31,20 +32,13 @@ export default function GrowthRecordScreen() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [errorRetry, setErrorRetry] = useState<(() => void) | null>(null)
+  const { error, retry, showError, dismissError } = useErrorRetry()
   const [editingRecord, setEditingRecord] = useState<GrowthRecord | null>(null)
 
   const [weightG, setWeightG] = useState('')
   const [heightCm, setHeightCm] = useState('')
   const [headCm, setHeadCm] = useState('')
   const [note, setNote] = useState('')
-
-  const showError = useCallback((msg: string, retry?: () => void) => {
-    setError(msg)
-    setErrorRetry(() => retry ?? null)
-  }, [])
-  const dismissError = useCallback(() => { setError(null); setErrorRetry(null) }, [])
 
   const loadRecords = useCallback(async (bid: string) => {
     setRecords(await getGrowthRecords(bid))
@@ -152,7 +146,7 @@ export default function GrowthRecordScreen() {
         onClose={() => setEditingRecord(null)}
         onSave={handleUpdate}
       />
-      <ErrorBanner message={error} onDismiss={dismissError} onRetry={errorRetry ?? undefined} />
+      <ErrorBanner message={error} onDismiss={dismissError} onRetry={retry ?? undefined} />
       <View style={styles.form}>
         <Text style={styles.formTitle}>성장 기록</Text>
 

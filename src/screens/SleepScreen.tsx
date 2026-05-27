@@ -19,6 +19,7 @@ import SuccessToast from '../components/SuccessToast'
 import EditSleepModal from '../components/EditSleepModal'
 import EmptyState from '../components/EmptyState'
 import EditButton from '../components/EditButton'
+import { useErrorRetry } from '../hooks/useErrorRetry'
 import { formatTime, formatDuration } from '../utils/dateUtils'
 import { extractErrorMessage } from '../utils/errors'
 import type { SleepRecord } from '../types'
@@ -41,19 +42,12 @@ export default function SleepScreen() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [refreshing, setRefreshing] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [errorRetry, setErrorRetry] = useState<(() => void) | null>(null)
+  const { error, retry, showError, dismissError } = useErrorRetry()
   const [sleptAt, setSleptAt] = useState(new Date())
   const [success, setSuccess] = useState<string | null>(null)
   const [now, setNow] = useState(Date.now())
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [editingRecord, setEditingRecord] = useState<SleepRecord | null>(null)
-
-  const showError = useCallback((msg: string, retry?: () => void) => {
-    setError(msg)
-    setErrorRetry(() => retry ?? null)
-  }, [])
-  const dismissError = useCallback(() => { setError(null); setErrorRetry(null) }, [])
 
   const reload = useCallback(async (bid: string) => {
     const [recs, active] = await Promise.all([
@@ -164,7 +158,7 @@ export default function SleepScreen() {
         onClose={() => setEditingRecord(null)}
         onSave={handleUpdate}
       />
-      <ErrorBanner message={error} onDismiss={dismissError} onRetry={errorRetry ?? undefined} />
+      <ErrorBanner message={error} onDismiss={dismissError} onRetry={retry ?? undefined} />
       <SuccessToast message={success} onHide={() => setSuccess(null)} />
       {/* 수면 상태 카드 */}
       <View style={styles.statusCard}>
