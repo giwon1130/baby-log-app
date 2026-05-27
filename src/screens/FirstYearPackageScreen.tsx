@@ -18,6 +18,7 @@ import { useStoredBaby } from '../hooks/useStoredBaby'
 import ErrorBanner from '../components/ErrorBanner'
 import SuccessToast from '../components/SuccessToast'
 import EmptyState from '../components/EmptyState'
+import PromoBadge from '../components/PromoBadge'
 import { extractErrorMessage } from '../utils/errors'
 import type { Baby, MonthlyPhoto } from '../types'
 import { COLORS, FONT, NEUTRALS, SPACING } from '../utils/constants'
@@ -184,6 +185,9 @@ export default function FirstYearPackageScreen() {
       <ErrorBanner message={error} onDismiss={() => setError(null)} />
       <SuccessToast message={success} onHide={() => setSuccess(null)} />
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={{ alignItems: 'center' }}>
+          <PromoBadge size="medium" />
+        </View>
         <Text style={styles.intro}>
           {baby.name}의 1~12개월을 한 장으로 묶어 공유하거나 인쇄할 수 있어요.
           현재 <Text style={{ fontWeight: '700', color: COLORS.primary }}>{filled}/12</Text> 채움.

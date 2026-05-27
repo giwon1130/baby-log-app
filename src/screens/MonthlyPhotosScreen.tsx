@@ -27,6 +27,7 @@ import { useStoredBaby } from '../hooks/useStoredBaby'
 import ErrorBanner from '../components/ErrorBanner'
 import SuccessToast from '../components/SuccessToast'
 import EmptyState from '../components/EmptyState'
+import PromoBadge from '../components/PromoBadge'
 import { extractErrorMessage } from '../utils/errors'
 import type { Baby, MonthlyPhoto } from '../types'
 import type { RootStackScreenProps } from '../navigation/types'
@@ -178,7 +179,10 @@ export default function MonthlyPhotosScreen({ route, navigation }: RootStackScre
       <SuccessToast message={success} onHide={() => setSuccess(null)} />
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.heroCard}>
-          <Text style={styles.heroTitle}>월 증명사진</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+            <Text style={styles.heroTitle}>월 증명사진</Text>
+            <PromoBadge />
+          </View>
           <Text style={styles.heroSub}>
             {babyName ?? '아기'}의 1~12개월. 한 달 한 컷, 같은 장소에서 찍어두면 첫 돌에 성장 과정이 한눈에 보여요.
           </Text>

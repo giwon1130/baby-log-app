@@ -16,6 +16,7 @@ import { clearStoredBaby, setStoredBaby, storeFamilyAndBaby } from '../api/clien
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import ErrorBanner from '../components/ErrorBanner'
 import EmptyState from '../components/EmptyState'
+import PromoBadge from '../components/PromoBadge'
 import { NotificationSettingsCard } from '../components/NotificationSettingsCard'
 import type { Baby, Family, GrowthStage } from '../types'
 import type { MainTabScreenProps } from '../navigation/types'
@@ -337,7 +338,10 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
             onPress={() => navigation.navigate('MonthlyPhotos')}
             activeOpacity={0.7}
           >
-            <Text style={styles.sectionTitle}>월 증명사진</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Text style={styles.sectionTitle}>월 증명사진</Text>
+              <PromoBadge />
+            </View>
             <Text style={styles.guideText}>1~12개월, 한 달 한 컷. 같은 장소에서 찍어 성장 한눈에 ›</Text>
           </TouchableOpacity>
 
