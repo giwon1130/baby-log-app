@@ -2,9 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Alert,
-  Image,
-  Modal,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -13,7 +10,6 @@ import {
   useWindowDimensions,
 } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
-import { Ionicons } from '@expo/vector-icons'
 import { useFocusEffect } from '@react-navigation/native'
 
 import {
@@ -28,6 +24,8 @@ import ErrorBanner from '../components/ErrorBanner'
 import SuccessToast from '../components/SuccessToast'
 import EmptyState from '../components/EmptyState'
 import PromoBadge from '../components/PromoBadge'
+import SlotCard from '../components/monthlyphoto/SlotCard'
+import SlotModal from '../components/monthlyphoto/SlotModal'
 import { extractErrorMessage } from '../utils/errors'
 import type { Baby, MonthlyPhoto } from '../types'
 import type { RootStackScreenProps } from '../navigation/types'
@@ -233,143 +231,6 @@ export default function MonthlyPhotosScreen({ route, navigation }: RootStackScre
   )
 }
 
-type SlotCardProps = {
-  size: number
-  monthIndex: number
-  photo: MonthlyPhoto | null
-  dueText: string
-  isUploading: boolean
-  onPress: () => void
-}
-
-function SlotCard({ size, monthIndex, photo, dueText, isUploading, onPress }: SlotCardProps) {
-  return (
-    <TouchableOpacity
-      activeOpacity={0.85}
-      onPress={onPress}
-      style={[styles.slot, { width: size, height: size }]}
-      accessibilityRole="button"
-      accessibilityLabel={photo ? `${monthIndex}개월 사진` : `${monthIndex}개월 사진 추가`}
-    >
-      {photo ? (
-        <>
-          <Image source={{ uri: photo.photoUrl }} style={styles.slotImage} resizeMode="cover" />
-          <View style={styles.slotMonthBadge}>
-            <Text style={styles.slotMonthBadgeText}>{monthIndex}개월</Text>
-          </View>
-        </>
-      ) : (
-        <View style={styles.slotEmpty}>
-          <Ionicons name="add-circle-outline" size={28} color={COLORS.primary} />
-          <Text style={styles.slotEmptyMonth}>{monthIndex}개월</Text>
-          <Text style={styles.slotEmptyDue}>{dueText}</Text>
-        </View>
-      )}
-      {isUploading && (
-        <View style={styles.slotOverlay}>
-          <ActivityIndicator color={NEUTRALS.white} />
-        </View>
-      )}
-    </TouchableOpacity>
-  )
-}
-
-type SlotModalProps = {
-  visible: boolean
-  slot: number | null
-  photo: MonthlyPhoto | null
-  prevPhoto: MonthlyPhoto | null
-  dueText: string
-  uploading: boolean
-  onClose: () => void
-  onPickGallery: (m: number) => void
-  onPickCamera: (m: number) => void
-  onDelete: (m: number) => void
-}
-
-function SlotModal({
-  visible, slot, photo, prevPhoto, dueText, uploading,
-  onClose, onPickGallery, onPickCamera, onDelete,
-}: SlotModalProps) {
-  if (slot == null) return null
-  return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.modalBackdrop} onPress={onClose}>
-        <Pressable style={styles.modalCard} onPress={() => { /* swallow */ }}>
-          <View style={styles.modalHeader}>
-            <Text style={styles.modalTitle}>{slot}개월 사진</Text>
-            <TouchableOpacity onPress={onClose} hitSlop={10} accessibilityLabel="닫기">
-              <Ionicons name="close" size={22} color={NEUTRALS.gray600} />
-            </TouchableOpacity>
-          </View>
-          {photo ? (
-            <View style={styles.modalBody}>
-              <Image source={{ uri: photo.photoUrl }} style={styles.modalImage} resizeMode="cover" />
-              <Text style={styles.modalCaption}>{photo.caption ?? `${slot}개월차 한 컷`}</Text>
-              <View style={styles.modalActions}>
-                <TouchableOpacity
-                  style={[styles.modalBtn, styles.modalBtnSecondary, uploading && styles.modalBtnDisabled]}
-                  onPress={() => onPickGallery(slot)}
-                  disabled={uploading}
-                >
-                  <Text style={styles.modalBtnSecondaryText}>📷 갤러리로 교체</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalBtn, styles.modalBtnSecondary, uploading && styles.modalBtnDisabled]}
-                  onPress={() => onPickCamera(slot)}
-                  disabled={uploading}
-                >
-                  <Text style={styles.modalBtnSecondaryText}>📸 카메라로 다시</Text>
-                </TouchableOpacity>
-              </View>
-              <TouchableOpacity
-                style={styles.modalDangerBtn}
-                onPress={() => onDelete(slot)}
-                disabled={uploading}
-              >
-                <Text style={styles.modalDangerText}>삭제</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View style={styles.modalBody}>
-              <Text style={styles.modalSub}>{dueText} · 평소 같은 장소에서 한 컷.</Text>
-              {prevPhoto && (
-                <View style={styles.prevPanel}>
-                  <Text style={styles.prevLabel}>{prevPhoto.monthIndex}개월 (참고)</Text>
-                  <Image source={{ uri: prevPhoto.photoUrl }} style={styles.prevImage} resizeMode="cover" />
-                  <Text style={styles.prevHint}>같은 장소/포즈로 찍어두면 비교가 깔끔해져요</Text>
-                </View>
-              )}
-              <View style={styles.modalActions}>
-                <TouchableOpacity
-                  style={[styles.modalBtn, styles.modalBtnPrimary, uploading && styles.modalBtnDisabled]}
-                  onPress={() => onPickGallery(slot)}
-                  disabled={uploading}
-                >
-                  <Text style={styles.modalBtnPrimaryText}>📷 갤러리에서</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.modalBtn, styles.modalBtnPrimary, uploading && styles.modalBtnDisabled]}
-                  onPress={() => onPickCamera(slot)}
-                  disabled={uploading}
-                >
-                  <Text style={styles.modalBtnPrimaryText}>📸 카메라로</Text>
-                </TouchableOpacity>
-              </View>
-              {uploading && (
-                <View style={styles.uploadingRow}>
-                  <ActivityIndicator color={COLORS.primary} />
-                  <Text style={styles.uploadingText}>업로드 중...</Text>
-                </View>
-              )}
-            </View>
-          )}
-        </Pressable>
-      </Pressable>
-    </Modal>
-  )
-}
-
 function addMonths(birthDateIso: string, months: number): Date {
   const [y, m, d] = birthDateIso.split('-').map(s => parseInt(s, 10))
   const date = new Date(y, (m - 1) + months, d)
@@ -411,98 +272,4 @@ const styles = StyleSheet.create({
   packageBtnText: { color: COLORS.primary, fontWeight: '700', fontSize: FONT.bodySm },
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
-  slot: {
-    borderRadius: 14,
-    overflow: 'hidden',
-    backgroundColor: NEUTRALS.white,
-    position: 'relative',
-  },
-  slotImage: { width: '100%', height: '100%' },
-  slotMonthBadge: {
-    position: 'absolute',
-    bottom: 6,
-    left: 6,
-    backgroundColor: 'rgba(0,0,0,0.55)',
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  slotMonthBadgeText: { color: NEUTRALS.white, fontSize: FONT.label, fontWeight: '700' },
-  slotEmpty: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 4,
-    backgroundColor: COLORS.primarySurface,
-    borderWidth: 1.5,
-    borderColor: COLORS.primaryDisabled,
-    borderStyle: 'dashed',
-    borderRadius: 14,
-  },
-  slotEmptyMonth: { fontSize: FONT.bodySm, fontWeight: '700', color: COLORS.primary, marginTop: 2 },
-  slotEmptyDue: { fontSize: FONT.caption, color: NEUTRALS.gray500 },
-  slotOverlay: {
-    position: 'absolute',
-    inset: 0,
-    backgroundColor: 'rgba(0,0,0,0.35)',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
-  modalBackdrop: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: SPACING.xl,
-  },
-  modalCard: {
-    width: '100%',
-    maxWidth: 420,
-    backgroundColor: NEUTRALS.white,
-    borderRadius: 18,
-    padding: SPACING.lg,
-    gap: SPACING.md,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  modalTitle: { fontSize: FONT.h3, fontWeight: '700', color: NEUTRALS.ink },
-  modalBody: { gap: SPACING.md },
-  modalSub: { fontSize: FONT.bodySm, color: NEUTRALS.gray650 },
-  modalImage: { width: '100%', aspectRatio: 1, borderRadius: 12, backgroundColor: NEUTRALS.gray100 },
-  modalCaption: { fontSize: FONT.bodySm, color: NEUTRALS.gray700, textAlign: 'center' },
-
-  prevPanel: { gap: 6, alignItems: 'center' },
-  prevLabel: { fontSize: FONT.label, color: NEUTRALS.gray600, fontWeight: '600' },
-  prevImage: { width: 140, height: 140, borderRadius: 10, backgroundColor: NEUTRALS.gray100 },
-  prevHint: { fontSize: FONT.caption, color: NEUTRALS.gray500, textAlign: 'center' },
-
-  modalActions: { flexDirection: 'row', gap: SPACING.sm },
-  modalBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  modalBtnPrimary: { backgroundColor: COLORS.primary },
-  modalBtnPrimaryText: { color: NEUTRALS.white, fontWeight: '700', fontSize: FONT.bodySm },
-  modalBtnSecondary: { backgroundColor: COLORS.primarySurface, borderWidth: 1, borderColor: COLORS.primary },
-  modalBtnSecondaryText: { color: COLORS.primary, fontWeight: '700', fontSize: FONT.bodySm },
-  modalBtnDisabled: { opacity: 0.5 },
-
-  modalDangerBtn: {
-    paddingVertical: 10,
-    alignItems: 'center',
-    borderRadius: 10,
-    backgroundColor: COLORS.dangerSurface,
-    borderWidth: 1,
-    borderColor: COLORS.dangerBorder,
-  },
-  modalDangerText: { color: COLORS.danger, fontWeight: '700' },
-
-  uploadingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'center' },
-  uploadingText: { color: NEUTRALS.gray700 },
 })
