@@ -145,6 +145,8 @@ export type BabyDiagnosis = {
   notes: string
   status: 'active' | 'resolved'
   resolvedAt: string | null
+  todayDone: number                // 오늘 완료한 task 수 (list 응답에 prefetch)
+  todayTotal: number               // 카탈로그 task 총수
 }
 
 export type DailyChecklistTask = {

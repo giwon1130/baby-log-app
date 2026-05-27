@@ -53,6 +53,7 @@ export default function HealthTipsScreen() {
   const [loading, setLoading] = useState(true)
   const { error, retry, showError, dismissError } = useErrorRetry()
   const [query, setQuery] = useState('')
+  const [category, setCategory] = useState<string | null>(null)
   const [openTip, setOpenTip] = useState<HealthTip | null>(null)
   const [qaOpen, setQaOpen] = useState(false)
   const [addModalTip, setAddModalTip] = useState<HealthTip | null>(null)
@@ -92,16 +93,22 @@ export default function HealthTipsScreen() {
     }
   }
 
+  const availableCategories = useMemo(() => {
+    const set = new Set(tips.map(t => t.category))
+    return Array.from(set)
+  }, [tips])
+
   const filtered = useMemo(() => {
-    if (!query.trim()) return tips
-    const q = query.toLowerCase()
-    return tips.filter(t =>
-      t.title.toLowerCase().includes(q) ||
-      t.oneLineSummary.toLowerCase().includes(q) ||
-      t.whatItIs.toLowerCase().includes(q) ||
-      (CATEGORY_LABEL[t.category] ?? '').includes(q),
-    )
-  }, [tips, query])
+    const q = query.trim().toLowerCase()
+    return tips.filter(t => {
+      if (category && t.category !== category) return false
+      if (!q) return true
+      return t.title.toLowerCase().includes(q) ||
+        t.oneLineSummary.toLowerCase().includes(q) ||
+        t.whatItIs.toLowerCase().includes(q) ||
+        (CATEGORY_LABEL[t.category] ?? '').includes(q)
+    })
+  }, [tips, query, category])
 
   const ageMonths = daysOld != null ? Math.floor(daysOld / 30) : undefined
 
@@ -126,6 +133,8 @@ export default function HealthTipsScreen() {
               <DiagnosisCard
                 key={d.id}
                 diagnosis={d}
+                todayDone={d.todayDone}
+                todayTotal={d.todayTotal}
                 onPress={() => setOpenDiagnosis(d)}
               />
             ))}
@@ -149,6 +158,29 @@ export default function HealthTipsScreen() {
             </TouchableOpacity>
           )}
         </View>
+
+        {/* 카테고리 필터 칩 */}
+        {availableCategories.length > 0 && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.catRow}>
+            <TouchableOpacity
+              style={[styles.catChip, !category && styles.catChipActive]}
+              onPress={() => setCategory(null)}
+            >
+              <Text style={[styles.catChipText, !category && styles.catChipTextActive]}>전체</Text>
+            </TouchableOpacity>
+            {availableCategories.map(c => (
+              <TouchableOpacity
+                key={c}
+                style={[styles.catChip, category === c && styles.catChipActive]}
+                onPress={() => setCategory(category === c ? null : c)}
+              >
+                <Text style={[styles.catChipText, category === c && styles.catChipTextActive]}>
+                  {CATEGORY_LABEL[c] ?? c}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
 
         {/* AI 자유 질문 진입 */}
         <TouchableOpacity
@@ -401,6 +433,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.md, paddingVertical: 10,
   },
   searchInput: { flex: 1, fontSize: FONT.bodyMd, color: NEUTRALS.ink },
+
+  catRow: { gap: 6, paddingVertical: 2, paddingRight: SPACING.lg },
+  catChip: {
+    paddingHorizontal: 12, paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: NEUTRALS.white,
+    borderWidth: 1, borderColor: NEUTRALS.gray150,
+  },
+  catChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  catChipText: { fontSize: FONT.label, color: NEUTRALS.gray700, fontWeight: '600' },
+  catChipTextActive: { color: NEUTRALS.white },
 
   askCard: {
     flexDirection: 'row', alignItems: 'center', gap: SPACING.md,
