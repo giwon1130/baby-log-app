@@ -30,7 +30,7 @@ const BREAST_MINUTES = [5, 10, 15]
 const LAST_FEED_KEY = 'quickActions.lastFeed'
 
 /** 마지막 수유 — "직전값 다시" 1탭 버튼에 사용 */
-type LastFeed = { feedType: FeedType; amountMl?: number; leftMinutes?: number }
+type LastFeed = { feedType: FeedType; amountMl?: number; leftMinutes?: number; rightMinutes?: number }
 
 type Props = {
   babyId: string
@@ -52,7 +52,8 @@ function labelForType(t: FeedType): string {
 function describeLastFeed(lf: LastFeed): string {
   const t = labelForType(lf.feedType)
   if (lf.amountMl != null) return `${t} ${lf.amountMl}ml`
-  if (lf.leftMinutes != null) return `${t} ${lf.leftMinutes}분`
+  if (lf.leftMinutes != null) return `${t} 왼쪽 ${lf.leftMinutes}분`
+  if (lf.rightMinutes != null) return `${t} 오른쪽 ${lf.rightMinutes}분`
   return t
 }
 
@@ -91,7 +92,7 @@ export default function QuickFeed({
   const busy = loadingKey !== null
 
   const submitFeed = useCallback(async (
-    payload: { amountMl?: number; leftMinutes?: number },
+    payload: { amountMl?: number; leftMinutes?: number; rightMinutes?: number },
     type: FeedType,
     key: string,
     successMsg: string,
@@ -100,7 +101,12 @@ export default function QuickFeed({
     try {
       const record = await recordFeed(babyId, { ...payload, feedType: type })
       if (record.nextFeedAt) await scheduleFeedNotification(record.nextFeedAt, babyName)
-      await rememberLastFeed({ feedType: type, amountMl: payload.amountMl, leftMinutes: payload.leftMinutes })
+      await rememberLastFeed({
+        feedType: type,
+        amountMl: payload.amountMl,
+        leftMinutes: payload.leftMinutes,
+        rightMinutes: payload.rightMinutes,
+      })
       onRecorded()
       onUndoAvailable({
         message: successMsg,
@@ -124,15 +130,19 @@ export default function QuickFeed({
     void submitFeed({ amountMl: ml }, feedType, `feed-${ml}`, `${labelForType(feedType)} ${ml}ml 기록`)
   }, [feedType, submitFeed])
 
-  const handleBreastQuick = useCallback((minutes: number) => {
-    void submitFeed({ leftMinutes: minutes }, 'BREAST', `breast-${minutes}`, `모유 ${minutes}분 기록`)
+  const handleBreastQuick = useCallback((side: 'left' | 'right', minutes: number) => {
+    const payload = side === 'left' ? { leftMinutes: minutes } : { rightMinutes: minutes }
+    const sideLabel = side === 'left' ? '왼쪽' : '오른쪽'
+    void submitFeed(payload, 'BREAST', `breast-${side}-${minutes}`, `모유 ${sideLabel} ${minutes}분 기록`)
   }, [submitFeed])
 
   const handleRepeat = useCallback(() => {
     if (!lastFeed) return
     const payload = lastFeed.amountMl != null
       ? { amountMl: lastFeed.amountMl }
-      : { leftMinutes: lastFeed.leftMinutes }
+      : lastFeed.leftMinutes != null
+        ? { leftMinutes: lastFeed.leftMinutes }
+        : { rightMinutes: lastFeed.rightMinutes }
     void submitFeed(payload, lastFeed.feedType, 'feed-repeat', `${describeLastFeed(lastFeed)} 기록`)
   }, [lastFeed, submitFeed])
 
@@ -214,32 +224,45 @@ export default function QuickFeed({
         </View>
       )}
 
-      {/* 모유: 수유 시간 칩 */}
+      {/* 모유: 좌/우 분리 — 한쪽씩 빠른 기록, 양쪽 동시는 타이머로 */}
       {feedType === 'BREAST' && (
-        <View style={styles.row}>
-          {BREAST_MINUTES.map(min => (
-            <TouchableOpacity
-              key={min}
-              style={[styles.feedBtn, loadingKey === `breast-${min}` && styles.btnLoading]}
-              onPress={() => handleBreastQuick(min)}
-              disabled={busy}
-              accessibilityRole="button"
-              accessibilityLabel={`모유 ${min}분 기록`}
-            >
-              {loadingKey === `breast-${min}`
-                ? <ActivityIndicator size="small" color={COLORS.primary} />
-                : <Text style={styles.feedBtnText}>{min}분</Text>}
-            </TouchableOpacity>
-          ))}
+        <View style={styles.breastBlock}>
+          {(['left', 'right'] as const).map(side => {
+            const sideLabel = side === 'left' ? '왼' : '오'
+            return (
+              <View key={side} style={styles.row}>
+                <View style={styles.breastSideLabel}>
+                  <Text style={styles.breastSideLabelText}>{sideLabel}</Text>
+                </View>
+                {BREAST_MINUTES.map(min => {
+                  const key = `breast-${side}-${min}`
+                  return (
+                    <TouchableOpacity
+                      key={min}
+                      style={[styles.feedBtn, loadingKey === key && styles.btnLoading]}
+                      onPress={() => handleBreastQuick(side, min)}
+                      disabled={busy}
+                      accessibilityRole="button"
+                      accessibilityLabel={`모유 ${sideLabel}쪽 ${min}분 기록`}
+                    >
+                      {loadingKey === key
+                        ? <ActivityIndicator size="small" color={COLORS.primary} />
+                        : <Text style={styles.feedBtnText}>{min}분</Text>}
+                    </TouchableOpacity>
+                  )
+                })}
+              </View>
+            )
+          })}
           {onNavigateBreastTimer && (
             <TouchableOpacity
               style={styles.customBtn}
               onPress={onNavigateBreastTimer}
               disabled={busy}
               accessibilityRole="button"
-              accessibilityLabel="모유 수유 타이머 열기"
+              accessibilityLabel="모유 수유 타이머 열기 (양쪽 동시)"
             >
-              <Text style={styles.customBtnText}>타이머</Text>
+              <Text style={styles.customBtnText}>양쪽 동시 · 타이머</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -307,7 +330,14 @@ const styles = StyleSheet.create({
   typeTabActive: { backgroundColor: COLORS.primary },
   typeTabText: { fontSize: FONT.label, fontWeight: '700', color: COLORS.primary },
   typeTabTextActive: { color: NEUTRALS.white },
-  row: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  row: { flexDirection: 'row', gap: 8, flexWrap: 'wrap', alignItems: 'center' },
+  breastBlock: { gap: 8 },
+  breastSideLabel: {
+    width: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  breastSideLabelText: { color: NEUTRALS.gray700, fontWeight: '700', fontSize: FONT.bodySm },
   feedBtn: {
     paddingHorizontal: 14,
     paddingVertical: 9,
