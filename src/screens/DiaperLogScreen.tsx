@@ -12,6 +12,7 @@ import {
 } from 'react-native'
 import { deleteDiaper, getDiapers, recordDiaper, updateDiaper } from '../api/babyLogApi'
 import { scheduleDiaperReminder } from '../utils/notifications'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import DateFilter, { DateFilterValue, toDateParam } from '../components/DateFilter'
 import SwipeToDelete from '../components/SwipeToDelete'
@@ -28,6 +29,7 @@ import { DIAPER_TYPE_LABEL, COLORS, NEUTRALS, FONT } from '../utils/constants'
 import type { DiaperRecord } from '../types'
 
 const DIAPER_TYPES = ['WET', 'DIRTY', 'MIXED', 'DRY'] as const
+const LAST_DIAPER_TYPE_KEY = 'diaperLog.lastType'
 
 export default function DiaperLogScreen() {
   const { babyId, babyName, initialized, loadBaby } = useStoredBaby()
@@ -39,6 +41,15 @@ export default function DiaperLogScreen() {
   const { error, retry, showError, dismissError } = useErrorRetry()
 
   const [diaperType, setDiaperType] = useState<string>('WET')
+  // 직전 사용 타입을 디폴트로 복원 — 사용자가 자주 쓰는 타입(예: 소변)이 자동 선택
+  useEffect(() => {
+    void (async () => {
+      const stored = await AsyncStorage.getItem(LAST_DIAPER_TYPE_KEY)
+      if (stored && (DIAPER_TYPES as readonly string[]).includes(stored)) {
+        setDiaperType(stored)
+      }
+    })()
+  }, [])
   const [note, setNote] = useState('')
   const [changedAt, setChangedAt] = useState(new Date())
   const [success, setSuccess] = useState<string | null>(null)
@@ -79,8 +90,10 @@ export default function DiaperLogScreen() {
       const changedAtIso = changedAt.toISOString()
       await recordDiaper(babyId, { diaperType, note, changedAt: changedAtIso })
       await loadDiapers(babyId, dateFilter)
+      // 직전 사용 타입 저장 — 다음 진입 시 디폴트로 복원
+      await AsyncStorage.setItem(LAST_DIAPER_TYPE_KEY, diaperType)
       setNote('')
-      setDiaperType('WET')
+      // diaperType 은 reset 하지 않음 — 같은 타입 연속 입력 자연
       setChangedAt(new Date())
       const typeLabel: Record<string, string> = { WET: '소변', DIRTY: '대변', MIXED: '혼합', DRY: '깨끗' }
       setSuccess(`기저귀 교환 기록 완료 (${typeLabel[diaperType] ?? diaperType})`)

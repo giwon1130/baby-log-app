@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useFocusEffect } from '@react-navigation/native'
 import {
   ActivityIndicator,
@@ -23,6 +23,7 @@ import BreastfeedingTimer from '../components/BreastfeedingTimer'
 import EmptyState from '../components/EmptyState'
 import EditButton from '../components/EditButton'
 import { useErrorRetry } from '../hooks/useErrorRetry'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { formatTime } from '../utils/dateUtils'
 import { extractErrorMessage } from '../utils/errors'
 import { FEED_TYPE_LABEL, COLORS, NEUTRALS, FONT } from '../utils/constants'
@@ -30,6 +31,9 @@ import type { FeedRecord } from '../types'
 
 const FEED_TYPES = ['FORMULA', 'BREAST', 'MIXED'] as const
 const QUICK_AMOUNTS = [30, 60, 80, 90, 100, 120, 150]
+// QuickFeed 와 동일한 storage 키 — 빠른 기록과 LogScreen 수유가 같은 직전값을 공유
+const LAST_FEED_KEY = 'quickActions.lastFeed'
+type LastFeedShape = { feedType?: string; amountMl?: number; leftMinutes?: number; rightMinutes?: number }
 
 export default function FeedLogScreen() {
   const { babyId, babyName, initialized, loadBaby } = useStoredBaby()
@@ -43,6 +47,31 @@ export default function FeedLogScreen() {
 
   const [amount, setAmount] = useState('')
   const [feedType, setFeedType] = useState<string>('FORMULA')
+  const [lastAmountMl, setLastAmountMl] = useState<number | null>(null)
+  // 직전 수유 타입 복원 — QuickFeed 와 같은 storage 키 공유
+  useEffect(() => {
+    void (async () => {
+      const stored = await AsyncStorage.getItem(LAST_FEED_KEY)
+      if (!stored) return
+      try {
+        const parsed = JSON.parse(stored) as LastFeedShape
+        if (parsed?.feedType && (FEED_TYPES as readonly string[]).includes(parsed.feedType)) {
+          setFeedType(parsed.feedType)
+        }
+        if (typeof parsed.amountMl === 'number' && parsed.amountMl > 0) {
+          setLastAmountMl(parsed.amountMl)
+        }
+      } catch { /* 구버전 저장값 무시 */ }
+    })()
+  }, [])
+
+  // 직전 사용 타입이 첫 번째로 오게 정렬
+  const orderedFeedTypes = useMemo(() => {
+    const first = FEED_TYPES.find(t => t === feedType)
+    if (!first) return FEED_TYPES
+    const rest = FEED_TYPES.filter(t => t !== feedType)
+    return [first, ...rest]
+  }, [feedType])
   const [note, setNote] = useState('')
   const [fedAt, setFedAt] = useState(new Date())
   const [success, setSuccess] = useState<string | null>(null)
@@ -172,7 +201,7 @@ export default function FeedLogScreen() {
         </View>
         <TextInput
           style={styles.input}
-          placeholder="직접 입력 (ml)"
+          placeholder={lastAmountMl ? `직접 입력 (ml) · 직전 ${lastAmountMl}` : '직접 입력 (ml)'}
           keyboardType="number-pad"
           value={amount}
           onChangeText={setAmount}
@@ -180,7 +209,7 @@ export default function FeedLogScreen() {
         />
         <Text style={styles.label}>수유 방법</Text>
         <View style={styles.typeRow}>
-          {FEED_TYPES.map(t => (
+          {orderedFeedTypes.map(t => (
             <TouchableOpacity
               key={t}
               style={[styles.typeChip, feedType === t && styles.typeChipActive]}
