@@ -11,6 +11,7 @@ export type FamilyStreamEventName =
   | 'GROWTH_CREATED' | 'GROWTH_UPDATED' | 'GROWTH_DELETED'
   | 'HEALTH_CREATED' | 'HEALTH_DELETED'
   | 'MONTHLY_PHOTO_UPSERTED' | 'MONTHLY_PHOTO_DELETED'
+  | 'FIRST_YEAR_COMPLETE'
 
 export type FamilyStreamPayload = {
   type: FamilyStreamEventName
@@ -29,6 +30,7 @@ const EVENTS: FamilyStreamEventName[] = [
   'GROWTH_CREATED', 'GROWTH_UPDATED', 'GROWTH_DELETED',
   'HEALTH_CREATED', 'HEALTH_DELETED',
   'MONTHLY_PHOTO_UPSERTED', 'MONTHLY_PHOTO_DELETED',
+  'FIRST_YEAR_COMPLETE',
 ]
 
 export function openFamilyStream(familyId: string, onEvent: FamilyStreamHandler): () => void {

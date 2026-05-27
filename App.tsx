@@ -14,6 +14,7 @@ import FamilySetupScreen from './src/screens/FamilySetupScreen'
 import CryMonitorScreen from './src/screens/CryMonitorScreen'
 import CryHistoryScreen from './src/screens/CryHistoryScreen'
 import MonthlyPhotosScreen from './src/screens/MonthlyPhotosScreen'
+import FirstYearPackageScreen from './src/screens/FirstYearPackageScreen'
 import { getStoredFamilyId } from './src/api/client'
 import { requestNotificationPermission, setupNotificationHandler } from './src/utils/notifications'
 import type { MainTabParamList, RootStackParamList } from './src/navigation/types'
@@ -80,6 +81,10 @@ export default function App() {
         })
         return
       }
+      if (data?.type === 'FIRST_YEAR_COMPLETE') {
+        navigationRef.current?.navigate('FirstYearPackage')
+        return
+      }
       navigationRef.current?.navigate('Main', { screen: 'Home' })
     })
 
@@ -110,6 +115,11 @@ export default function App() {
           name="MonthlyPhotos"
           component={MonthlyPhotosScreen}
           options={{ headerShown: true, title: '월 증명사진', headerStyle: { backgroundColor: '#FFF9FB' }, headerShadowVisible: false }}
+        />
+        <Stack.Screen
+          name="FirstYearPackage"
+          component={FirstYearPackageScreen}
+          options={{ headerShown: true, title: '첫 돌 패키지', headerStyle: { backgroundColor: '#FFF9FB' }, headerShadowVisible: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

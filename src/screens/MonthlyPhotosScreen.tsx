@@ -40,7 +40,7 @@ const TOTAL_MONTHS = 12
  * 슬롯 1개당 사진 1장 (재촬영은 덮어쓰기). 같은 장소 가이드는 직전 슬롯 사진을
  * 모달에 같이 보여주는 방식. 카메라 ghost overlay 는 후속 Phase.
  */
-export default function MonthlyPhotosScreen({ route }: RootStackScreenProps<'MonthlyPhotos'>) {
+export default function MonthlyPhotosScreen({ route, navigation }: RootStackScreenProps<'MonthlyPhotos'>) {
   const initialMonth = route.params?.initialMonthIndex ?? null
   const { babyId, familyId, babyName, initialized, loadBaby } = useStoredBaby()
   const [baby, setBaby] = useState<Baby | null>(null)
@@ -182,6 +182,17 @@ export default function MonthlyPhotosScreen({ route }: RootStackScreenProps<'Mon
           <Text style={styles.heroSub}>
             {babyName ?? '아기'}의 1~12개월. 한 달 한 컷, 같은 장소에서 찍어두면 첫 돌에 성장 과정이 한눈에 보여요.
           </Text>
+          <TouchableOpacity
+            style={styles.packageBtn}
+            onPress={() => navigation.navigate('FirstYearPackage')}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="첫 돌 패키지 만들기"
+          >
+            <Text style={styles.packageBtnText}>
+              🎁  첫 돌 패키지 만들기 · {photos.length}/12
+            </Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.grid}>
@@ -385,6 +396,15 @@ const styles = StyleSheet.create({
   },
   heroTitle: { fontSize: FONT.h2, fontWeight: '800', color: NEUTRALS.ink },
   heroSub: { fontSize: FONT.bodySm, color: NEUTRALS.gray600, lineHeight: 19 },
+  packageBtn: {
+    marginTop: SPACING.sm,
+    backgroundColor: COLORS.primarySurface,
+    borderWidth: 1, borderColor: COLORS.primary,
+    borderRadius: 10,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  packageBtnText: { color: COLORS.primary, fontWeight: '700', fontSize: FONT.bodySm },
 
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: SPACING.sm },
   slot: {
