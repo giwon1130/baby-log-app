@@ -109,10 +109,19 @@ function MetricChart({ title, baby, metric, recs, valueOf, decimals }: MetricCha
 
   return (
     <View style={styles.chartCard}>
-      <Text style={styles.chartLabel}>{title}</Text>
+      <View style={styles.chartHeader}>
+        <Text style={styles.chartLabel}>{title}</Text>
+        {/* 인라인 범례 — chart-kit 자동 legend는 폭/높이를 침범해서 직접 구성 */}
+        <View style={styles.legendRow}>
+          <LegendDot color="rgba(170,170,170,0.85)" label="P3" />
+          <LegendDot color="rgba(80,80,80,0.85)" label="P50" />
+          <LegendDot color="rgba(170,170,170,0.85)" label="P97" />
+          <LegendDot color={COLORS.primary} label={baby.name} />
+        </View>
+      </View>
       <LineChart
         data={{
-          labels: REF_MONTHS.map(m => (m % 2 === 0 ? `${m}m` : '')),
+          labels: REF_MONTHS.map(m => (m % 3 === 0 ? `${m}m` : '')),
           datasets: [
             // P3 (하한)
             { data: band.p3,  color: () => 'rgba(170,170,170,0.55)', strokeWidth: 1, withDots: false },
@@ -123,7 +132,6 @@ function MetricChart({ title, baby, metric, recs, valueOf, decimals }: MetricCha
             // 우리 아기 실측
             { data: babyLine, color: (o = 1) => `rgba(255,107,157,${o})`, strokeWidth: 2.5 },
           ],
-          legend: ['P3', 'P50', 'P97', baby.name],
         }}
         width={CHART_WIDTH}
         height={CHART_HEIGHT}
@@ -134,6 +142,15 @@ function MetricChart({ title, baby, metric, recs, valueOf, decimals }: MetricCha
         getDotColor={dotColor}
         renderDotContent={() => null}
       />
+    </View>
+  )
+}
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <View style={styles.legendItem}>
+      <View style={[styles.legendSwatch, { backgroundColor: color }]} />
+      <Text style={styles.legendText} numberOfLines={1}>{label}</Text>
     </View>
   )
 }
@@ -153,6 +170,11 @@ const styles = StyleSheet.create({
     elevation: 2,
     gap: 6,
   },
+  chartHeader: { gap: 6 },
   chartLabel: { fontSize: FONT.label, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
+  legendRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, alignItems: 'center' },
+  legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  legendSwatch: { width: 10, height: 10, borderRadius: 5 },
+  legendText: { fontSize: FONT.caption, color: NEUTRALS.gray700, fontWeight: '600' },
   chart: { borderRadius: 8 },
 })

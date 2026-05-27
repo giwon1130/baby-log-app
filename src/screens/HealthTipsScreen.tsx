@@ -217,11 +217,11 @@ export default function HealthTipsScreen() {
         >
           <Text style={styles.askCardEmoji}>💬</Text>
           <View style={{ flex: 1, gap: 4 }}>
-            <View style={styles.askTitleRow}>
-              <Text style={styles.askCardTitle}>다른 증상이 궁금하면 AI에게 물어보기</Text>
+            <Text style={styles.askCardTitle}>다른 증상이 궁금하면 AI에게 물어보기</Text>
+            <View style={styles.askMetaRow}>
               <PromoBadge />
+              <Text style={styles.askCardSub} numberOfLines={1}>일반론·체크 포인트만 안내해요</Text>
             </View>
-            <Text style={styles.askCardSub}>일반론·체크 포인트만 안내해요</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={COLORS.primary} />
         </TouchableOpacity>
@@ -408,7 +408,7 @@ function AskModal({ visible, onClose, babyAgeMonths }: { visible: boolean; onClo
           <View style={styles.detailHeader}>
             <Text style={styles.detailEmoji}>💬</Text>
             <View style={{ flex: 1, gap: 4 }}>
-              <Text style={styles.detailTitle}>AI에게 물어보기</Text>
+              <Text style={styles.detailTitle} numberOfLines={1}>AI에게 물어보기</Text>
               <PromoBadge />
             </View>
             <TouchableOpacity onPress={handleClose} hitSlop={10} accessibilityLabel="닫기">
@@ -485,9 +485,9 @@ const styles = StyleSheet.create({
     borderRadius: 14, padding: SPACING.md,
   },
   askCardEmoji: { fontSize: 22 },
-  askTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
+  askMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   askCardTitle: { fontSize: FONT.bodyMd, fontWeight: '700', color: COLORS.primary },
-  askCardSub: { fontSize: FONT.caption, color: NEUTRALS.gray650, marginTop: 2 },
+  askCardSub: { flex: 1, fontSize: FONT.caption, color: NEUTRALS.gray650 },
 
   empty: { textAlign: 'center', color: NEUTRALS.gray500, marginTop: SPACING.lg },
 
@@ -516,7 +516,7 @@ const styles = StyleSheet.create({
     paddingBottom: SPACING.sm,
   },
   detailEmoji: { fontSize: 26 },
-  detailTitle: { fontSize: FONT.h2, fontWeight: '800', color: NEUTRALS.ink, flex: 1 },
+  detailTitle: { fontSize: FONT.h2, fontWeight: '800', color: NEUTRALS.ink, flexShrink: 1 },
   detailAge: { fontSize: FONT.caption, color: NEUTRALS.gray600, marginTop: 2 },
   detailSummary: { fontSize: FONT.bodyMd, color: COLORS.primary, fontWeight: '700' },
   detailBody: { fontSize: FONT.bodySm, color: NEUTRALS.gray800, lineHeight: 20 },

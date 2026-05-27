@@ -156,14 +156,10 @@ export default function GrowthRecordScreen() {
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>
 
-  return (
-    <View style={styles.container}>
-      <EditGrowthModal
-        record={editingRecord}
-        onClose={() => setEditingRecord(null)}
-        onSave={handleUpdate}
-      />
-      <ErrorBanner message={error} onDismiss={dismissError} onRetry={retry ?? undefined} />
+  // form + WHO 백분위 + 차트는 FlatList header 로 옮겨 함께 스크롤되게 함.
+  // (기존에는 form 이 비-scroll View 라 차트가 화면 밖으로 밀려 안 보였음)
+  const ListHeader = (
+    <>
       <View style={styles.form}>
         <Text style={styles.formTitle}>성장 기록</Text>
 
@@ -214,7 +210,6 @@ export default function GrowthRecordScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* WHO 백분위 요약 */}
       {latestPercentiles && (
         <View style={styles.percentileCard}>
           <Text style={styles.percentileTitle}>WHO 성장 백분위 (최근 측정)</Text>
@@ -242,11 +237,24 @@ export default function GrowthRecordScreen() {
       )}
 
       {baby && <GrowthChart baby={baby} weightRecs={weightRecs} heightRecs={heightRecs} />}
+    </>
+  )
+
+  return (
+    <View style={styles.container}>
+      <EditGrowthModal
+        record={editingRecord}
+        onClose={() => setEditingRecord(null)}
+        onSave={handleUpdate}
+      />
+      <ErrorBanner message={error} onDismiss={dismissError} onRetry={retry ?? undefined} />
 
       <FlatList
         data={records}
         keyExtractor={item => item.id}
+        ListHeaderComponent={ListHeader}
         contentContainerStyle={styles.listContent}
+        keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         renderItem={({ item }) => {
           const months = baby ? ageInMonths(baby.birthDate, item.measuredAt) : null
