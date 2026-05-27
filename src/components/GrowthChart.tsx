@@ -2,85 +2,146 @@ import React from 'react'
 import { Dimensions, StyleSheet, Text, View } from 'react-native'
 import { LineChart } from 'react-native-chart-kit'
 import { COLORS, NEUTRALS, FONT } from '../utils/constants'
-import type { GrowthRecord } from '../types'
+import type { Baby, GrowthRecord } from '../types'
+import { ageInMonths, getWhoBand, type GrowthMetric } from '../utils/whoGrowth'
 
 const SCREEN_WIDTH = Dimensions.get('window').width
 const CHART_WIDTH = SCREEN_WIDTH - 64
+const CHART_HEIGHT = 180
 
-const WEIGHT_CHART_CONFIG = {
-  backgroundGradientFrom: NEUTRALS.white,
-  backgroundGradientTo: NEUTRALS.white,
-  color: (opacity = 1) => `rgba(255, 107, 157, ${opacity})`,
-  labelColor: () => NEUTRALS.gray450,
-  strokeWidth: 2,
-  decimalPlaces: 1,
-  propsForDots: { r: '4', strokeWidth: '2', stroke: COLORS.primary },
-}
-
-const HEIGHT_CHART_CONFIG = {
-  ...WEIGHT_CHART_CONFIG,
-  color: (opacity = 1) => `rgba(92, 107, 192, ${opacity})`,
-  propsForDots: { r: '4', strokeWidth: '2', stroke: COLORS.sleep },
-}
+// 차트에 깔 WHO 기준선 개월 범위 — 0~13개월(첫 돌 + 1)
+const REF_MONTHS = Array.from({ length: 14 }, (_, i) => i)
 
 type Props = {
+  baby: Baby
   weightRecs: GrowthRecord[]   // weightG != null only, 시간 오름차순
   heightRecs: GrowthRecord[]   // heightCm != null only, 시간 오름차순
-  dateLabel: (iso: string) => string
 }
 
 /**
- * 체중·키 추이 LineChart 묶음.
- * 각 시리즈가 2개 미만이면 해당 차트는 렌더링하지 않음 (chart-kit이 1점만으론 그릴 게 없음).
- * 둘 다 없으면 null 반환.
+ * 체중·키 추이를 WHO P3/P50/P97 기준선과 함께 보여줌.
+ * - x축: 개월(0~13). 기록이 14개월 넘어가도 마지막 기준값으로 클램프
+ * - 기록 1개만 있어도 점 + 기준선 보임
+ * - 둘 다 데이터가 없으면 null
  */
-export function GrowthChart({ weightRecs, heightRecs, dateLabel }: Props) {
-  const showWeight = weightRecs.length >= 2
-  const showHeight = heightRecs.length >= 2
-  if (!showWeight && !showHeight) return null
+export function GrowthChart({ baby, weightRecs, heightRecs }: Props) {
+  const hasWeight = weightRecs.length >= 1
+  const hasHeight = heightRecs.length >= 1
+  if (!hasWeight && !hasHeight) return null
 
   return (
     <View style={styles.chartSection}>
-      {showWeight && (
-        <View style={styles.chartCard}>
-          <Text style={styles.chartLabel}>체중 추이 (kg)</Text>
-          <LineChart
-            data={{
-              labels: weightRecs.map(r => dateLabel(r.measuredAt)),
-              datasets: [{ data: weightRecs.map(r => Math.round(r.weightG! / 100) / 10) }],
-            }}
-            width={CHART_WIDTH}
-            height={140}
-            chartConfig={WEIGHT_CHART_CONFIG}
-            style={styles.chart}
-            bezier
-            fromZero={false}
-          />
-        </View>
+      <Text style={styles.sectionTitle}>📈 성장 추이</Text>
+      <Text style={styles.sectionHint}>
+        가는 회색 선은 WHO 표준 P3 · P50(중앙값) · P97 기준이에요. 두 선 사이에 있으면 일반 범위.
+      </Text>
+      {hasWeight && (
+        <MetricChart
+          title="체중 (kg)"
+          baby={baby}
+          metric="weight"
+          recs={weightRecs}
+          valueOf={r => r.weightG! / 1000}
+          decimals={1}
+        />
       )}
-      {showHeight && (
-        <View style={styles.chartCard}>
-          <Text style={styles.chartLabel}>키 추이 (cm)</Text>
-          <LineChart
-            data={{
-              labels: heightRecs.map(r => dateLabel(r.measuredAt)),
-              datasets: [{ data: heightRecs.map(r => r.heightCm!) }],
-            }}
-            width={CHART_WIDTH}
-            height={140}
-            chartConfig={HEIGHT_CHART_CONFIG}
-            style={styles.chart}
-            bezier
-            fromZero={false}
-          />
-        </View>
+      {hasHeight && (
+        <MetricChart
+          title="키 (cm)"
+          baby={baby}
+          metric="height"
+          recs={heightRecs}
+          valueOf={r => r.heightCm!}
+          decimals={1}
+        />
       )}
     </View>
   )
 }
 
+type MetricChartProps = {
+  title: string
+  baby: Baby
+  metric: GrowthMetric
+  recs: GrowthRecord[]
+  valueOf: (r: GrowthRecord) => number
+  decimals: number
+}
+
+function MetricChart({ title, baby, metric, recs, valueOf, decimals }: MetricChartProps) {
+  const band = getWhoBand(baby.gender, metric, REF_MONTHS)
+
+  // 아기 실측값을 개월별로 묶음 — 한 개월에 여러 기록이면 마지막값 사용
+  // (재진료/병원·집 측정 등) 기록 자체는 리스트에 다 보이므로 차트는 latest only
+  const byMonth = new Map<number, number>()
+  for (const r of recs) {
+    const m = ageInMonths(baby.birthDate, r.measuredAt)
+    if (m >= 0 && m <= 24) byMonth.set(m, valueOf(r))
+  }
+
+  // chart-kit 은 null 점을 못 그리므로, 미측정 개월은 직전 값 유지 (계단형)
+  // 표현은 직선 보간(bezier 끄고) — 측정한 개월 사이만 잇기 위해 첫 측정 전은 NaN 우회
+  const firstMeasured = Math.min(...byMonth.keys())
+  let last: number | null = null
+  const babyLine = REF_MONTHS.map(m => {
+    if (m < firstMeasured) return band.p50[m]  // 측정 전 구간은 P50으로 가려두고 점만 안 보이게
+    if (byMonth.has(m)) { last = byMonth.get(m)!; return last }
+    return last ?? band.p50[m]
+  })
+
+  // 점 색상: 실측 개월만 primary, 나머지는 transparent
+  const measuredSet = new Set(byMonth.keys())
+  const dotColor = (_dataPoint: number, index: number) => {
+    const m = REF_MONTHS[index]
+    if (m < firstMeasured) return 'transparent'
+    return measuredSet.has(m) ? COLORS.primary : 'transparent'
+  }
+
+  const chartConfig = {
+    backgroundGradientFrom: NEUTRALS.white,
+    backgroundGradientTo: NEUTRALS.white,
+    color: (opacity = 1) => `rgba(255, 107, 157, ${opacity})`,   // 기본 — 실측 라인용
+    labelColor: () => NEUTRALS.gray450,
+    strokeWidth: 2.5,
+    decimalPlaces: decimals,
+    propsForBackgroundLines: { stroke: NEUTRALS.gray100, strokeDasharray: '4 6' },
+  }
+
+  return (
+    <View style={styles.chartCard}>
+      <Text style={styles.chartLabel}>{title}</Text>
+      <LineChart
+        data={{
+          labels: REF_MONTHS.map(m => (m % 2 === 0 ? `${m}m` : '')),
+          datasets: [
+            // P3 (하한)
+            { data: band.p3,  color: () => 'rgba(170,170,170,0.55)', strokeWidth: 1, withDots: false },
+            // P50 (중앙값)
+            { data: band.p50, color: () => 'rgba(110,110,110,0.7)',  strokeWidth: 1, withDots: false },
+            // P97 (상한)
+            { data: band.p97, color: () => 'rgba(170,170,170,0.55)', strokeWidth: 1, withDots: false },
+            // 우리 아기 실측
+            { data: babyLine, color: (o = 1) => `rgba(255,107,157,${o})`, strokeWidth: 2.5 },
+          ],
+          legend: ['P3', 'P50', 'P97', baby.name],
+        }}
+        width={CHART_WIDTH}
+        height={CHART_HEIGHT}
+        chartConfig={chartConfig}
+        style={styles.chart}
+        fromZero={false}
+        withInnerLines={false}
+        getDotColor={dotColor}
+        renderDotContent={() => null}
+      />
+    </View>
+  )
+}
+
 const styles = StyleSheet.create({
-  chartSection: { paddingHorizontal: 16, paddingTop: 12, gap: 12 },
+  chartSection: { paddingHorizontal: 16, paddingTop: 12, gap: 8 },
+  sectionTitle: { fontSize: FONT.bodyMd, color: NEUTRALS.ink, fontWeight: '700' },
+  sectionHint: { fontSize: FONT.caption, color: NEUTRALS.gray500, marginBottom: 4 },
   chartCard: {
     backgroundColor: NEUTRALS.white,
     borderRadius: 16,

@@ -159,18 +159,23 @@ export function ageInMonths(birthDate: string, measuredAt: string): number {
  * Uses log-normal approximation from p3/p50/p97 reference values.
  * Returns null if age > 24 months or value is invalid.
  */
+export type GrowthMetric = 'weight' | 'height'
+
+function tableFor(metric: GrowthMetric, gender: 'MALE' | 'FEMALE'): GrowthTable {
+  return metric === 'weight'
+    ? (gender === 'MALE' ? WEIGHT_BOYS : WEIGHT_GIRLS)
+    : (gender === 'MALE' ? HEIGHT_BOYS : HEIGHT_GIRLS)
+}
+
 export function calcPercentile(
   value: number,
   ageMonths: number,
   gender: 'MALE' | 'FEMALE',
-  metric: 'weight' | 'height',
+  metric: GrowthMetric,
 ): number | null {
   if (ageMonths < 0 || ageMonths > 24) return null
 
-  const table =
-    metric === 'weight'
-      ? gender === 'MALE' ? WEIGHT_BOYS : WEIGHT_GIRLS
-      : gender === 'MALE' ? HEIGHT_BOYS : HEIGHT_GIRLS
+  const table = tableFor(metric, gender)
 
   const row = table[ageMonths]
   if (!row) return null
@@ -184,6 +189,24 @@ export function calcPercentile(
 
   const z = (Math.log(value) - mu) / sigma
   return Math.round(normalCDF(z) * 100)
+}
+
+/**
+ * WHO P3/P50/P97 기준선 값을 개월별로 뽑아 차트 오버레이용으로 반환.
+ * `months` 는 표시할 개월 배열 (예: [0,1,2,...12]); 0~24 범위 외는 마지막 유효값으로 클램프.
+ */
+export function getWhoBand(
+  gender: 'MALE' | 'FEMALE',
+  metric: GrowthMetric,
+  months: number[],
+): { p3: number[]; p50: number[]; p97: number[] } {
+  const table = tableFor(metric, gender)
+  const pick = (m: number) => table[Math.max(0, Math.min(24, m))]
+  return {
+    p3: months.map(m => pick(m).p3),
+    p50: months.map(m => pick(m).p50),
+    p97: months.map(m => pick(m).p97),
+  }
 }
 
 /** Human-readable percentile label (e.g. "3rd", "50th", "97th") */

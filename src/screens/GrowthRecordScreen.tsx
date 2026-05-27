@@ -111,11 +111,33 @@ export default function GrowthRecordScreen() {
   }
 
   const { weightRecs, heightRecs } = useMemo(() => {
+    // records 는 API 응답 기준 최신순. 차트는 시간 오름차순 필요.
     const sorted = [...records].reverse()
     return {
       weightRecs: sorted.filter(r => r.weightG != null),
       heightRecs: sorted.filter(r => r.heightCm != null),
     }
+  }, [records])
+
+  // 직전 기록 대비 Δ — 카드에 함께 표시
+  const deltaByRecord = useMemo(() => {
+    const sorted = [...records].sort((a, b) => a.measuredAt.localeCompare(b.measuredAt))
+    const map = new Map<string, { dWeightG?: number; dHeightCm?: number }>()
+    let prevWeight: number | null = null
+    let prevHeight: number | null = null
+    for (const r of sorted) {
+      const d: { dWeightG?: number; dHeightCm?: number } = {}
+      if (r.weightG != null) {
+        if (prevWeight != null) d.dWeightG = r.weightG - prevWeight
+        prevWeight = r.weightG
+      }
+      if (r.heightCm != null) {
+        if (prevHeight != null) d.dHeightCm = Math.round((r.heightCm - prevHeight) * 10) / 10
+        prevHeight = r.heightCm
+      }
+      map.set(r.id, d)
+    }
+    return map
   }, [records])
 
   const latestPercentiles = useMemo(() => {
@@ -131,11 +153,6 @@ export default function GrowthRecordScreen() {
       : null
     return (weight != null || height != null) ? { weight, height, months } : null
   }, [records, baby])
-
-  const dateLabel = useCallback((iso: string) => {
-    const d = new Date(iso)
-    return `${d.getMonth() + 1}/${d.getDate()}`
-  }, [])
 
   if (loading) return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>
 
@@ -224,7 +241,7 @@ export default function GrowthRecordScreen() {
         </View>
       )}
 
-      <GrowthChart weightRecs={weightRecs} heightRecs={heightRecs} dateLabel={dateLabel} />
+      {baby && <GrowthChart baby={baby} weightRecs={weightRecs} heightRecs={heightRecs} />}
 
       <FlatList
         data={records}
@@ -239,6 +256,7 @@ export default function GrowthRecordScreen() {
           const heightP = (baby && item.heightCm != null && months != null)
             ? calcPercentile(item.heightCm, months, baby.gender, 'height')
             : null
+          const delta = deltaByRecord.get(item.id) ?? {}
           return (
           <SwipeToDelete onDelete={() => handleDelete(item.id)} confirmMessage="이 성장 기록을 삭제할까요?">
             <TouchableOpacity onLongPress={() => setEditingRecord(item)} activeOpacity={0.85}>
@@ -248,6 +266,11 @@ export default function GrowthRecordScreen() {
                   <View style={styles.metric}>
                     <Text style={styles.metricLabel}>체중</Text>
                     <Text style={styles.metricValue}>{(item.weightG / 1000).toFixed(2)}kg</Text>
+                    {delta.dWeightG != null && (
+                      <Text style={[styles.deltaText, { color: delta.dWeightG >= 0 ? COLORS.success : COLORS.danger }]}>
+                        {delta.dWeightG >= 0 ? '+' : ''}{delta.dWeightG}g
+                      </Text>
+                    )}
                     {weightP != null && (
                       <Text style={[styles.metricPercentile, { color: percentileColor(weightP) }]}>
                         {formatPercentile(weightP)}
@@ -259,6 +282,11 @@ export default function GrowthRecordScreen() {
                   <View style={styles.metric}>
                     <Text style={styles.metricLabel}>키</Text>
                     <Text style={styles.metricValue}>{item.heightCm}cm</Text>
+                    {delta.dHeightCm != null && (
+                      <Text style={[styles.deltaText, { color: delta.dHeightCm >= 0 ? COLORS.success : COLORS.danger }]}>
+                        {delta.dHeightCm >= 0 ? '+' : ''}{delta.dHeightCm}cm
+                      </Text>
+                    )}
                     {heightP != null && (
                       <Text style={[styles.metricPercentile, { color: percentileColor(heightP) }]}>
                         {formatPercentile(heightP)}
@@ -354,4 +382,5 @@ const styles = StyleSheet.create({
   percentileValue: { fontSize: FONT.h1, fontWeight: '800' },
   percentileSub: { fontSize: FONT.micro, color: NEUTRALS.gray300 },
   metricPercentile: { fontSize: FONT.micro, fontWeight: '700', marginTop: 1 },
+  deltaText: { fontSize: FONT.micro, fontWeight: '700', marginTop: 1 },
 })
