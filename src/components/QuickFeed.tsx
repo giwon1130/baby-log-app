@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Keyboard,
@@ -70,6 +70,8 @@ export default function QuickFeed({
   const [lastFeed, setLastFeed] = useState<LastFeed | null>(null)
   const [customOpen, setCustomOpen] = useState(false)
   const [customInput, setCustomInput] = useState('')
+  // 사용자가 탭을 한 번이라도 만지면 lastFeed 가 늦게 로드돼도 덮어쓰지 않음
+  const userPickedRef = useRef(false)
 
   useEffect(() => {
     void (async () => {
@@ -77,11 +79,29 @@ export default function QuickFeed({
       if (!stored) return
       try {
         const parsed = JSON.parse(stored) as LastFeed
-        if (parsed?.feedType) setLastFeed(parsed)
+        if (parsed?.feedType) {
+          setLastFeed(parsed)
+          // 직전 사용 타입을 디폴트로 — 사용자가 아직 안 만졌을 때만
+          if (!userPickedRef.current) setFeedType(parsed.feedType)
+        }
       } catch {
         // 구버전(숫자 ml 문자열) 저장값은 무시
       }
     })()
+  }, [])
+
+  // 자주 쓰는 타입(직전 사용)이 탭 첫 번째로 오도록 정렬 — 발견성·접근성
+  const orderedTabs = useMemo(() => {
+    if (!lastFeed?.feedType) return FEED_TYPE_TABS
+    const first = FEED_TYPE_TABS.find(t => t.type === lastFeed.feedType)
+    if (!first) return FEED_TYPE_TABS
+    const rest = FEED_TYPE_TABS.filter(t => t.type !== lastFeed.feedType)
+    return [first, ...rest]
+  }, [lastFeed])
+
+  const pickFeedType = useCallback((type: FeedType) => {
+    userPickedRef.current = true
+    setFeedType(type)
   }, [])
 
   const rememberLastFeed = useCallback(async (lf: LastFeed) => {
@@ -177,11 +197,11 @@ export default function QuickFeed({
 
       {/* 수유 방법 */}
       <View style={styles.typeTabs}>
-        {FEED_TYPE_TABS.map(({ type, label }) => (
+        {orderedTabs.map(({ type, label }) => (
           <TouchableOpacity
             key={type}
             hitSlop={8}
-            onPress={() => setFeedType(type)}
+            onPress={() => pickFeedType(type)}
             style={[styles.typeTab, feedType === type && styles.typeTabActive]}
             disabled={busy}
             accessibilityRole="tab"
