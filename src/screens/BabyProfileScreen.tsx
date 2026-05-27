@@ -6,7 +6,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native'
@@ -17,6 +16,7 @@ import { useStoredBaby } from '../hooks/useStoredBaby'
 import ErrorBanner from '../components/ErrorBanner'
 import EmptyState from '../components/EmptyState'
 import { NotificationSettingsCard } from '../components/NotificationSettingsCard'
+import BabyEditForm from '../components/baby/BabyEditForm'
 import type { Baby, Family } from '../types'
 import type { MainTabScreenProps } from '../navigation/types'
 import { extractErrorMessage } from '../utils/errors'
@@ -33,11 +33,8 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
   const [error, setError] = useState<string | null>(null)
   const scrollRef = useRef<ScrollView>(null)
 
-  // 편집 상태
+  // 편집 상태 — 자식 컴포넌트가 입력 state 들고 있고, 부모는 토글·저장 흐름만
   const [editing, setEditing] = useState(false)
-  const [editName, setEditName] = useState('')
-  const [editWeightG, setEditWeightG] = useState('')
-  const [editHeightCm, setEditHeightCm] = useState('')
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
@@ -76,23 +73,11 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
     }
   }
 
-  const startEdit = () => {
-    if (!selectedBaby) return
-    setEditName(selectedBaby.name)
-    setEditWeightG(selectedBaby.birthWeightG ? String(selectedBaby.birthWeightG) : '')
-    setEditHeightCm(selectedBaby.birthHeightCm ? String(selectedBaby.birthHeightCm) : '')
-    setEditing(true)
-  }
-
-  const handleSave = async () => {
+  const handleSave = async (input: { name?: string; birthWeightG?: number; birthHeightCm?: number }) => {
     if (!familyId || !selectedBaby) return
     setSaving(true)
     try {
-      const updated = await updateBaby(familyId, selectedBaby.id, {
-        name: editName || undefined,
-        birthWeightG: editWeightG ? parseInt(editWeightG) : undefined,
-        birthHeightCm: editHeightCm ? parseFloat(editHeightCm) : undefined,
-      })
+      const updated = await updateBaby(familyId, selectedBaby.id, input)
       setSelectedBaby(updated)
       setBabies(prev => prev.map(b => b.id === updated.id ? updated : b))
       setEditing(false)
@@ -225,7 +210,7 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
               {!editing && (
                 <TouchableOpacity
                   style={styles.editBtn}
-                  onPress={startEdit}
+                  onPress={() => setEditing(true)}
                   hitSlop={8}
                   accessibilityRole="button"
                   accessibilityLabel="아기 정보 수정"
@@ -236,49 +221,12 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
             </View>
 
             {editing ? (
-              <View style={styles.editForm}>
-                <Text style={styles.editLabel}>이름</Text>
-                <TextInput
-                  style={styles.editInput}
-                  value={editName}
-                  onChangeText={setEditName}
-                  placeholder="아기 이름"
-                  accessibilityLabel="아기 이름"
-                />
-                <Text style={styles.editLabel}>출생 체중 (g)</Text>
-                <TextInput
-                  style={styles.editInput}
-                  value={editWeightG}
-                  onChangeText={setEditWeightG}
-                  keyboardType="number-pad"
-                  placeholder="예: 3500"
-                  accessibilityLabel="출생 체중 (g)"
-                />
-                <Text style={styles.editLabel}>출생 신장 (cm)</Text>
-                <TextInput
-                  style={styles.editInput}
-                  value={editHeightCm}
-                  onChangeText={setEditHeightCm}
-                  keyboardType="decimal-pad"
-                  placeholder="예: 50.5"
-                  accessibilityLabel="출생 신장 (cm)"
-                />
-                <View style={styles.editActions}>
-                  <TouchableOpacity
-                    style={styles.cancelBtn}
-                    onPress={() => setEditing(false)}
-                  >
-                    <Text style={styles.cancelBtnText}>취소</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
-                    onPress={handleSave}
-                    disabled={saving}
-                  >
-                    <Text style={styles.saveBtnText}>{saving ? '저장 중...' : '저장'}</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+              <BabyEditForm
+                baby={selectedBaby}
+                saving={saving}
+                onSave={handleSave}
+                onCancel={() => setEditing(false)}
+              />
             ) : (
               <View style={styles.statRow}>
                 <View style={styles.stat}>
@@ -406,34 +354,6 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary,
   },
   editBtnText: { fontSize: FONT.label, color: COLORS.primary, fontWeight: '600' },
-  editForm: { gap: 8 },
-  editLabel: { fontSize: FONT.caption, color: NEUTRALS.gray600, fontWeight: '600' },
-  editInput: {
-    borderWidth: 1,
-    borderColor: NEUTRALS.gray200,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: FONT.bodyMd,
-  },
-  editActions: { flexDirection: 'row', gap: 8, marginTop: 4 },
-  cancelBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: NEUTRALS.gray50,
-    alignItems: 'center',
-  },
-  cancelBtnText: { fontSize: FONT.bodyMd, color: NEUTRALS.gray700, fontWeight: '600' },
-  saveBtn: {
-    flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
-  },
-  saveBtnDisabled: { backgroundColor: COLORS.primaryDisabled },
-  saveBtnText: { fontSize: FONT.bodyMd, color: NEUTRALS.white, fontWeight: '700' },
   statRow: { flexDirection: 'row', gap: 16 },
   stat: { flex: 1 },
   statLabel: { fontSize: FONT.caption, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase' },
