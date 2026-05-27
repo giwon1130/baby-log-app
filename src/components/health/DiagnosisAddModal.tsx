@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   ActivityIndicator,
   Modal,
@@ -17,6 +17,8 @@ type Props = {
   visible: boolean
   tip: HealthTip | null
   submitting: boolean
+  /** 등록 실패 시 모달 안에서 보여줄 메시지. 부모가 비울 책임. */
+  error?: string | null
   onClose: () => void
   onSubmit: (data: { tipId: string; side?: string; notes?: string }) => void
 }
@@ -32,9 +34,17 @@ const SIDES: { key: string; label: string }[] = [
  * 카탈로그 카드 상세에서 "내 아기에 등록" 진입 모달.
  * 부위(좌/우/양쪽/없음) + 메모만. 시작일은 기본 오늘.
  */
-export default function DiagnosisAddModal({ visible, tip, submitting, onClose, onSubmit }: Props) {
+export default function DiagnosisAddModal({ visible, tip, submitting, error, onClose, onSubmit }: Props) {
   const [side, setSide] = useState<string>('')
   const [notes, setNotes] = useState('')
+
+  // 모달 새로 열릴 때마다 입력 초기화 — 이전 진단 메모/부위가 남는 버그 방지
+  useEffect(() => {
+    if (visible) {
+      setSide('')
+      setNotes('')
+    }
+  }, [visible, tip?.id])
 
   if (!tip) return null
 
@@ -87,14 +97,27 @@ export default function DiagnosisAddModal({ visible, tip, submitting, onClose, o
             accessibilityLabel="진단 메모"
           />
 
+          {!!error && (
+            <View style={styles.errorBox}>
+              <Ionicons name="alert-circle" size={16} color={COLORS.danger} />
+              <Text style={styles.errorText}>{error}</Text>
+            </View>
+          )}
+
           <TouchableOpacity
             style={[styles.submitBtn, submitting && styles.submitBtnDisabled]}
             onPress={handleSubmit}
             disabled={submitting}
+            accessibilityState={{ busy: submitting, disabled: submitting }}
           >
-            {submitting
-              ? <ActivityIndicator color={NEUTRALS.white} />
-              : <Text style={styles.submitText}>등록하기</Text>}
+            {submitting ? (
+              <View style={styles.submitInner}>
+                <ActivityIndicator color={NEUTRALS.white} />
+                <Text style={styles.submitText}>등록 중…</Text>
+              </View>
+            ) : (
+              <Text style={styles.submitText}>등록하기</Text>
+            )}
           </TouchableOpacity>
 
           <Text style={styles.disclaimer}>
@@ -145,7 +168,17 @@ const styles = StyleSheet.create({
     paddingVertical: 12, alignItems: 'center',
     marginTop: 8,
   },
-  submitBtnDisabled: { opacity: 0.5 },
+  submitBtnDisabled: { opacity: 0.6 },
+  submitInner: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   submitText: { color: NEUTRALS.white, fontSize: FONT.body, fontWeight: '700' },
+  errorBox: {
+    flexDirection: 'row', alignItems: 'flex-start', gap: 6,
+    backgroundColor: '#FFF1F1',
+    borderWidth: 1, borderColor: COLORS.danger,
+    borderRadius: 10,
+    paddingHorizontal: 10, paddingVertical: 8,
+    marginTop: 4,
+  },
+  errorText: { flex: 1, color: COLORS.danger, fontSize: FONT.bodySm, fontWeight: '600' },
   disclaimer: { fontSize: FONT.caption, color: NEUTRALS.gray500, textAlign: 'center' },
 })

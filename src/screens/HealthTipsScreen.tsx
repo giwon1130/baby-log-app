@@ -11,6 +11,7 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  Alert,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 
@@ -58,6 +59,7 @@ export default function HealthTipsScreen() {
   const [qaOpen, setQaOpen] = useState(false)
   const [addModalTip, setAddModalTip] = useState<HealthTip | null>(null)
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [openDiagnosis, setOpenDiagnosis] = useState<BabyDiagnosis | null>(null)
 
   const load = useCallback(async () => {
@@ -81,17 +83,40 @@ export default function HealthTipsScreen() {
   const handleRegister = async (data: { tipId: string; side?: string; notes?: string }) => {
     if (!babyId) return
     setSubmitting(true)
+    setSubmitError(null)
     try {
       const created = await createDiagnosis(babyId, data)
       setDiagnoses(prev => [created, ...prev])
+      const title = addModalTip?.title ?? '진단'
       setAddModalTip(null)
       setOpenTip(null)
+      // 모달 닫힌 뒤 명확한 성공 피드백
+      setTimeout(() => {
+        Alert.alert('등록 완료', `${title} 진단이 등록됐어요.\n오늘부터 일일 체크리스트가 시작돼요.`)
+      }, 250)
     } catch (err) {
-      showError(extractErrorMessage(err, '진단 등록에 실패했어요'))
+      // 화면 뒤 ErrorBanner는 모달에 가리므로 모달 안에서 표시
+      setSubmitError(extractErrorMessage(err, '진단 등록에 실패했어요. 잠시 후 다시 시도해주세요.'))
     } finally {
       setSubmitting(false)
     }
   }
+
+  // RN Modal 은 같은 부모에서 동시 2개 표시 불가 → detail 닫고 슬라이드 아웃 끝난 뒤 add 모달 오픈
+  const openAddModalFromDetail = useCallback(() => {
+    if (!openTip) return
+    const tip = openTip
+    setOpenTip(null)
+    setTimeout(() => {
+      setSubmitError(null)
+      setAddModalTip(tip)
+    }, 320)
+  }, [openTip])
+
+  const closeAddModal = useCallback(() => {
+    setAddModalTip(null)
+    setSubmitError(null)
+  }, [])
 
   const availableCategories = useMemo(() => {
     const set = new Set(tips.map(t => t.category))
@@ -232,7 +257,7 @@ export default function HealthTipsScreen() {
         tip={openTip}
         onClose={() => setOpenTip(null)}
         alreadyRegistered={!!openTip && diagnoses.some(d => d.tipId === openTip.id)}
-        onRegister={() => openTip && setAddModalTip(openTip)}
+        onRegister={openAddModalFromDetail}
       />
 
       {/* 진단 등록 모달 */}
@@ -240,7 +265,8 @@ export default function HealthTipsScreen() {
         visible={addModalTip != null}
         tip={addModalTip}
         submitting={submitting}
-        onClose={() => setAddModalTip(null)}
+        error={submitError}
+        onClose={closeAddModal}
         onSubmit={handleRegister}
       />
 

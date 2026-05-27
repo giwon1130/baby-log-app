@@ -17,6 +17,7 @@ import ErrorBanner from '../components/ErrorBanner'
 import EmptyState from '../components/EmptyState'
 import { NotificationSettingsCard } from '../components/NotificationSettingsCard'
 import BabyEditForm from '../components/baby/BabyEditForm'
+import NewBadge from '../components/NewBadge'
 import type { Baby, Family } from '../types'
 import type { MainTabScreenProps } from '../navigation/types'
 import { extractErrorMessage } from '../utils/errors'
@@ -257,7 +258,10 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
             onPress={() => navigation.navigate('HealthTips')}
             activeOpacity={0.7}
           >
-            <Text style={styles.sectionTitle}>🩺 건강 가이드</Text>
+            <View style={styles.cardTitleRow}>
+              <Text style={styles.sectionTitle}>🩺 건강 가이드</Text>
+              <NewBadge />
+            </View>
             <Text style={styles.guideText}>신생아 0~12개월 흔한 이슈와 체크사항 · AI 자유 질문 ›</Text>
           </TouchableOpacity>
 
@@ -368,6 +372,7 @@ const styles = StyleSheet.create({
   statLabel: { fontSize: FONT.caption, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase' },
   statValue: { fontSize: FONT.body, fontWeight: '600', color: NEUTRALS.gray800, marginTop: 2 },
   sectionTitle: { fontSize: FONT.bodyMd, fontWeight: '700', color: NEUTRALS.ink },
+  cardTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   guideText: { fontSize: FONT.bodyMd, color: NEUTRALS.gray700 },
   inviteDesc: { fontSize: FONT.bodySm, color: '#777' },
   inviteCodeBox: {
