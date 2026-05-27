@@ -18,6 +18,8 @@ import EmptyState from '../components/EmptyState'
 import { DailyClockSection } from '../components/DailyClockSection'
 import { WeeklyHeatmapSection } from '../components/WeeklyHeatmapSection'
 import type { WeeklyStats } from '../types'
+import type { MainTabScreenProps } from '../navigation/types'
+import PromoBadge from '../components/PromoBadge'
 
 import { COLORS, NEUTRALS, FONT } from '../utils/constants'
 const SCREEN_WIDTH = Dimensions.get('window').width
@@ -47,7 +49,7 @@ function shortDate(iso: string): string {
 
 type Period = 'week' | 'month'
 
-export default function StatsScreen() {
+export default function StatsScreen({ navigation }: MainTabScreenProps<'Stats'>) {
   const { babyId, initialized, loadBaby } = useStoredBaby()
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -247,6 +249,28 @@ export default function StatsScreen() {
           hint="기록이 며칠 쌓이면 추세가 보여요"
         />
       )}
+
+      {/* 성장 추이 진입 — 통계 탭의 연장으로 둠 */}
+      <TouchableOpacity
+        style={styles.linkCard}
+        onPress={() => navigation.navigate('GrowthRecord')}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.linkTitle}>성장 기록</Text>
+        <Text style={styles.linkSub}>체중·키·머리둘레 차트 + WHO 백분위 ›</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.linkCard}
+        onPress={() => navigation.navigate('MonthlyPhotos')}
+        activeOpacity={0.7}
+      >
+        <View style={styles.linkTitleRow}>
+          <Text style={styles.linkTitle}>월 증명사진</Text>
+          <PromoBadge />
+        </View>
+        <Text style={styles.linkSub}>1~12개월, 한 달 한 컷 · 첫 돌 패키지 ›</Text>
+      </TouchableOpacity>
     </ScrollView>
   )
 }
@@ -255,6 +279,20 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.primaryBg },
   content: { padding: 16, gap: 12, paddingBottom: 32 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  linkCard: {
+    backgroundColor: NEUTRALS.white,
+    borderRadius: 16,
+    padding: 20,
+    gap: 6,
+    shadowColor: NEUTRALS.black,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  linkTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  linkTitle: { fontSize: FONT.bodyMd, fontWeight: '700', color: NEUTRALS.ink },
+  linkSub: { fontSize: FONT.bodySm, color: NEUTRALS.gray700 },
   periodTabs: { flexDirection: 'row', gap: 8 },
   periodTab: {
     flex: 1,

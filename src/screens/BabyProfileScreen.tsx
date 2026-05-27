@@ -11,14 +11,13 @@ import {
   View,
 } from 'react-native'
 import * as Clipboard from 'expo-clipboard'
-import { deleteBaby, getBabies, getFamily, getGrowthStage, updateBaby } from '../api/babyLogApi'
+import { deleteBaby, getBabies, getFamily, updateBaby } from '../api/babyLogApi'
 import { clearStoredBaby, setStoredBaby, storeFamilyAndBaby } from '../api/client'
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import ErrorBanner from '../components/ErrorBanner'
 import EmptyState from '../components/EmptyState'
-import PromoBadge from '../components/PromoBadge'
 import { NotificationSettingsCard } from '../components/NotificationSettingsCard'
-import type { Baby, Family, GrowthStage } from '../types'
+import type { Baby, Family } from '../types'
 import type { MainTabScreenProps } from '../navigation/types'
 import { extractErrorMessage } from '../utils/errors'
 
@@ -30,7 +29,6 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
   const [loading, setLoading] = useState(true)
   const [babies, setBabies] = useState<Baby[]>([])
   const [selectedBaby, setSelectedBaby] = useState<Baby | null>(null)
-  const [growthStage, setGrowthStage] = useState<GrowthStage | null>(null)
   const [family, setFamily] = useState<Family | null>(null)
   const [error, setError] = useState<string | null>(null)
   const scrollRef = useRef<ScrollView>(null)
@@ -52,11 +50,7 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
     setFamily(fam)
 
     const current = babyList.find(b => b.id === bid) ?? babyList[0]
-    if (current) {
-      setSelectedBaby(current)
-      const stage = await getGrowthStage(current.id, fid).catch(() => null)
-      setGrowthStage(stage)
-    }
+    if (current) setSelectedBaby(current)
   }
 
   useEffect(() => {
@@ -79,8 +73,6 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
     setEditing(false)
     if (familyId) {
       await storeFamilyAndBaby(familyId, baby.id)
-      const stage = await getGrowthStage(baby.id, familyId).catch(() => null)
-      setGrowthStage(stage)
     }
   }
 
@@ -138,11 +130,8 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
                 const next = remaining[0]
                 setSelectedBaby(next)
                 await setStoredBaby(next.id)
-                const stage = await getGrowthStage(next.id, familyId).catch(() => null)
-                setGrowthStage(stage)
               } else {
                 setSelectedBaby(null)
-                setGrowthStage(null)
                 await clearStoredBaby()
               }
               setEditing(false)
@@ -312,38 +301,8 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
             )}
           </View>
 
-          {growthStage && (
-            <View style={styles.card}>
-              <Text style={styles.sectionTitle}>수유 가이드</Text>
-              <Text style={styles.guideText}>
-                권장 수유량: {growthStage.feedingGuideMl.start}~{growthStage.feedingGuideMl.end}ml
-              </Text>
-              <Text style={styles.guideText}>
-                수유 간격: {growthStage.feedingIntervalHours.start}~{growthStage.feedingIntervalHours.end}시간
-              </Text>
-            </View>
-          )}
-
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => navigation.navigate('GrowthRecord')}
-            activeOpacity={0.7}
-          >
-            <Text style={styles.sectionTitle}>성장 기록</Text>
-            <Text style={styles.guideText}>체중·키·머리둘레를 기록하고 그래프로 보기 ›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => navigation.navigate('MonthlyPhotos')}
-            activeOpacity={0.7}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-              <Text style={styles.sectionTitle}>월 증명사진</Text>
-              <PromoBadge />
-            </View>
-            <Text style={styles.guideText}>1~12개월, 한 달 한 컷. 같은 장소에서 찍어 성장 한눈에 ›</Text>
-          </TouchableOpacity>
+          {/* 수유 가이드 → 홈 화면으로 이동. 성장 기록 / 월 증명사진 → 통계 탭으로 이동.
+              아기 탭은 프로필·설정·관리 영역만 남김. */}
 
           <NotificationSettingsCard />
 

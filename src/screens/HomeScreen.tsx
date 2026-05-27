@@ -10,7 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { getActiveSleep, getBabies, getLatestFeed, getTodayStats } from '../api/babyLogApi'
+import { getActiveSleep, getBabies, getGrowthStage, getLatestFeed, getTodayStats } from '../api/babyLogApi'
 import { scheduleFeedNotification } from '../utils/notifications'
 import { updateFeedWidget } from '../utils/widget'
 import { useFamilyStream } from '../hooks/useFamilyStream'
@@ -21,7 +21,7 @@ import ErrorBanner from '../components/ErrorBanner'
 import EmptyState from '../components/EmptyState'
 import UndoToast, { type UndoAction } from '../components/UndoToast'
 import { parseApiTimestamp, timeUntil, formatDuration as formatSleep, formatAge } from '../utils/dateUtils'
-import type { SleepRecord, TodayStats } from '../types'
+import type { GrowthStage, SleepRecord, TodayStats } from '../types'
 import type { MainTabScreenProps } from '../navigation/types'
 
 import { COLORS, NEUTRALS, FONT } from '../utils/constants'
@@ -32,6 +32,7 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const [todayStats, setTodayStats] = useState<TodayStats | null>(null)
   const [activeSleep, setActiveSleep] = useState<SleepRecord | null>(null)
   const [nextFeedAt, setNextFeedAt] = useState<string | null>(null)
+  const [growthStage, setGrowthStage] = useState<GrowthStage | null>(null)
   const [quickError, setQuickError] = useState<string | null>(null)
   const [undoAction, setUndoAction] = useState<UndoAction | null>(null)
 
@@ -69,6 +70,8 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
     if (feed.status === 'fulfilled') setNextFeedAt(feed.value?.nextFeedAt ?? null)
     if (stats.status === 'fulfilled') setTodayStats(stats.value)
     if (active.status === 'fulfilled') setActiveSleep(active.value)
+    // 성장 단계 기반 수유 가이드 — 실패해도 화면 다른 부분에 영향 X
+    getGrowthStage(bid, fid).then(setGrowthStage).catch(() => setGrowthStage(null))
   }, [])
 
   useEffect(() => {
@@ -179,6 +182,17 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
           </View>
         </View>
 
+        {/* 수유 가이드 — 성장 단계 기반 권장량/간격 */}
+        {growthStage && (
+          <View style={styles.guideCard}>
+            <Text style={styles.guideLabel}>오늘 수유 가이드</Text>
+            <Text style={styles.guideValue}>
+              권장량 {growthStage.feedingGuideMl.start}~{growthStage.feedingGuideMl.end}ml ·
+              {' '}간격 {growthStage.feedingIntervalHours.start}~{growthStage.feedingIntervalHours.end}시간
+            </Text>
+          </View>
+        )}
+
         {/* 빠른 기록 */}
         <ErrorBanner message={quickError} onDismiss={() => setQuickError(null)} />
         <QuickActions
@@ -256,6 +270,22 @@ const styles = StyleSheet.create({
   babyCardName: { fontSize: FONT.hero, fontWeight: '800', color: NEUTRALS.white },
   babyCardAge: { fontSize: FONT.bodyMd, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
   babyCardEmoji: { fontSize: 36 },
+  guideCard: {
+    backgroundColor: NEUTRALS.white,
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    shadowColor: NEUTRALS.black,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
+    elevation: 1,
+  },
+  guideLabel: { fontSize: FONT.label, color: NEUTRALS.gray500, fontWeight: '600' },
+  guideValue: { fontSize: FONT.bodySm, color: NEUTRALS.gray800, fontWeight: '600' },
   cardLabelRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   cardLabel: { fontSize: FONT.label, color: NEUTRALS.gray500, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5 },
   shareBtn: { fontSize: FONT.label, color: COLORS.primary, fontWeight: '600' },
