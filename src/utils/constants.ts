@@ -74,7 +74,7 @@ export const NEUTRALS = {
 export const DIAPER_TYPE_LABEL: Record<string, string> = {
   WET: '💧 소변',
   DIRTY: '💩 대변',
-  MIXED: '🔄 혼합',
+  MIXED: '💧💩 혼합',
   DRY: '✅ 깨끗',
 }
 

@@ -24,7 +24,7 @@ import QuickCard from './QuickCard'
 const QUICK_DIAPERS = [
   { type: 'WET', emoji: '💧', label: '소변' },
   { type: 'DIRTY', emoji: '💩', label: '대변' },
-  { type: 'MIXED', emoji: '🔄', label: '혼합' },
+  { type: 'MIXED', emoji: '💧💩', label: '혼합' },
 ] as const
 
 type Props = {
