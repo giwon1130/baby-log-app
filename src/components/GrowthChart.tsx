@@ -9,8 +9,10 @@ const SCREEN_WIDTH = Dimensions.get('window').width
 const CHART_WIDTH = SCREEN_WIDTH - 64
 const CHART_HEIGHT = 180
 
-// 차트에 깔 WHO 기준선 개월 범위 — 0~13개월(첫 돌 + 1)
-const REF_MONTHS = Array.from({ length: 14 }, (_, i) => i)
+// WHO 표 자체는 0~24개월. 차트 x축은 baby의 최근 측정 개월 + 여유 1개월까지로 동적 확장.
+// 최소 12 (첫 돌까지는 항상 보임), 최대 24.
+const MAX_REF_MONTH = 24
+const MIN_REF_MONTH = 12
 
 type Props = {
   baby: Baby
@@ -20,7 +22,7 @@ type Props = {
 
 /**
  * 체중·키 추이를 WHO P3/P50/P97 기준선과 함께 보여줌.
- * - x축: 개월(0~13). 기록이 14개월 넘어가도 마지막 기준값으로 클램프
+ * - x축: 개월. 최근 측정 개월 + 1까지 동적 확장 ([MIN_REF_MONTH, MAX_REF_MONTH] 클램프)
  * - 기록 1개만 있어도 점 + 기준선 보임
  * - 둘 다 데이터가 없으면 null
  */
@@ -69,31 +71,40 @@ type MetricChartProps = {
 }
 
 function MetricChart({ title, baby, metric, recs, valueOf, decimals }: MetricChartProps) {
-  const band = getWhoBand(baby.gender, metric, REF_MONTHS)
+  // 백엔드 enum 외 값이 흘러와도 차트가 죽지 않도록 방어
+  const gender: 'MALE' | 'FEMALE' = baby.gender === 'FEMALE' ? 'FEMALE' : 'MALE'
 
   // 아기 실측값을 개월별로 묶음 — 한 개월에 여러 기록이면 마지막값 사용
   // (재진료/병원·집 측정 등) 기록 자체는 리스트에 다 보이므로 차트는 latest only
   const byMonth = new Map<number, number>()
   for (const r of recs) {
     const m = ageInMonths(baby.birthDate, r.measuredAt)
-    if (m >= 0 && m <= 24) byMonth.set(m, valueOf(r))
+    if (m >= 0 && m <= MAX_REF_MONTH) byMonth.set(m, valueOf(r))
   }
 
+  // 차트 x축 범위 — 최근 측정 개월 + 1까지, 단 [MIN_REF_MONTH, MAX_REF_MONTH] 로 클램프
+  const months = Array.from(byMonth.keys())
+  const lastMeasured = months.length > 0 ? Math.max(...months) : 0
+  const upper = Math.min(MAX_REF_MONTH, Math.max(MIN_REF_MONTH, lastMeasured + 1))
+  const refMonths = Array.from({ length: upper + 1 }, (_, i) => i)
+
+  const band = getWhoBand(gender, metric, refMonths)
+
   // chart-kit 은 null 점을 못 그리므로, 미측정 개월은 직전 값 유지 (계단형)
-  // 표현은 직선 보간(bezier 끄고) — 측정한 개월 사이만 잇기 위해 첫 측정 전은 NaN 우회
-  const firstMeasured = Math.min(...byMonth.keys())
+  // 첫 측정 전 구간은 P50으로 가려두고 점은 transparent
+  const firstMeasured = months.length > 0 ? Math.min(...months) : Infinity
   let last: number | null = null
-  const babyLine = REF_MONTHS.map(m => {
-    if (m < firstMeasured) return band.p50[m]  // 측정 전 구간은 P50으로 가려두고 점만 안 보이게
+  const babyLine = refMonths.map(m => {
+    if (m < firstMeasured) return band.p50[m]
     if (byMonth.has(m)) { last = byMonth.get(m)!; return last }
     return last ?? band.p50[m]
   })
 
   // 점 색상: 실측 개월만 primary, 나머지는 transparent
-  const measuredSet = new Set(byMonth.keys())
+  const measuredSet = new Set(months)
   const dotColor = (_dataPoint: number, index: number) => {
-    const m = REF_MONTHS[index]
-    if (m < firstMeasured) return 'transparent'
+    const m = refMonths[index]
+    if (m == null || m < firstMeasured) return 'transparent'
     return measuredSet.has(m) ? COLORS.primary : 'transparent'
   }
 
@@ -121,7 +132,11 @@ function MetricChart({ title, baby, metric, recs, valueOf, decimals }: MetricCha
       </View>
       <LineChart
         data={{
-          labels: REF_MONTHS.map(m => (m % 3 === 0 ? `${m}m` : '')),
+          // 라벨 밀도는 범위에 따라 조절 (13개월 이내는 3개월마다, 그 이상은 6개월마다)
+          labels: refMonths.map(m => {
+            const step = upper > 14 ? 6 : 3
+            return m % step === 0 ? `${m}m` : ''
+          }),
           datasets: [
             // P3 (하한)
             { data: band.p3,  color: () => 'rgba(170,170,170,0.55)', strokeWidth: 1, withDots: false },
