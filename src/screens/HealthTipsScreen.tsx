@@ -29,6 +29,7 @@ import type { BabyDiagnosis, HealthTip } from '../types'
 import DiagnosisCard from '../components/health/DiagnosisCard'
 import DiagnosisAddModal from '../components/health/DiagnosisAddModal'
 import DiagnosisChecklistModal from '../components/health/DiagnosisChecklistModal'
+import PromoBadge from '../components/PromoBadge'
 import { COLORS, FONT, NEUTRALS, SPACING } from '../utils/constants'
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -215,8 +216,11 @@ export default function HealthTipsScreen() {
           accessibilityRole="button"
         >
           <Text style={styles.askCardEmoji}>💬</Text>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.askCardTitle}>다른 증상이 궁금하면 AI에게 물어보기</Text>
+          <View style={{ flex: 1, gap: 4 }}>
+            <View style={styles.askTitleRow}>
+              <Text style={styles.askCardTitle}>다른 증상이 궁금하면 AI에게 물어보기</Text>
+              <PromoBadge />
+            </View>
             <Text style={styles.askCardSub}>일반론·체크 포인트만 안내해요</Text>
           </View>
           <Ionicons name="chevron-forward" size={18} color={COLORS.primary} />
@@ -403,7 +407,10 @@ function AskModal({ visible, onClose, babyAgeMonths }: { visible: boolean; onClo
         <View style={styles.askCardOpen}>
           <View style={styles.detailHeader}>
             <Text style={styles.detailEmoji}>💬</Text>
-            <Text style={styles.detailTitle}>AI에게 물어보기</Text>
+            <View style={{ flex: 1, gap: 4 }}>
+              <Text style={styles.detailTitle}>AI에게 물어보기</Text>
+              <PromoBadge />
+            </View>
             <TouchableOpacity onPress={handleClose} hitSlop={10} accessibilityLabel="닫기">
               <Ionicons name="close" size={22} color={NEUTRALS.gray600} />
             </TouchableOpacity>
@@ -478,6 +485,7 @@ const styles = StyleSheet.create({
     borderRadius: 14, padding: SPACING.md,
   },
   askCardEmoji: { fontSize: 22 },
+  askTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' },
   askCardTitle: { fontSize: FONT.bodyMd, fontWeight: '700', color: COLORS.primary },
   askCardSub: { fontSize: FONT.caption, color: NEUTRALS.gray650, marginTop: 2 },
 
