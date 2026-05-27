@@ -133,6 +133,37 @@ export type HealthAskResponse = {
   source: 'gemini' | 'fallback'
 }
 
+// 우리 아기에게 진단된 건강 이슈
+export type BabyDiagnosis = {
+  id: string
+  babyId: string
+  tipId: string
+  tipTitle: string
+  tipEmoji: string
+  side: string | null              // 'left' | 'right' | 'both' | null
+  startedAt: string                // ISO date
+  notes: string
+  status: 'active' | 'resolved'
+  resolvedAt: string | null
+}
+
+export type DailyChecklistTask = {
+  key: string
+  title: string
+  hint: string
+  doneToday: boolean
+}
+
+export type DailyProgressItem = { date: string; done: number; total: number }
+
+export type DailyChecklist = {
+  diagnosisId: string
+  tipTitle: string
+  date: string
+  tasks: DailyChecklistTask[]
+  recentDays: DailyProgressItem[]
+}
+
 // 월 증명사진 — 1~12개월 슬롯. 슬롯당 1장 (재촬영은 덮어쓰기).
 export type MonthlyPhoto = {
   id: string

@@ -1,5 +1,5 @@
 import { api, uploadMultipart } from './client'
-import type { Baby, CryLabel, CrySample, DiaperRecord, FeedRecord, Family, GrowthRecord, GrowthStage, HealthAskResponse, HealthTip, MonthlyPhoto, SleepRecord, TodayStats, WeeklyStats } from '../types'
+import type { Baby, BabyDiagnosis, CryLabel, CrySample, DailyChecklist, DiaperRecord, FeedRecord, Family, GrowthRecord, GrowthStage, HealthAskResponse, HealthTip, MonthlyPhoto, SleepRecord, TodayStats, WeeklyStats } from '../types'
 
 // Family
 export const createFamily = () => api.post<Family>('/api/v1/families', {})
@@ -185,3 +185,33 @@ export const getHealthTips = () =>
 
 export const askHealthQuestion = (question: string, babyAgeMonths?: number) =>
   api.post<HealthAskResponse>('/api/v1/health-tips/ask', { question, babyAgeMonths })
+
+// Baby diagnoses — 우리 아기에 진단된 이슈 + 일일 체크리스트
+export const listDiagnoses = (babyId: string, includeResolved = false) =>
+  api.get<BabyDiagnosis[]>(`/api/v1/babies/${babyId}/diagnoses?includeResolved=${includeResolved}`)
+
+export const createDiagnosis = (babyId: string, data: {
+  tipId: string
+  side?: string
+  startedAt?: string
+  notes?: string
+}) => api.post<BabyDiagnosis>(`/api/v1/babies/${babyId}/diagnoses`, data)
+
+export const resolveDiagnosis = (babyId: string, diagnosisId: string) =>
+  api.post<{ status: string }>(`/api/v1/babies/${babyId}/diagnoses/${diagnosisId}/resolve`, {})
+
+export const deleteDiagnosis = (babyId: string, diagnosisId: string) =>
+  api.delete<void>(`/api/v1/babies/${babyId}/diagnoses/${diagnosisId}`)
+
+export const getDiagnosisChecklist = (babyId: string, diagnosisId: string) =>
+  api.get<DailyChecklist>(`/api/v1/babies/${babyId}/diagnoses/${diagnosisId}/checklist`)
+
+export const setDiagnosisTaskDone = (
+  babyId: string,
+  diagnosisId: string,
+  taskKey: string,
+  done: boolean,
+) => api.post<{ done: boolean; taskKey: string }>(
+  `/api/v1/babies/${babyId}/diagnoses/${diagnosisId}/tasks/${taskKey}`,
+  { done },
+)

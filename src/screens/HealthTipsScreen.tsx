@@ -14,12 +14,20 @@ import {
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 
-import { askHealthQuestion, getHealthTips } from '../api/babyLogApi'
+import {
+  askHealthQuestion,
+  createDiagnosis,
+  getHealthTips,
+  listDiagnoses,
+} from '../api/babyLogApi'
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import ErrorBanner from '../components/ErrorBanner'
 import { useErrorRetry } from '../hooks/useErrorRetry'
 import { extractErrorMessage } from '../utils/errors'
-import type { HealthTip } from '../types'
+import type { BabyDiagnosis, HealthTip } from '../types'
+import DiagnosisCard from '../components/health/DiagnosisCard'
+import DiagnosisAddModal from '../components/health/DiagnosisAddModal'
+import DiagnosisChecklistModal from '../components/health/DiagnosisChecklistModal'
 import { COLORS, FONT, NEUTRALS, SPACING } from '../utils/constants'
 
 const CATEGORY_LABEL: Record<string, string> = {
@@ -39,27 +47,50 @@ const CATEGORY_LABEL: Record<string, string> = {
  * - 진단·약 추천 없음. 응급 사인은 별도 색으로 강조.
  */
 export default function HealthTipsScreen() {
-  const { daysOld } = useStoredBaby()
+  const { babyId, daysOld } = useStoredBaby()
   const [tips, setTips] = useState<HealthTip[]>([])
+  const [diagnoses, setDiagnoses] = useState<BabyDiagnosis[]>([])
   const [loading, setLoading] = useState(true)
   const { error, retry, showError, dismissError } = useErrorRetry()
   const [query, setQuery] = useState('')
   const [openTip, setOpenTip] = useState<HealthTip | null>(null)
   const [qaOpen, setQaOpen] = useState(false)
+  const [addModalTip, setAddModalTip] = useState<HealthTip | null>(null)
+  const [submitting, setSubmitting] = useState(false)
+  const [openDiagnosis, setOpenDiagnosis] = useState<BabyDiagnosis | null>(null)
 
   const load = useCallback(async () => {
     try {
       setLoading(true)
-      const list = await getHealthTips()
-      setTips(list)
+      const [tipsList, diagList] = await Promise.all([
+        getHealthTips(),
+        babyId ? listDiagnoses(babyId, false) : Promise.resolve([] as BabyDiagnosis[]),
+      ])
+      setTips(tipsList)
+      setDiagnoses(diagList)
     } catch (err) {
       showError(extractErrorMessage(err, '건강 가이드를 불러오지 못했어요'), () => void load())
     } finally {
       setLoading(false)
     }
-  }, [showError])
+  }, [babyId, showError])
 
   useEffect(() => { void load() }, [load])
+
+  const handleRegister = async (data: { tipId: string; side?: string; notes?: string }) => {
+    if (!babyId) return
+    setSubmitting(true)
+    try {
+      const created = await createDiagnosis(babyId, data)
+      setDiagnoses(prev => [created, ...prev])
+      setAddModalTip(null)
+      setOpenTip(null)
+    } catch (err) {
+      showError(extractErrorMessage(err, '진단 등록에 실패했어요'))
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   const filtered = useMemo(() => {
     if (!query.trim()) return tips
@@ -86,6 +117,20 @@ export default function HealthTipsScreen() {
             참고용 정보예요. 진단·치료는 소아과 상담이 필수예요.
           </Text>
         </View>
+
+        {/* 우리 아기 진단 — 활성 진단 있을 때만 노출 */}
+        {diagnoses.length > 0 && (
+          <View style={styles.diagSection}>
+            <Text style={styles.diagSectionTitle}>우리 아기 진단</Text>
+            {diagnoses.map(d => (
+              <DiagnosisCard
+                key={d.id}
+                diagnosis={d}
+                onPress={() => setOpenDiagnosis(d)}
+              />
+            ))}
+          </View>
+        )}
 
         {/* 검색바 */}
         <View style={styles.searchRow}>
@@ -150,8 +195,31 @@ export default function HealthTipsScreen() {
         )}
       </ScrollView>
 
-      {/* 상세 모달 */}
-      <TipDetailModal tip={openTip} onClose={() => setOpenTip(null)} />
+      {/* 상세 모달 — '내 아기에 등록' 진입 포함 */}
+      <TipDetailModal
+        tip={openTip}
+        onClose={() => setOpenTip(null)}
+        alreadyRegistered={!!openTip && diagnoses.some(d => d.tipId === openTip.id)}
+        onRegister={() => openTip && setAddModalTip(openTip)}
+      />
+
+      {/* 진단 등록 모달 */}
+      <DiagnosisAddModal
+        visible={addModalTip != null}
+        tip={addModalTip}
+        submitting={submitting}
+        onClose={() => setAddModalTip(null)}
+        onSubmit={handleRegister}
+      />
+
+      {/* 진단 체크리스트 모달 */}
+      <DiagnosisChecklistModal
+        visible={openDiagnosis != null}
+        babyId={babyId}
+        diagnosis={openDiagnosis}
+        onClose={() => setOpenDiagnosis(null)}
+        onChanged={load}
+      />
 
       {/* AI 질문 모달 */}
       <AskModal
@@ -163,7 +231,14 @@ export default function HealthTipsScreen() {
   )
 }
 
-function TipDetailModal({ tip, onClose }: { tip: HealthTip | null; onClose: () => void }) {
+function TipDetailModal({
+  tip, onClose, alreadyRegistered, onRegister,
+}: {
+  tip: HealthTip | null
+  onClose: () => void
+  alreadyRegistered: boolean
+  onRegister: () => void
+}) {
   if (!tip) return null
   return (
     <Modal visible animationType="slide" transparent onRequestClose={onClose}>
@@ -192,6 +267,17 @@ function TipDetailModal({ tip, onClose }: { tip: HealthTip | null; onClose: () =
             <Section title="이런 사인이면 즉시 병원" danger>
               {tip.redFlags.map((c, i) => <Bullet key={i} text={c} danger />)}
             </Section>
+
+            {alreadyRegistered ? (
+              <View style={styles.alreadyBox}>
+                <Ionicons name="checkmark-circle" size={16} color={COLORS.success} />
+                <Text style={styles.alreadyText}>이미 등록된 진단이에요</Text>
+              </View>
+            ) : (
+              <TouchableOpacity style={styles.registerBtn} onPress={onRegister}>
+                <Text style={styles.registerBtnText}>🩺 내 아기에 등록 + 일일 체크 시작</Text>
+              </TouchableOpacity>
+            )}
 
             <Text style={styles.detailDisclaimer}>
               ⓘ 참고용 정보예요. 진단·치료는 소아과 상담이 필수예요.
@@ -358,6 +444,23 @@ const styles = StyleSheet.create({
   detailSummary: { fontSize: FONT.bodyMd, color: COLORS.primary, fontWeight: '700' },
   detailBody: { fontSize: FONT.bodySm, color: NEUTRALS.gray800, lineHeight: 20 },
   detailDisclaimer: { fontSize: FONT.caption, color: NEUTRALS.gray500, textAlign: 'center', marginTop: SPACING.md },
+
+  diagSection: { gap: 8 },
+  diagSectionTitle: { fontSize: FONT.label, color: NEUTRALS.gray600, fontWeight: '700', marginTop: 2 },
+
+  registerBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  registerBtnText: { color: NEUTRALS.white, fontSize: FONT.body, fontWeight: '700' },
+  alreadyBox: {
+    flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center',
+    backgroundColor: NEUTRALS.gray50, borderRadius: 10, paddingVertical: 10,
+  },
+  alreadyText: { color: NEUTRALS.gray700, fontWeight: '600', fontSize: FONT.bodySm },
 
   section: {
     backgroundColor: NEUTRALS.gray50,
