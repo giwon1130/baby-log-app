@@ -15,6 +15,7 @@ import CryMonitorScreen from './src/screens/CryMonitorScreen'
 import CryHistoryScreen from './src/screens/CryHistoryScreen'
 import MonthlyPhotosScreen from './src/screens/MonthlyPhotosScreen'
 import FirstYearPackageScreen from './src/screens/FirstYearPackageScreen'
+import HealthTipsScreen from './src/screens/HealthTipsScreen'
 import { getStoredFamilyId } from './src/api/client'
 import { requestNotificationPermission, setupNotificationHandler } from './src/utils/notifications'
 import type { MainTabParamList, RootStackParamList } from './src/navigation/types'
@@ -120,6 +121,11 @@ export default function App() {
           name="FirstYearPackage"
           component={FirstYearPackageScreen}
           options={{ headerShown: true, title: '첫 돌 패키지', headerStyle: { backgroundColor: '#FFF9FB' }, headerShadowVisible: false }}
+        />
+        <Stack.Screen
+          name="HealthTips"
+          component={HealthTipsScreen}
+          options={{ headerShown: true, title: '건강 가이드', headerStyle: { backgroundColor: '#FFF9FB' }, headerShadowVisible: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

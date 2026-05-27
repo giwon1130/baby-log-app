@@ -114,6 +114,25 @@ export type CrySample = {
   note: string
 }
 
+// 건강 가이드 — 신생아 0~12개월 흔한 이슈 카드
+export type HealthTip = {
+  id: string
+  title: string
+  emoji: string
+  category: string
+  ageRange: string
+  oneLineSummary: string
+  whatItIs: string
+  selfChecks: string[]
+  careTips: string[]
+  redFlags: string[]
+}
+
+export type HealthAskResponse = {
+  answer: string
+  source: 'gemini' | 'fallback'
+}
+
 // 월 증명사진 — 1~12개월 슬롯. 슬롯당 1장 (재촬영은 덮어쓰기).
 export type MonthlyPhoto = {
   id: string

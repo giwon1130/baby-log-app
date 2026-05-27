@@ -9,6 +9,7 @@ export type RootStackParamList = {
   CryHistory: undefined
   MonthlyPhotos: { initialMonthIndex?: number } | undefined
   FirstYearPackage: undefined
+  HealthTips: undefined
 }
 
 export type MainTabParamList = {

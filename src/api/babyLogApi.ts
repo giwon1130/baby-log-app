@@ -1,5 +1,5 @@
 import { api, uploadMultipart } from './client'
-import type { Baby, CryLabel, CrySample, DiaperRecord, FeedRecord, Family, GrowthRecord, GrowthStage, MonthlyPhoto, SleepRecord, TodayStats, WeeklyStats } from '../types'
+import type { Baby, CryLabel, CrySample, DiaperRecord, FeedRecord, Family, GrowthRecord, GrowthStage, HealthAskResponse, HealthTip, MonthlyPhoto, SleepRecord, TodayStats, WeeklyStats } from '../types'
 
 // Family
 export const createFamily = () => api.post<Family>('/api/v1/families', {})
@@ -178,3 +178,10 @@ export const uploadMonthlyPhoto = (
 
 export const deleteMonthlyPhoto = (babyId: string, monthIndex: number) =>
   api.delete<void>(`/api/v1/babies/${babyId}/monthly-photos/${monthIndex}`)
+
+// Health Tips — 신생아 0~12개월 건강 가이드 + Gemini 자유 질문
+export const getHealthTips = () =>
+  api.get<HealthTip[]>('/api/v1/health-tips')
+
+export const askHealthQuestion = (question: string, babyAgeMonths?: number) =>
+  api.post<HealthAskResponse>('/api/v1/health-tips/ask', { question, babyAgeMonths })

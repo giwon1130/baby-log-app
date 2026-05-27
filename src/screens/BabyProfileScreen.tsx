@@ -252,6 +252,15 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
           {/* 수유 가이드 → 홈 화면으로 이동. 성장 기록 / 월 증명사진 → 통계 탭으로 이동.
               아기 탭은 프로필·설정·관리 영역만 남김. */}
 
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate('HealthTips')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.sectionTitle}>🩺 건강 가이드</Text>
+            <Text style={styles.guideText}>신생아 0~12개월 흔한 이슈와 체크사항 · AI 자유 질문 ›</Text>
+          </TouchableOpacity>
+
           <NotificationSettingsCard />
 
           <View style={styles.card}>
