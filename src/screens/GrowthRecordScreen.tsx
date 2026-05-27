@@ -156,30 +156,25 @@ export default function GrowthRecordScreen() {
       <View style={styles.form}>
         <Text style={styles.formTitle}>성장 기록</Text>
 
-        <View style={styles.row}>
-          <View style={styles.fieldHalf}>
-            <Text style={styles.label}>체중 (g)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="예: 3500"
-              value={weightG}
-              onChangeText={setWeightG}
-              keyboardType="number-pad"
-              accessibilityLabel="체중 (g)"
-            />
-          </View>
-          <View style={styles.fieldHalf}>
-            <Text style={styles.label}>키 (cm)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="예: 52.5"
-              value={heightCm}
-              onChangeText={setHeightCm}
-              keyboardType="decimal-pad"
-              accessibilityLabel="키 (cm)"
-            />
-          </View>
-        </View>
+        <Text style={styles.label}>체중 (g)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="예: 3500"
+          value={weightG}
+          onChangeText={setWeightG}
+          keyboardType="number-pad"
+          accessibilityLabel="체중 (g)"
+        />
+
+        <Text style={styles.label}>키 (cm)</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="예: 52.5"
+          value={heightCm}
+          onChangeText={setHeightCm}
+          keyboardType="decimal-pad"
+          accessibilityLabel="키 (cm)"
+        />
 
         <Text style={styles.label}>머리 둘레 (cm, 선택)</Text>
         <TextInput

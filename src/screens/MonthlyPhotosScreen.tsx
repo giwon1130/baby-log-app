@@ -22,6 +22,7 @@ import {
   getMonthlyPhotos,
   uploadMonthlyPhoto,
 } from '../api/babyLogApi'
+import { useFamilyStream } from '../hooks/useFamilyStream'
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import ErrorBanner from '../components/ErrorBanner'
 import SuccessToast from '../components/SuccessToast'
@@ -75,6 +76,13 @@ export default function MonthlyPhotosScreen({ route }: RootStackScreenProps<'Mon
   }, [initialized, babyId, familyId, load])
 
   useFocusEffect(useCallback(() => { void loadBaby() }, [loadBaby]))
+
+  // 가족 SSE — 다른 디바이스에서 사진을 올리거나 지우면 즉시 그리드 반영
+  useFamilyStream(familyId, useCallback((event) => {
+    if (event.type !== 'MONTHLY_PHOTO_UPSERTED' && event.type !== 'MONTHLY_PHOTO_DELETED') return
+    if (!babyId || event.babyId !== babyId) return
+    if (familyId) void load(babyId, familyId)
+  }, [babyId, familyId, load]))
 
   if (loading) {
     return <View style={styles.center}><ActivityIndicator size="large" color={COLORS.primary} /></View>
