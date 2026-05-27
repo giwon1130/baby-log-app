@@ -57,6 +57,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         sounds: [],
       },
     ],
+    [
+      'expo-image-picker',
+      {
+        photosPermission: '월 증명사진을 올릴 수 있게 사진 라이브러리 접근 권한이 필요해요.',
+        cameraPermission: '아기 사진을 바로 찍을 수 있게 카메라 권한이 필요해요.',
+      },
+    ],
     '@react-native-community/datetimepicker',
     '@bacons/apple-targets',
   ],
