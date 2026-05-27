@@ -56,6 +56,39 @@ export const api = {
   delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
 }
 
+/**
+ * multipart/form-data 업로드. Content-Type 은 RN 이 boundary 와 함께 자동 설정.
+ * file 외 form param 은 string 으로만 받는다(서버 측 @RequestParam).
+ */
+export async function uploadMultipart<T>(
+  path: string,
+  file: { uri: string; name: string; type: string },
+  params: Record<string, string> = {},
+): Promise<T> {
+  const deviceId = await getOrCreateDeviceId()
+  const form = new FormData()
+  // RN 의 FormData 는 file 부분에 { uri, name, type } 객체를 받는다.
+  form.append('file', file as unknown as Blob)
+  Object.entries(params).forEach(([k, v]) => form.append(k, v))
+
+  let response: Response
+  try {
+    response = await fetch(`${BASE_URL}${path}`, {
+      method: 'POST',
+      headers: {
+        'X-Device-Id': deviceId,
+        // Content-Type 명시 X — RN 이 multipart boundary 와 함께 자동 설정
+      },
+      body: form,
+    })
+  } catch {
+    throw new Error('서버에 연결할 수 없어요. 인터넷 연결을 확인해주세요.')
+  }
+  const json = await response.json()
+  if (!response.ok) throw new Error(json.error ?? json.message ?? '업로드에 실패했어요.')
+  return json.data as T
+}
+
 // 로컬 저장소 키
 export const STORAGE_KEYS = {
   FAMILY_ID: 'baby_log_family_id',

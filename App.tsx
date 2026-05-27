@@ -13,6 +13,7 @@ import BabyProfileScreen from './src/screens/BabyProfileScreen'
 import FamilySetupScreen from './src/screens/FamilySetupScreen'
 import CryMonitorScreen from './src/screens/CryMonitorScreen'
 import CryHistoryScreen from './src/screens/CryHistoryScreen'
+import MonthlyPhotosScreen from './src/screens/MonthlyPhotosScreen'
 import { getStoredFamilyId } from './src/api/client'
 import { requestNotificationPermission, setupNotificationHandler } from './src/utils/notifications'
 import type { MainTabParamList, RootStackParamList } from './src/navigation/types'
@@ -70,8 +71,15 @@ export default function App() {
     // 포그라운드 수신은 배너만 표시 (setNotificationHandler에서 처리) — 강제 이동 없음
     notificationListenerRef.current = Notifications.addNotificationReceivedListener(() => {})
 
-    // 사용자가 알림을 탭했을 때만 홈으로 이동
-    responseListenerRef.current = Notifications.addNotificationResponseReceivedListener(() => {
+    // 사용자가 알림을 탭했을 때 — 알림 type 에 따라 라우팅
+    responseListenerRef.current = Notifications.addNotificationResponseReceivedListener((res) => {
+      const data = res.notification.request.content.data as { type?: string; monthIndex?: number } | undefined
+      if (data?.type === 'MONTHLY_PHOTO_REMINDER') {
+        navigationRef.current?.navigate('MonthlyPhotos', {
+          initialMonthIndex: typeof data.monthIndex === 'number' ? data.monthIndex : undefined,
+        })
+        return
+      }
       navigationRef.current?.navigate('Main', { screen: 'Home' })
     })
 
@@ -97,6 +105,11 @@ export default function App() {
           name="CryHistory"
           component={CryHistoryScreen}
           options={{ headerShown: true, title: '울음 분석 기록', headerStyle: { backgroundColor: '#FFF9FB' }, headerShadowVisible: false }}
+        />
+        <Stack.Screen
+          name="MonthlyPhotos"
+          component={MonthlyPhotosScreen}
+          options={{ headerShown: true, title: '월 증명사진', headerStyle: { backgroundColor: '#FFF9FB' }, headerShadowVisible: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

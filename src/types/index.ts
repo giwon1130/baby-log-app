@@ -113,3 +113,17 @@ export type CrySample = {
   learningStage: CryLearningStage
   note: string
 }
+
+// 월 증명사진 — 1~12개월 슬롯. 슬롯당 1장 (재촬영은 덮어쓰기).
+export type MonthlyPhoto = {
+  id: string
+  babyId: string
+  monthIndex: number          // 1..12
+  photoUrl: string            // 백엔드 서빙 URL — <Image> 에 그대로
+  thumbnailUrl: string | null
+  storageKey: string | null
+  takenAt: string             // ISO-8601
+  caption: string | null
+  locationHint: string | null
+  updatedAt: string
+}

@@ -7,6 +7,7 @@ export type RootStackParamList = {
   Main: { screen?: keyof MainTabParamList } | undefined
   GrowthRecord: undefined
   CryHistory: undefined
+  MonthlyPhotos: { initialMonthIndex?: number } | undefined
 }
 
 export type MainTabParamList = {

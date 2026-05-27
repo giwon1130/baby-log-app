@@ -332,6 +332,15 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
             <Text style={styles.guideText}>체중·키·머리둘레를 기록하고 그래프로 보기 ›</Text>
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate('MonthlyPhotos')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.sectionTitle}>월 증명사진</Text>
+            <Text style={styles.guideText}>1~12개월, 한 달 한 컷. 같은 장소에서 찍어 성장 한눈에 ›</Text>
+          </TouchableOpacity>
+
           <NotificationSettingsCard />
 
           <View style={styles.card}>

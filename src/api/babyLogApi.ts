@@ -1,5 +1,5 @@
-import { api } from './client'
-import type { Baby, CryLabel, CrySample, DiaperRecord, FeedRecord, Family, GrowthRecord, GrowthStage, SleepRecord, TodayStats, WeeklyStats } from '../types'
+import { api, uploadMultipart } from './client'
+import type { Baby, CryLabel, CrySample, DiaperRecord, FeedRecord, Family, GrowthRecord, GrowthStage, MonthlyPhoto, SleepRecord, TodayStats, WeeklyStats } from '../types'
 
 // Family
 export const createFamily = () => api.post<Family>('/api/v1/families', {})
@@ -155,3 +155,26 @@ export const confirmCrySample = (sampleId: string, confirmedLabel: CryLabel, not
 
 export const getCryHistory = (babyId: string, limit = 50) =>
   api.get<CrySample[]>(`/api/v1/babies/${babyId}/cry-samples?limit=${limit}`)
+
+// Monthly photos — 1~12개월 증명사진 슬롯
+export const getMonthlyPhotos = (babyId: string) =>
+  api.get<MonthlyPhoto[]>(`/api/v1/babies/${babyId}/monthly-photos`)
+
+export const uploadMonthlyPhoto = (
+  babyId: string,
+  monthIndex: number,
+  file: { uri: string; name: string; type: string },
+  meta: { caption?: string; locationHint?: string; takenAt?: string } = {},
+) => uploadMultipart<MonthlyPhoto>(
+  `/api/v1/babies/${babyId}/monthly-photos`,
+  file,
+  {
+    monthIndex: String(monthIndex),
+    ...(meta.takenAt ? { takenAt: meta.takenAt } : {}),
+    ...(meta.caption ? { caption: meta.caption } : {}),
+    ...(meta.locationHint ? { locationHint: meta.locationHint } : {}),
+  },
+)
+
+export const deleteMonthlyPhoto = (babyId: string, monthIndex: number) =>
+  api.delete<void>(`/api/v1/babies/${babyId}/monthly-photos/${monthIndex}`)
