@@ -13,6 +13,7 @@ import * as Clipboard from 'expo-clipboard'
 import { deleteBaby, getBabies, getFamily, updateBaby } from '../api/babyLogApi'
 import { clearStoredBaby, setStoredBaby, storeFamilyAndBaby } from '../api/client'
 import { useStoredBaby } from '../hooks/useStoredBaby'
+import { exportBabyDataCsv, exportBabyDataJson } from '../utils/exportData'
 import ErrorBanner from '../components/ErrorBanner'
 import EmptyState from '../components/EmptyState'
 import { NotificationSettingsCard } from '../components/NotificationSettingsCard'
@@ -38,6 +39,7 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [exporting, setExporting] = useState<'csv' | 'json' | null>(null)
 
   const loadAll = async (fid: string, bid: string | null) => {
     const [babyList, fam] = await Promise.all([
@@ -86,6 +88,21 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
       setError(extractErrorMessage(err, '저장에 실패했어요'))
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleExport = async (kind: 'csv' | 'json') => {
+    if (!selectedBaby || exporting) return
+    setExporting(kind)
+    try {
+      const count = kind === 'csv'
+        ? await exportBabyDataCsv(selectedBaby)
+        : await exportBabyDataJson(selectedBaby)
+      if (count === 0) Alert.alert('내보낼 기록 없음', '아직 기록된 데이터가 없어요.')
+    } catch (err) {
+      setError(extractErrorMessage(err, '내보내기에 실패했어요'))
+    } finally {
+      setExporting(null)
     }
   }
 
@@ -279,6 +296,32 @@ export default function BabyProfileScreen({ navigation }: MainTabScreenProps<'Ba
           </View>
 
           <View style={styles.card}>
+            <Text style={styles.sectionTitle}>데이터 내보내기</Text>
+            <Text style={styles.exportDesc}>
+              수유·기저귀·수면·성장 기록 전체를 파일로 저장하거나 공유해요.{'\n'}
+              산부인과 제출엔 CSV(엑셀), 백업엔 JSON 을 권해요.
+            </Text>
+            <View style={styles.exportRow}>
+              <TouchableOpacity
+                style={[styles.exportBtn, !!exporting && styles.exportBtnDisabled]}
+                onPress={() => handleExport('csv')}
+                disabled={!!exporting}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.exportBtnText}>{exporting === 'csv' ? '내보내는 중…' : '📊 CSV'}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.exportBtn, !!exporting && styles.exportBtnDisabled]}
+                onPress={() => handleExport('json')}
+                disabled={!!exporting}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.exportBtnText}>{exporting === 'json' ? '내보내는 중…' : '🗄️ JSON'}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.card}>
             <Text style={styles.sectionTitle}>신생아 졸업</Text>
             <Text style={styles.dangerDesc}>
               신생아 시기를 마치고 이 앱과 작별할 때, 모든 기록을 정리하고 졸업할 수 있어요.{'\n'}
@@ -393,6 +436,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   primaryButtonText: { color: NEUTRALS.white, fontWeight: '700', fontSize: FONT.body },
+  exportDesc: { fontSize: FONT.label, color: NEUTRALS.gray500, lineHeight: 18 },
+  exportRow: { flexDirection: 'row', gap: 12 },
+  exportBtn: {
+    flex: 1,
+    backgroundColor: COLORS.primarySurface,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  exportBtnDisabled: { opacity: 0.6 },
+  exportBtnText: { fontSize: FONT.bodyMd, color: COLORS.primary, fontWeight: '700' },
   dangerDesc: { fontSize: FONT.label, color: NEUTRALS.gray500, lineHeight: 18 },
   dangerBtn: {
     backgroundColor: COLORS.dangerSurface,

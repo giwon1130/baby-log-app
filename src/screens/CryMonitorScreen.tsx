@@ -131,7 +131,7 @@ export default function CryMonitorScreen() {
       setSample(updated)
       Alert.alert('저장됐어요', '다음부터 더 정확해질 거예요 👶')
     } catch (e: unknown) {
-      Alert.alert('저장 실패', extractErrorMessage(e, '다시 시도해주세요'))
+      setError(extractErrorMessage(e, '다시 시도해주세요'))
     }
   }, [sample])
 
@@ -143,7 +143,7 @@ export default function CryMonitorScreen() {
         setSample(updated)
         setCorrectionModal(false)
       } catch (e: unknown) {
-        Alert.alert('저장 실패', extractErrorMessage(e, '다시 시도해주세요'))
+        setError(extractErrorMessage(e, '다시 시도해주세요'))
       }
     },
     [sample],

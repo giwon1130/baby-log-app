@@ -1,14 +1,16 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { ActivityIndicator, Alert, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 
 import { confirmCrySample, getCryHistory } from '../api/babyLogApi'
 import { useStoredBaby } from '../hooks/useStoredBaby'
+import { useErrorRetry } from '../hooks/useErrorRetry'
 import type { CryLabel, CrySample } from '../types'
 import { CorrectionModal } from '../components/cry/CorrectionModal'
 import { LearningStageBanner } from '../components/cry/LearningStageBanner'
 import EmptyState from '../components/EmptyState'
+import ErrorBanner from '../components/ErrorBanner'
 import { extractErrorMessage } from '../utils/errors'
 
 import { COLORS, NEUTRALS, FONT } from '../utils/constants'
@@ -21,6 +23,7 @@ import { COLORS, NEUTRALS, FONT } from '../utils/constants'
  */
 export default function CryHistoryScreen() {
   const { babyId, initialized } = useStoredBaby()
+  const { error, retry, showError, dismissError } = useErrorRetry()
   const [items, setItems] = useState<CrySample[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -31,9 +34,9 @@ export default function CryHistoryScreen() {
       const data = await getCryHistory(bId, 100)
       setItems(data)
     } catch (e: unknown) {
-      Alert.alert('불러오기 실패', extractErrorMessage(e, '잠시 후 다시 시도해주세요'))
+      showError(extractErrorMessage(e, '잠시 후 다시 시도해주세요'), () => load(bId))
     }
-  }, [])
+  }, [showError])
 
   useEffect(() => {
     if (!initialized) return
@@ -56,10 +59,10 @@ export default function CryHistoryScreen() {
         setItems((prev) => prev.map((s) => (s.id === updated.id ? updated : s)))
         setEditing(null)
       } catch (e: unknown) {
-        Alert.alert('저장 실패', extractErrorMessage(e, '다시 시도해주세요'))
+        showError(extractErrorMessage(e, '다시 시도해주세요'), () => handleConfirm(label))
       }
     },
-    [editing],
+    [editing, showError],
   )
 
   const stats = computeStats(items)
@@ -75,6 +78,7 @@ export default function CryHistoryScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
+      <ErrorBanner message={error} onDismiss={dismissError} onRetry={retry ?? undefined} />
       <ScrollView
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
