@@ -1,4 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react'
+import { useFocusEffect } from '@react-navigation/native'
 import {
   Animated,
   NativeScrollEvent,
@@ -14,6 +15,7 @@ import FeedLogScreen from './FeedLogScreen'
 import DiaperLogScreen from './DiaperLogScreen'
 import SleepScreen from './SleepScreen'
 import { COLORS, NEUTRALS, FONT } from '../utils/constants'
+import type { MainTabScreenProps } from '../navigation/types'
 
 const TABS = [
   { key: 'feed', label: '🍼 수유' },
@@ -21,17 +23,31 @@ const TABS = [
   { key: 'sleep', label: '😴 수면' },
 ] as const
 
+const TAB_INDEX: Record<string, number> = { feed: 0, diaper: 1, sleep: 2 }
+
 /**
  * 수유·기저귀·수면을 가로 페이징으로 묶은 기록 탭.
  * 세 화면이 항상 마운트돼 있어 탭 전환 시 입력값·스크롤 위치가 보존되고,
  * 좌우 스와이프 + 슬라이딩 인디케이터로 전환이 부드럽다.
  */
-export default function LogScreen() {
+export default function LogScreen({ route }: MainTabScreenProps<'Log'>) {
   const { width } = useWindowDimensions()
   const tabWidth = width / TABS.length
   const [activeIndex, setActiveIndex] = useState(0)
   const scrollRef = useRef<ScrollView>(null)
   const scrollX = useRef(new Animated.Value(0)).current
+
+  // 위젯 딥링크(babylog://log/feed 등)로 진입 시 해당 서브탭으로 이동.
+  // 위젯을 다시 탭하면 같은 화면이 포커스되므로 useFocusEffect 로 매번 반영.
+  const requestedTab = route.params?.tab
+  useFocusEffect(useCallback(() => {
+    if (requestedTab == null) return
+    const i = TAB_INDEX[requestedTab]
+    if (i == null) return
+    setActiveIndex(i)
+    // 레이아웃 직후 스크롤 — animated:false 로 깜빡임 없이 바로 위치
+    requestAnimationFrame(() => scrollRef.current?.scrollTo({ x: i * width, animated: false }))
+  }, [requestedTab, width]))
 
   // 스크롤 위치(0..2*width)를 탭 인디케이터 위치(0..2*tabWidth)로 매핑
   const indicatorTranslate = scrollX.interpolate({

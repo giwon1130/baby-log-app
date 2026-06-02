@@ -120,7 +120,7 @@ export default function QuickFeed({
     setLoadingKey(key)
     try {
       const record = await recordFeed(babyId, { ...payload, feedType: type })
-      if (record.nextFeedAt) await scheduleFeedNotification(record.nextFeedAt, babyName)
+      if (record.nextFeedAt) await scheduleFeedNotification(record.nextFeedAt, babyName, record.fedAt, babyId)
       await rememberLastFeed({
         feedType: type,
         amountMl: payload.amountMl,

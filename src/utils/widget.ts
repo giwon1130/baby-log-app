@@ -15,6 +15,8 @@ export function updateFeedWidget(params: {
   babyName?: string
   lastFedAt?: string | null
   nextFeedAt?: string | null
+  lastDiaperAt?: string | null
+  lastSleepEndAt?: string | null
   feedCount?: number
   totalFeedMl?: number
   diaperCount?: number
@@ -22,10 +24,13 @@ export function updateFeedWidget(params: {
   totalSleepMinutes?: number
 }): void {
   if (!storage) return
+  const toMs = (v?: string | null) => (v ? new Date(v).getTime() : 0)
   try {
     storage.set('babyName', params.babyName ?? '아기')
-    storage.set('lastFedAt', params.lastFedAt ? new Date(params.lastFedAt).getTime() : 0)
-    storage.set('nextFeedAt', params.nextFeedAt ? new Date(params.nextFeedAt).getTime() : 0)
+    storage.set('lastFedAt', toMs(params.lastFedAt))
+    storage.set('nextFeedAt', toMs(params.nextFeedAt))
+    storage.set('lastDiaperAt', toMs(params.lastDiaperAt))
+    storage.set('lastSleepEndAt', toMs(params.lastSleepEndAt))
     storage.set('feedCount', params.feedCount ?? 0)
     storage.set('totalFeedMl', params.totalFeedMl ?? 0)
     storage.set('diaperCount', params.diaperCount ?? 0)

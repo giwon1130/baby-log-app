@@ -10,7 +10,10 @@ struct FeedEntry: TimelineEntry {
     let babyName: String
     let lastFedAt: Date?
     let nextFeedAt: Date?
-    // 오늘 요약 (medium 위젯)
+    // 마지막 활동 (large 위젯)
+    let lastDiaperAt: Date?
+    let lastSleepEndAt: Date?
+    // 오늘 요약 (medium·large 위젯)
     let feedCount: Int
     let totalFeedMl: Int
     let diaperCount: Int
@@ -21,6 +24,7 @@ struct FeedEntry: TimelineEntry {
 struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> FeedEntry {
         FeedEntry(date: Date(), babyName: "아기", lastFedAt: Date(), nextFeedAt: Date(),
+                  lastDiaperAt: Date(), lastSleepEndAt: Date(),
                   feedCount: 6, totalFeedMl: 540, diaperCount: 5, sleepCount: 3, totalSleepMinutes: 540)
     }
 
@@ -40,6 +44,8 @@ struct Provider: TimelineProvider {
             babyName: d?.string(forKey: "babyName") ?? "아기",
             lastFedAt: dateFromMillis(d?.object(forKey: "lastFedAt")),
             nextFeedAt: dateFromMillis(d?.object(forKey: "nextFeedAt")),
+            lastDiaperAt: dateFromMillis(d?.object(forKey: "lastDiaperAt")),
+            lastSleepEndAt: dateFromMillis(d?.object(forKey: "lastSleepEndAt")),
             feedCount: d?.integer(forKey: "feedCount") ?? 0,
             totalFeedMl: d?.integer(forKey: "totalFeedMl") ?? 0,
             diaperCount: d?.integer(forKey: "diaperCount") ?? 0,
@@ -148,6 +154,84 @@ struct MediumWidgetView: View {
     }
 }
 
+// ── Large ────────────────────────────────────────────────────────────────
+
+/** 마지막 활동 한 줄 — 아이콘·라벨·상대시각. 탭 영역(Link)으로 감싸 사용. */
+private struct ActivityRow: View {
+    let icon: String
+    let label: String
+    let date: Date?
+    let accent: Color
+    var body: some View {
+        HStack(spacing: 8) {
+            Text(icon).font(.system(size: 14))
+            Text(label).font(.system(size: 13)).foregroundColor(.secondary)
+            Spacer(minLength: 4)
+            if let date = date {
+                Text(date, style: .relative).font(.system(size: 14, weight: .bold)).foregroundColor(accent)
+            } else {
+                Text("기록 없음").font(.system(size: 13, weight: .semibold)).foregroundColor(.secondary)
+            }
+        }
+        .padding(.vertical, 5)
+        .contentShape(Rectangle())
+    }
+}
+
+private struct SummaryStat: View {
+    let icon: String
+    let value: String
+    let sub: String
+    var body: some View {
+        VStack(spacing: 1) {
+            Text(icon).font(.system(size: 13))
+            Text(value).font(.system(size: 13, weight: .bold))
+            Text(sub).font(.system(size: 10)).foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+struct LargeWidgetView: View {
+    let entry: FeedEntry
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Text("🍼").font(.title3)
+                Text(entry.babyName).font(.headline).bold().lineLimit(1)
+                Spacer()
+                if let next = entry.nextFeedAt {
+                    Text("다음 수유 ").font(.system(size: 11)).foregroundColor(.secondary)
+                    + Text(next, style: .time).font(.system(size: 12, weight: .bold)).foregroundColor(brandPink)
+                }
+            }
+
+            Divider()
+
+            // 마지막 활동 — 각 행 탭 시 앱의 해당 기록 화면으로 (widgetURL 딥링크)
+            Link(destination: URL(string: "babylog://log/feed")!) {
+                ActivityRow(icon: "🍼", label: "마지막 수유", date: entry.lastFedAt, accent: brandPink)
+            }
+            Link(destination: URL(string: "babylog://log/diaper")!) {
+                ActivityRow(icon: "🧷", label: "마지막 기저귀", date: entry.lastDiaperAt, accent: .primary)
+            }
+            Link(destination: URL(string: "babylog://log/sleep")!) {
+                ActivityRow(icon: "😴", label: "마지막 수면", date: entry.lastSleepEndAt, accent: .primary)
+            }
+
+            Divider()
+
+            HStack(alignment: .top, spacing: 4) {
+                SummaryStat(icon: "🍼", value: "\(entry.feedCount)회", sub: "\(entry.totalFeedMl)ml")
+                SummaryStat(icon: "🧷", value: "\(entry.diaperCount)회", sub: "기저귀")
+                SummaryStat(icon: "😴", value: "\(entry.sleepCount)회", sub: sleepText(entry.totalSleepMinutes))
+            }
+            .padding(.top, 2)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
+}
+
 // ── Lock Screen (accessory, iOS 16+) ─────────────────────────────────────
 
 struct AccessoryRectangularView: View {
@@ -202,7 +286,14 @@ struct WidgetEntryView: View {
     var entry: FeedEntry
 
     var body: some View {
+        content.widgetURL(URL(string: "babylog://home"))
+    }
+
+    @ViewBuilder
+    private var content: some View {
         switch family {
+        case .systemLarge:
+            LargeWidgetView(entry: entry)
         case .systemMedium:
             MediumWidgetView(entry: entry)
         case .accessoryRectangular:
@@ -234,7 +325,7 @@ struct BabyLogWidget: Widget {
         .configurationDisplayName("수유 현황")
         .description("마지막·다음 수유와 오늘 요약을 한눈에")
         .supportedFamilies([
-            .systemSmall, .systemMedium,
+            .systemSmall, .systemMedium, .systemLarge,
             .accessoryRectangular, .accessoryCircular, .accessoryInline,
         ])
     }

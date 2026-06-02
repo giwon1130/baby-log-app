@@ -118,7 +118,7 @@ export default function SleepScreen() {
     try {
       const ended = await endSleep(babyId, activeSleep.id, {})
       await reload(babyId)
-      if (ended.wokeAt) await scheduleNapReminder(ended.wokeAt, babyName)
+      if (ended.wokeAt) await scheduleNapReminder(ended.wokeAt, babyName, babyId)
     } catch (err) {
       showError(extractErrorMessage(err, '수면 종료 기록에 실패했어요'), handleEnd)
     } finally {

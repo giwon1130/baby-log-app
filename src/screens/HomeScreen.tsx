@@ -10,19 +10,21 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import { getActiveSleep, getBabies, getGrowthStage, getLatestFeed, getMonthlyPhotos, getTodayStats } from '../api/babyLogApi'
+import { getActiveSleep, getBabies, getDiapers, getGrowthStage, getLatestFeed, getMonthlyPhotos, getSleepRecords, getTodayStats } from '../api/babyLogApi'
+import { setStoredBaby } from '../api/client'
 import { scheduleFeedNotification } from '../utils/notifications'
 import { updateFeedWidget } from '../utils/widget'
 import { useFamilyStream } from '../hooks/useFamilyStream'
 import { useStoredBaby } from '../hooks/useStoredBaby'
 import { registerPushTokenForFamily } from '../api/pushRegistration'
 import QuickActions from '../components/QuickActions'
+import BabySwitcherSheet from '../components/baby/BabySwitcherSheet'
 import ErrorBanner from '../components/ErrorBanner'
 import EmptyState from '../components/EmptyState'
 import PromoBadge from '../components/PromoBadge'
 import UndoToast, { type UndoAction } from '../components/UndoToast'
 import { parseApiTimestamp, timeUntil, formatDuration as formatSleep, formatAge } from '../utils/dateUtils'
-import type { GrowthStage, SleepRecord, TodayStats } from '../types'
+import type { Baby, GrowthStage, SleepRecord, TodayStats } from '../types'
 import type { MainTabScreenProps } from '../navigation/types'
 
 import { COLORS, NEUTRALS, FONT } from '../utils/constants'
@@ -30,6 +32,8 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const { babyId, familyId, babyName, daysOld, initialized, loadBaby } = useStoredBaby()
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [babies, setBabies] = useState<Baby[]>([])
+  const [switcherVisible, setSwitcherVisible] = useState(false)
   const [todayStats, setTodayStats] = useState<TodayStats | null>(null)
   const [activeSleep, setActiveSleep] = useState<SleepRecord | null>(null)
   const [nextFeedAt, setNextFeedAt] = useState<string | null>(null)
@@ -45,23 +49,33 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   // baby.name 은 scheduleFeedNotification 에 넘기려고 babies 한 번 더 조회.
   // babyName/daysOld 자체는 useStoredBaby 가 관리하므로 set 호출 없음.
   const loadData = useCallback(async (bid: string, fid: string) => {
-    const [feed, babies, stats, active] = await Promise.allSettled([
+    const [feed, babies, stats, active, diapers, sleeps] = await Promise.allSettled([
       getLatestFeed(bid),
       getBabies(fid),
       getTodayStats(bid),
       getActiveSleep(bid),
+      getDiapers(bid, 1),
+      getSleepRecords(bid, 5),
     ])
     if (babies.status === 'fulfilled') {
+      setBabies(babies.value)
       const baby = babies.value.find(b => b.id === bid)
       if (feed.status === 'fulfilled' && feed.value?.nextFeedAt) {
-        await scheduleFeedNotification(feed.value.nextFeedAt, baby?.name, feed.value.fedAt)
+        await scheduleFeedNotification(feed.value.nextFeedAt, baby?.name, feed.value.fedAt, bid)
       }
-      // iOS 홈 위젯 갱신 — 수유 시각 + 오늘 요약(medium 위젯용)
+      // iOS 홈 위젯 갱신 — 수유/기저귀/수면 마지막 시각 + 오늘 요약(medium·large 위젯용)
       const s = stats.status === 'fulfilled' ? stats.value : null
+      const lastDiaperAt = diapers.status === 'fulfilled' ? diapers.value[0]?.changedAt : null
+      // 가장 최근 '완료된' 수면의 기상 시각 — wokeAt 있는 첫 기록
+      const lastSleepEndAt = sleeps.status === 'fulfilled'
+        ? sleeps.value.find(sl => sl.wokeAt)?.wokeAt ?? null
+        : null
       updateFeedWidget({
         babyName: baby?.name,
         lastFedAt: feed.status === 'fulfilled' ? feed.value?.fedAt : null,
         nextFeedAt: feed.status === 'fulfilled' ? feed.value?.nextFeedAt : null,
+        lastDiaperAt,
+        lastSleepEndAt,
         feedCount: s?.feedCount,
         totalFeedMl: s?.totalFeedMl,
         diaperCount: s?.diaperCount,
@@ -106,6 +120,15 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
   const onRecorded = useCallback(() => {
     if (babyId && familyId) loadData(babyId, familyId)
   }, [babyId, familyId, loadData])
+
+  // 홈 빠른 전환 — 아기 탭 진입 없이 즉시 전환. setStoredBaby 후 loadBaby() 가
+  // babyId state 를 갱신하면 위의 useEffect 가 새 아기로 loadData 를 다시 돈다.
+  const handleSwitchBaby = useCallback(async (baby: Baby) => {
+    setSwitcherVisible(false)
+    if (baby.id === babyId) return
+    await setStoredBaby(baby.id)
+    await loadBaby()
+  }, [babyId, loadBaby])
 
   useFamilyStream(familyId, useCallback(() => {
     if (babyId && familyId) loadData(babyId, familyId)
@@ -188,7 +211,20 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
                 </Text>
               )}
             </View>
-            <Text style={styles.babyCardEmoji}>👶</Text>
+            <View style={styles.babyCardRight}>
+              {babies.length > 1 && (
+                <TouchableOpacity
+                  style={styles.switchChip}
+                  onPress={() => setSwitcherVisible(true)}
+                  hitSlop={8}
+                  accessibilityRole="button"
+                  accessibilityLabel="아기 전환"
+                >
+                  <Text style={styles.switchChipText}>전환 ▾</Text>
+                </TouchableOpacity>
+              )}
+              <Text style={styles.babyCardEmoji}>👶</Text>
+            </View>
           </View>
         </TouchableOpacity>
 
@@ -261,6 +297,17 @@ export default function HomeScreen({ navigation }: MainTabScreenProps<'Home'>) {
         )}
       </ScrollView>
       <UndoToast action={undoAction} onDismiss={() => setUndoAction(null)} />
+      <BabySwitcherSheet
+        visible={switcherVisible}
+        babies={babies}
+        selectedId={babyId}
+        onSelect={handleSwitchBaby}
+        onAddBaby={() => {
+          setSwitcherVisible(false)
+          if (familyId) navigation.navigate('FamilySetup', { mode: 'addBaby', familyId })
+        }}
+        onClose={() => setSwitcherVisible(false)}
+      />
     </View>
   )
 }
@@ -292,9 +339,17 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   babyCardTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  babyCardRight: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   babyCardName: { fontSize: FONT.hero, fontWeight: '800', color: NEUTRALS.white },
   babyCardAge: { fontSize: FONT.bodyMd, color: 'rgba(255,255,255,0.8)', marginTop: 2 },
   babyCardEmoji: { fontSize: 36 },
+  switchChip: {
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    borderRadius: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+  },
+  switchChipText: { color: NEUTRALS.white, fontWeight: '700', fontSize: FONT.label },
   guideCard: {
     backgroundColor: NEUTRALS.white,
     borderRadius: 12,

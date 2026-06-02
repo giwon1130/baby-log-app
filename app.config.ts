@@ -5,6 +5,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'BabyLog',
   slug: 'baby-log-app',
   version: '1.0.0',
+  scheme: 'babylog',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'light',

@@ -1,10 +1,10 @@
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs'
-import type { CompositeScreenProps } from '@react-navigation/native'
+import type { CompositeScreenProps, NavigatorScreenParams } from '@react-navigation/native'
 
 export type RootStackParamList = {
   FamilySetup: { mode?: 'addBaby'; familyId?: string } | undefined
-  Main: { screen?: keyof MainTabParamList } | undefined
+  Main: NavigatorScreenParams<MainTabParamList> | undefined
   GrowthRecord: undefined
   CryHistory: undefined
   MonthlyPhotos: { initialMonthIndex?: number } | undefined
@@ -12,9 +12,11 @@ export type RootStackParamList = {
   HealthTips: undefined
 }
 
+export type LogTab = 'feed' | 'diaper' | 'sleep'
+
 export type MainTabParamList = {
   Home: undefined
-  Log: undefined
+  Log: { tab?: LogTab } | undefined
   CryMonitor: undefined
   Stats: undefined
   BabyProfile: undefined

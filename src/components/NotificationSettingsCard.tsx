@@ -21,8 +21,8 @@ export function NotificationSettingsCard() {
   const [diaperEnabled, setDiaperEnabledLocal] = useState(true)
   const [sleepEnabled, setSleepEnabledLocal] = useState(true)
   const [summaryEnabled, setSummaryEnabledLocal] = useState(true)
-  const [diaperHours, setDiaperHoursLocal] = useState(3)
-  const [napHours, setNapHoursLocal] = useState(2)
+  const [diaperHours, setDiaperHoursLocal] = useState<number | null>(null)
+  const [napHours, setNapHoursLocal] = useState<number | null>(null)
   const [feedInterval, setFeedIntervalLocal] = useState<number | null>(null)
 
   useEffect(() => {
@@ -58,7 +58,7 @@ export function NotificationSettingsCard() {
           <Text style={styles.notifDesc}>
             {feedInterval != null
               ? `수유 ${feedInterval}시간 후 알림`
-              : '다음 수유 시간에 알림을 보내요 (자동)'}
+              : '우리 아기 수유 패턴을 학습해 자동으로 알림'}
           </Text>
           {feedEnabled && (
             <View style={styles.hourPicker}>
@@ -95,17 +95,23 @@ export function NotificationSettingsCard() {
       <View style={styles.notifRow}>
         <View style={{ flex: 1 }}>
           <Text style={styles.notifTitle}>🧷 기저귀 알림</Text>
-          <Text style={styles.notifDesc}>마지막 교환 {diaperHours}시간 후 알림</Text>
+          <Text style={styles.notifDesc}>
+            {diaperHours != null
+              ? `마지막 교환 ${diaperHours}시간 후 알림`
+              : '우리 아기 교환 패턴을 학습해 자동으로 알림'}
+          </Text>
           {diaperEnabled && (
             <View style={styles.hourPicker}>
-              {[1, 2, 3, 4, 5, 6].map(h => (
+              {([null, 1, 2, 3, 4, 5, 6] as (number | null)[]).map(h => (
                 <TouchableOpacity
-                  key={h}
+                  key={String(h)}
                   hitSlop={8}
                   style={[styles.hourChip, diaperHours === h && styles.hourChipActive]}
                   onPress={async () => { setDiaperHoursLocal(h); await setDiaperReminderHours(h) }}
                 >
-                  <Text style={[styles.hourChipText, diaperHours === h && styles.hourChipTextActive]}>{h}h</Text>
+                  <Text style={[styles.hourChipText, diaperHours === h && styles.hourChipTextActive]}>
+                    {h == null ? '자동' : `${h}h`}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -123,17 +129,23 @@ export function NotificationSettingsCard() {
       <View style={styles.notifRow}>
         <View style={{ flex: 1 }}>
           <Text style={styles.notifTitle}>😴 낮잠 알림</Text>
-          <Text style={styles.notifDesc}>기상 {napHours}시간 후 알림</Text>
+          <Text style={styles.notifDesc}>
+            {napHours != null
+              ? `기상 ${napHours}시간 후 알림`
+              : '우리 아기 깨어있는 시간을 학습해 자동으로 알림'}
+          </Text>
           {sleepEnabled && (
             <View style={styles.hourPicker}>
-              {[1, 2, 3, 4].map(h => (
+              {([null, 1, 2, 3, 4] as (number | null)[]).map(h => (
                 <TouchableOpacity
-                  key={h}
+                  key={String(h)}
                   hitSlop={8}
                   style={[styles.hourChip, napHours === h && styles.hourChipActive]}
                   onPress={async () => { setNapHoursLocal(h); await setNapReminderHours(h) }}
                 >
-                  <Text style={[styles.hourChipText, napHours === h && styles.hourChipTextActive]}>{h}h</Text>
+                  <Text style={[styles.hourChipText, napHours === h && styles.hourChipTextActive]}>
+                    {h == null ? '자동' : `${h}h`}
+                  </Text>
                 </TouchableOpacity>
               ))}
             </View>

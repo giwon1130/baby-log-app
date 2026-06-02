@@ -58,7 +58,7 @@ export default function QuickActions({
     setLoadingKey(`diaper-${type}`)
     try {
       const record = await recordDiaper(babyId, { diaperType: type })
-      await scheduleDiaperReminder(record.changedAt, babyName)
+      await scheduleDiaperReminder(record.changedAt, babyName, babyId)
       onRecorded()
       onUndoAvailable({
         message: `기저귀 ${diaperLabelFor(type)} 기록`,

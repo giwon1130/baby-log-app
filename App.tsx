@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { NavigationContainer, NavigationContainerRef } from '@react-navigation/native'
+import type { LinkingOptions } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { Ionicons } from '@expo/vector-icons'
@@ -23,6 +24,25 @@ import { NEUTRALS } from './src/utils/constants'
 
 const Tab = createBottomTabNavigator<MainTabParamList>()
 const Stack = createNativeStackNavigator<RootStackParamList>()
+
+// 홈 위젯(widgetURL) 딥링크 라우팅. 예: babylog://log/feed → 기록 탭의 수유 서브탭.
+const linking: LinkingOptions<RootStackParamList> = {
+  prefixes: ['babylog://'],
+  config: {
+    screens: {
+      Main: {
+        screens: {
+          Home: 'home',
+          Log: 'log/:tab?',
+          Stats: 'stats',
+          BabyProfile: 'baby',
+        },
+      },
+      MonthlyPhotos: 'monthly-photos',
+      HealthTips: 'health',
+    },
+  },
+}
 
 function MainTabs() {
   return (
@@ -98,7 +118,7 @@ export default function App() {
   if (!initialRoute) return null
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} linking={linking}>
       <Stack.Navigator initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
         <Stack.Screen name="FamilySetup" component={FamilySetupScreen} />
         <Stack.Screen name="Main" component={MainTabs} />

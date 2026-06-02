@@ -97,7 +97,7 @@ export default function DiaperLogScreen() {
       setChangedAt(new Date())
       const typeLabel: Record<string, string> = { WET: '소변', DIRTY: '대변', MIXED: '혼합', DRY: '깨끗' }
       setSuccess(`기저귀 교환 기록 완료 (${typeLabel[diaperType] ?? diaperType})`)
-      await scheduleDiaperReminder(changedAtIso, babyName)
+      await scheduleDiaperReminder(changedAtIso, babyName, babyId)
     } catch (err) {
       showError(extractErrorMessage(err, '기저귀 기록 저장에 실패했어요'), handleSubmit)
     } finally {
