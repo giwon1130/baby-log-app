@@ -1,9 +1,31 @@
-# baby-log-app
+# 베이비로그 (BabyLog) — 신생아 케어 기록 앱
 
-신생아 수유/기저귀/수면/성장/울음분석 Expo 앱 ("베이비로그")
+> 수유·기저귀·수면·성장을 한 손으로 빠르게 기록하고, **아기 울음을 온디바이스 AI로 분석**해요.
+> 부부가 함께 실시간으로 공유하는 육아 로그.
 
-Expo SDK 54 · React Native 0.81 · TypeScript · iOS 중심 (Android도 빌드 가능)
-백엔드: [`baby-log-api`](https://github.com/giwon1130/baby-log-api) (Spring Boot, Railway 배포)
+<p>📱 iOS TestFlight 운영 중 · 🍼 온디바이스 울음분석(음성 미전송) · ⚙️ 백엔드 Spring Boot(Kotlin)·Railway</p>
+
+## 📸 스크린샷
+
+| 홈 (빠른 기록) | 기록 | 울음분석 | 통계 | 아기 |
+|:---:|:---:|:---:|:---:|:---:|
+| ![홈](docs/screenshots/home.png) | ![기록](docs/screenshots/log.png) | ![울음분석](docs/screenshots/cry.png) | ![통계](docs/screenshots/stats.png) | ![아기](docs/screenshots/baby.png) |
+
+> 스크린샷은 `docs/screenshots/` 에 추가됩니다(작업 예정).
+
+## 한눈에
+
+**베이비로그**는 잠 못 자는 신생아 부모를 위한 기록 앱입니다. 한 손·한 탭으로 빠르게 남기고, 패턴을 통계로 보고, 우는 이유까지 AI가 추정해 줍니다.
+
+- **1탭 빠른 기록** — 수유 `↻ 다시` 반복, 기저귀 타일, 수면 토글
+- **온디바이스 울음분석** — 5초 녹음 → 음향 특징 추출로 분류(배고픔/졸림/불편/트림/통증). **음성 파일은 저장·전송하지 않고 숫자 요약만** 서버로(프라이버시)
+- **통계** — 24시간 리듬 차트·주간 패턴 히트맵·수유량/수면
+- **부부 공유** — 가족 초대 코드로 실시간 동기화 + 다음 수유 시간 로컬 알림
+
+## 🛠 기술 스택
+Expo · React Native · TypeScript · **Expo 로컬 네이티브 모듈(Swift/Accelerate, `modules/cry-detector`)** · Spring Boot(Kotlin) · Railway · EAS(TestFlight)
+
+---
 
 ## 스크린 구성
 
