@@ -11,7 +11,7 @@
 |:---:|:---:|:---:|:---:|:---:|
 | ![홈](docs/screenshots/home.png) | ![기록](docs/screenshots/log.png) | ![울음분석](docs/screenshots/cry.png) | ![통계](docs/screenshots/stats.png) | ![아기](docs/screenshots/baby.png) |
 
-> 스크린샷은 `docs/screenshots/` 에 추가됩니다(작업 예정).
+> iOS 시뮬레이터 캡쳐. 울음분석은 **음성 미전송**(온디바이스 feature 추출 → 숫자 요약만 서버로), 통계는 24시간 리듬 차트 + 주간 패턴 히트맵.
 
 ## 한눈에
 
